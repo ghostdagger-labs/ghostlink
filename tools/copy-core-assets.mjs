@@ -6,7 +6,7 @@ const require = createRequire(new URL('package.json', root));
 await mkdir(new URL('dist/assets/fonts/', root), { recursive: true });
 await copyFile(new URL('src/styles.css', root), new URL('dist/styles.css', root));
 let css = '';
-for (const [id, name, weights] of [['figtree', 'Figtree', [400,500,600,700,800]], ['space-grotesk', 'Space Grotesk', [400,500,600,700]], ['jetbrains-mono', 'JetBrains Mono', [400,500,600]]]) {
+for (const [id, name, weights] of [['figtree', 'Figtree', [400,500,600,700,800]], ['sora', 'Sora', [400,500,600,700,800]], ['jetbrains-mono', 'JetBrains Mono', [400,500,600]]]) {
   const directory = dirname(require.resolve(`@fontsource/${id}/package.json`));
   for (const weight of weights) {
     const filename = `${id}-latin-${weight}-normal.woff2`;

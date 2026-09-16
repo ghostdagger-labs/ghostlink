@@ -32,7 +32,7 @@
   },
   "devDependencies": {
     "@fontsource/figtree": "^5.2.0",
-    "@fontsource/space-grotesk": "^5.2.0",
+    "@fontsource/sora": "^5.2.0",
     "@fontsource/jetbrains-mono": "^5.2.0"
   }
 }

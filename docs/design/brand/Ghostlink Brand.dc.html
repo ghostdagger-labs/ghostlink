@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Figtree:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+--bg:#0C0D11;--surf:#14161B;--surf2:#1B1E25;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.16);
+--ink:#F3F4F7;--ink2:#A5AAB5;--ink3:#8D949D;
+--acc:#8D7BFF;--accSoft:rgba(141,123,255,.14);--accLine:rgba(141,123,255,.38);--accInk:#0C0D11;
+--ok:#7FC8A9;--okSoft:rgba(127,200,169,.12);--danger:#E8897C;--dangerSoft:rgba(232,137,124,.12);--dangerLine:rgba(232,137,124,.34);
+--chip:rgba(255,255,255,.05);--chipOn:#F3F4F7;--chipOnInk:#0C0D11;
+--shadow:0 1px 0 rgba(255,255,255,.03),0 18px 40px -24px rgba(0,0,0,.9);
+--code:#08090C;--codeInk:#C9CEDA;
+}
+[data-theme="light"]{
+--bg:#F3F3F5;--surf:#FFFFFF;--surf2:#F8F8FA;--line:rgba(14,16,22,.10);--line2:rgba(14,16,22,.18);
+--ink:#13151A;--ink2:#5C626C;--ink3:#666D76;
+--acc:#5B46E0;--accSoft:rgba(91,70,224,.10);--accLine:rgba(91,70,224,.32);--accInk:#FFFFFF;
+--ok:#2F7D5B;--okSoft:rgba(47,125,91,.10);--danger:#B4503C;--dangerSoft:rgba(180,80,60,.08);--dangerLine:rgba(180,80,60,.3);
+--chip:rgba(14,16,22,.05);--chipOn:#13151A;--chipOnInk:#FFFFFF;
+--shadow:0 1px 2px rgba(14,16,22,.05),0 16px 32px -26px rgba(14,16,22,.4);
+--code:#15171D;--codeInk:#D5D9E2;
+}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:Figtree,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:var(--acc);text-decoration:none}
+a:hover{color:var(--ink)}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:var(--line2);border-radius:8px}::-webkit-scrollbar-track{background:transparent}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes drift{0%,100%{opacity:.5}50%{opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:var(--bg)">
+
+<header style="position:sticky;top:0;z-index:30;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg) 85%,transparent);backdrop-filter:blur(14px)">
+  <div style="max-width:1180px;margin:0 auto;padding:10px 24px;min-height:62px;display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+    <span style="display:flex;align-items:center;gap:9px">
+      <svg width="30" height="18" viewBox="0 0 34 20" fill="none" style="flex:none">
+        <circle cx="11" cy="10" r="6.4" fill="var(--acc)"></circle>
+        <circle cx="23" cy="10" r="6.4" fill="none" stroke="var(--acc)" stroke-width="2.1"></circle>
+      </svg>
+      <span style="font-family:Sora,sans-serif;font-weight:600;font-size:17px;letter-spacing:-.5px;color:var(--ink)">Ghostlink</span>
+    </span>
+    <nav style="display:flex;gap:2px;flex-wrap:wrap">
+      <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+        <button onClick="{{ t.pick }}" style="height:32px;padding:0 13px;border-radius:9px;font-size:13.5px;font-weight:600;background:{{ t.bg }};color:{{ t.fg }}" style-hover="color:var(--ink)">{{ t.name }}</button>
+      </sc-for>
+    </nav>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+      <span style="font:600 11px 'JetBrains Mono',monospace;color:var(--ink3);padding:4px 9px;border-radius:999px;background:var(--chip)">v0.1.0-alpha</span>
+      <button onClick="{{ toggleTheme }}" style="width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:var(--surf);display:grid;place-items:center;color:var(--ink2)" style-hover="color:var(--ink);border-color:var(--line2)">
+        <sc-if value="{{ isDark }}" hint-placeholder-val="{{ true }}">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+        </sc-if>
+        <sc-if value="{{ isLight }}" hint-placeholder-val="{{ false }}">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6.4 6.4 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+        </sc-if>
+      </button>
+    </div>
+  </div>
+</header>
+
+<sc-if value="{{ tabBrand }}" hint-placeholder-val="{{ true }}">
+<main style="max-width:1180px;margin:0 auto;padding:40px 24px 90px;display:flex;flex-direction:column;gap:22px">
+
+  <section style="border:1px solid var(--line);border-radius:22px;background:var(--surf);padding:44px 34px;position:relative;overflow:hidden;animation:fadeUp .4s ease both">
+    <span style="position:absolute;inset:0;background:radial-gradient(70% 120% at 80% -20%,var(--accSoft),transparent 60%);pointer-events:none"></span>
+    <div style="position:relative;display:flex;flex-direction:column;gap:26px">
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <svg width="76" height="45" viewBox="0 0 34 20" fill="none" style="flex:none">
+          <circle cx="11" cy="10" r="6.4" fill="var(--acc)"></circle>
+          <circle cx="23" cy="10" r="6.4" fill="none" stroke="var(--acc)" stroke-width="2.1"></circle>
+        </svg>
+        <span style="font-family:Sora,sans-serif;font-weight:600;font-size:46px;letter-spacing:-2px;line-height:1;color:var(--ink)">Ghostlink</span>
+      </div>
+      <p style="margin:0;max-width:44ch;font-size:19px;line-height:1.45;color:var(--ink2);text-wrap:pretty">One wallet connection layer for every Kaspa app. Pair, propose, sign — in four lines of TypeScript.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button onClick="{{ goDocs }}" style="height:46px;padding:0 20px;border-radius:12px;background:var(--acc);color:var(--accInk);font-size:14.5px;font-weight:700" style-hover="filter:brightness(1.08)">Read the docs</button>
+        <button onClick="{{ copyInstall }}" style="height:46px;padding:0 18px;border-radius:12px;border:1px solid var(--line2);font:600 13.5px 'JetBrains Mono',monospace;color:var(--ink2);display:flex;align-items:center;gap:10px" style-hover="color:var(--ink);border-color:var(--acc)">
+          npm i @ghostlink/sdk
+          <span style="font:600 11px Figtree;color:var(--ink3)">{{ copyLabel }}</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px">
+    <section style="border:1px solid var(--line);border-radius:18px;background:var(--surf);padding:22px">
+      <div style="font:700 10.5px Figtree;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);margin-bottom:16px">The mark</div>
+      <div style="display:grid;place-items:center;height:150px;border-radius:14px;background:var(--surf2);margin-bottom:14px">
+        <svg width="120" height="71" viewBox="0 0 34 20" fill="none">
+          <circle cx="11" cy="10" r="6.4" fill="var(--acc)"></circle>
+          <circle cx="23" cy="10" r="6.4" fill="none" stroke="var(--acc)" stroke-width="2.1"></circle>
+        </svg>
+      </div>
+      <p style="margin:0;font-size:13.5px;line-height:1.55;color:var(--ink2);text-wrap:pretty">Two nodes, overlapping. The solid one is the app; the outlined one is the wallet — present, but never held. The overlap is the session.</p>
+    </section>
+
+    <section style="border:1px solid var(--line);border-radius:18px;background:var(--surf);padding:22px">
+      <div style="font:700 10.5px Figtree;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);margin-bottom:16px">Construction</div>
+      <div style="display:grid;place-items:center;height:150px;border-radius:14px;background:var(--surf2);margin-bottom:14px">
+        <svg width="140" height="82" viewBox="0 0 34 20">
+          <g stroke="var(--line2)" stroke-width=".3" fill="none">
+            <path d="M0 10h34M11 0v20M23 0v20"></path>
+            <rect x="4.6" y="3.6" width="12.8" height="12.8"></rect>
+            <rect x="16.6" y="3.6" width="12.8" height="12.8"></rect>
+          </g>
+          <circle cx="11" cy="10" r="6.4" fill="var(--acc)" opacity=".5"></circle>
+          <circle cx="23" cy="10" r="6.4" fill="none" stroke="var(--acc)" stroke-width="2.1"></circle>
+        </svg>
+      </div>
+      <p style="margin:0;font-size:13.5px;line-height:1.55;color:var(--ink2);text-wrap:pretty">Radius 6.4 on a 12-unit pitch, so the nodes overlap by exactly one sixth of a diameter. Stroke is one third of the radius. Never redraw by eye.</p>
+    </section>
+
+    <section style="border:1px solid var(--line);border-radius:18px;background:var(--surf);padding:22px">
+      <div style="font:700 10.5px Figtree;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);margin-bottom:16px">Lockups</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <sc-for list="{{ lockups }}" as="l" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:12px;padding:13px 15px;border-radius:12px;background:{{ l.bg }};border:1px solid var(--line)">
+            <svg width="26" height="16" viewBox="0 0 34 20" fill="none" style="flex:none">
+              <circle cx="11" cy="10" r="6.4" fill="{{ l.markFill }}"></circle>
+              <circle cx="23" cy="10" r="6.4" fill="none" stroke="{{ l.markFill }}" stroke-width="2.1"></circle>
+            </svg>
+            <span style="font-family:Sora,sans-serif;font-weight:600;font-size:15px;letter-spacing:-.4px;color:{{ l.fg }}">Ghostlink</span>
+            <span style="margin-left:auto;font:600 10.5px 'JetBrains Mono',monospace;color:{{ l.noteFg }}">{{ l.note }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+  </div>
+
+  <section style="border:1px solid var(--line);border-radius:18px;background:var(--surf);padding:22px">
+    <div style="font:700 10.5px Figtree;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);margin-bottom:16px">Palette</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px">
+      <sc-for list="{{ swatches }}" as="s" hint-placeholder-count="7">
+        <div style="border:1px solid var(--line);border-radius:14px;overflow:hidden">
+          <div style="height:74px;background:{{ s.value }};border-bottom:1px solid var(--line)"></div>
+          <div style="padding:11px 12px">
+            <div style="font-size:12.5px;font-weight:700;color:var(--ink)">{{ s.name }}</div>
+            <div style="font:500 11px 'JetBrains Mono',monospace;color:var(--ink3);margin-top:3px">{{ s.token }}</div>
+            <div style="font:500 11px 'JetBrains Mono',monospace;color:var(--ink3)">{{ s.hex }}</div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+    <p style="margin:16px 0 0;font-size:13px;line-height:1.55;color:var(--ink2);max-width:76ch;text-wrap:pretty">Spectral violet is the only brand hue. Everything else is neutral, so a host app can override <span style="font:600 12px 'JetBrains Mono',monospace;color:var(--ink)">--gl-accent</span> and Ghostlink disappears into their design system. Green and red carry state, never brand.</p>
+  </section>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px">
+    <section style="border:1px solid var(--line);border-radius:18px;background:var(--surf);padding:22px">
+      <div style="font:700 10.5px Figtree;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);margin-bottom:18px">Type</div>
+      <div style="font-family:Sora,sans-serif;font-weight:600;font-size:38px;letter-spacing:-1.4px;line-height:1.05;color:var(--ink);margin-bottom:6px">Sora Semibold</div>
+      <div style="font:500 12px 'JetBrains Mono',monospace;color:var(--ink3);margin-bottom:22px">Display and headings · -1px to -2px tracking</div>
+      <div style="font-size:19px;line-height:1.5;color:var(--ink);margin-bottom:6px">Figtree Regular and Semibold</div>
+      <div style="font:500 12px 'JetBrains Mono',monospace;color:var(--ink3);margin-bottom:22px">UI and body copy · 13 to 19px</div>
+      <div style="font:500 17px 'JetBrains Mono',monospace;color:var(--ink);margin-bottom:6px">JetBrains Mono</div>
+      <div style="font:500 12px 'JetBrains Mono',monospace;color:var(--ink3)">Addresses, hashes, methods, code</div>
+    </section>
+
+    <section style="border:1px solid var(--line);border-radius:18px;background:var(--surf);padding:22px">
+      <div style="font:700 10.5px Figtree;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);margin-bottom:18px">Voice</div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <sc-for list="{{ voice }}" as="v" hint-placeholder-count="4">
+          <div style="display:flex;gap:12px">
+            <span style="flex:none;width:20px;height:20px;border-radius:6px;background:{{ v.bg }};display:grid;place-items:center;font:800 11px Figtree;color:{{ v.fg }};margin-top:2px">{{ v.mark }}</span>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13.5px;font-weight:600;color:var(--ink);line-height:1.4">{{ v.text }}</div>
+              <div style="font-size:12px;color:var(--ink3);margin-top:3px">{{ v.why }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+  </div>
+
+  <section style="border:1px solid var(--line);border-radius:18px;background:var(--surf);padding:22px">
+    <div style="font:700 10.5px Figtree;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);margin-bottom:16px">Misuse</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px">
+      <div style="border:1px solid var(--line);border-radius:13px;padding:14px;background:var(--surf2)">
+        <div style="height:58px;display:grid;place-items:center;margin-bottom:11px">
+          <svg width="54" height="32" viewBox="0 0 34 20" fill="none">
+            <circle cx="11" cy="10" r="6.4" fill="var(--ok)"></circle>
+            <circle cx="23" cy="10" r="6.4" fill="none" stroke="var(--acc)" stroke-width="2.1"></circle>
+          </svg>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px">
+          <span style="flex:none;width:15px;height:15px;border-radius:5px;background:var(--dangerSoft);display:grid;place-items:center;font:800 10px Figtree;color:var(--danger)">✕</span>
+          <span style="font-size:12.5px;color:var(--ink2);line-height:1.35">Nodes never take separate colours</span>
+        </div>
+      </div>
+      <div style="border:1px solid var(--line);border-radius:13px;padding:14px;background:var(--surf2)">
+        <div style="height:58px;display:grid;place-items:center;margin-bottom:11px">
+          <svg width="54" height="32" viewBox="0 0 34 20" fill="none">
+            <circle cx="11" cy="10" r="6.4" fill="var(--acc)"></circle>
+            <circle cx="23" cy="10" r="6.4" fill="var(--acc)"></circle>
+          </svg>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px">
+          <span style="flex:none;width:15px;height:15px;border-radius:5px;background:var(--dangerSoft);display:grid;place-items:center;font:800 10px Figtree;color:var(--danger)">✕</span>
+          <span style="font-size:12.5px;color:var(--ink2);line-height:1.35">Never fill the wallet node</span>
+        </div>
+      </div>
+      <div style="border:1px solid var(--line);border-radius:13px;padding:14px;background:var(--surf2)">
+        <div style="height:58px;display:grid;place-items:center;margin-bottom:11px">
+          <div style="transform:rotate(-20deg)">
+            <svg width="54" height="32" viewBox="0 0 34 20" fill="none">
+              <circle cx="11" cy="10" r="6.4" fill="var(--acc)"></circle>
+              <circle cx="23" cy="10" r="6.4" fill="none" stroke="var(--acc)" stroke-width="2.1"></circle>
+            </svg>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px">
+          <span style="flex:none;width:15px;height:15px;border-radius:5px;background:var(--dangerSoft);display:grid;place-items:center;font:800 10px Figtree;color:var(--danger)">✕</span>
+          <span style="font-size:12.5px;color:var(--ink2);line-height:1.35">Never rotate the pair</span>
+        </div>
+      </div>
+      <div style="border:1px solid var(--line);border-radius:13px;padding:14px;background:var(--surf2)">
+        <div style="height:58px;display:grid;place-items:center;margin-bottom:11px">
+          <div style="transform:scaleX(1.55)">
+            <svg width="46" height="27" viewBox="0 0 34 20" fill="none">
+              <circle cx="11" cy="10" r="6.4" fill="var(--acc)"></circle>
+              <circle cx="23" cy="10" r="6.4" fill="none" stroke="var(--acc)" stroke-width="2.1"></circle>
+            </svg>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px">
+          <span style="flex:none;width:15px;height:15px;border-radius:5px;background:var(--dangerSoft);display:grid;place-items:center;font:800 10px Figtree;color:var(--danger)">✕</span>
+          <span style="font-size:12.5px;color:var(--ink2);line-height:1.35">Never stretch the geometry</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+</sc-if>
+
+<sc-if value="{{ tabDocs }}" hint-placeholder-val="{{ false }}">
+<main style="max-width:1180px;margin:0 auto;padding:40px 24px 90px;display:flex;flex-direction:column;gap:24px">
+  <section style="display:flex;flex-direction:column;gap:20px;animation:fadeUp .4s ease both">
+    <span style="display:inline-flex;align-items:center;gap:8px;align-self:flex-start;padding:5px 12px;border-radius:999px;background:var(--accSoft);border:1px solid var(--accLine)">
+      <span style="width:6px;height:6px;border-radius:50%;background:var(--acc);animation:drift 2s infinite"></span>
+      <span style="font:600 11.5px 'JetBrains Mono',monospace;color:var(--acc)">KIP-WC draft · alpha</span>
+    </span>
+    <h1 style="margin:0;max-width:24ch;font-family:Sora,sans-serif;font-size:52px;line-height:1.04;letter-spacing:-2.4px;font-weight:600;color:var(--ink);text-wrap:balance">Wallet connections, solved once.</h1>
+    <p style="margin:0;max-width:56ch;font-size:19px;line-height:1.5;color:var(--ink2);text-wrap:pretty">Ghostlink is a TypeScript SDK for pairing Kaspa wallets with apps. It speaks the WalletConnect v2 session model over a CAIP-2 <span style="font:600 16px 'JetBrains Mono',monospace;color:var(--ink)">kaspa</span> namespace, so wallets that already ship WalletConnect need an adapter, not a rewrite.</p>
+  </section>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px">
+    <div style="border:1px solid var(--line);border-radius:16px;background:var(--surf);padding:20px">
+      <div style="width:34px;height:34px;border-radius:11px;background:var(--accSoft);display:grid;place-items:center;margin-bottom:13px;color:var(--acc)">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 0 1 0 10h-2M8 12h8"></path></svg>
+      </div>
+      <div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px">Sessions, not connections</div>
+      <div style="font-size:13.5px;line-height:1.55;color:var(--ink2);text-wrap:pretty">Long-lived sessions with explicit namespaces, expiry and re-auth — the WalletConnect v2 shape Kaspa wallets already understand.</div>
+    </div>
+    <div style="border:1px solid var(--line);border-radius:16px;background:var(--surf);padding:20px">
+      <div style="width:34px;height:34px;border-radius:11px;background:var(--accSoft);display:grid;place-items:center;margin-bottom:13px;color:var(--acc)">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 9-3 3 3 3M16 9l3 3-3 3M13 6l-2 12"></path></svg>
+      </div>
+      <div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px">Typed end to end</div>
+      <div style="font-size:13.5px;line-height:1.55;color:var(--ink2);text-wrap:pretty">Every method, event and error is a TypeScript union. Wrong chain ids and unsupported methods fail at compile time.</div>
+    </div>
+    <div style="border:1px solid var(--line);border-radius:16px;background:var(--surf);padding:20px">
+      <div style="width:34px;height:34px;border-radius:11px;background:var(--accSoft);display:grid;place-items:center;margin-bottom:13px;color:var(--acc)">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18h1.5a2.5 2.5 0 0 0 0-5H13a2 2 0 0 1 0-4h4a4 4 0 0 0 4-4 5 5 0 0 0-5-5Z"></path></svg>
+      </div>
+      <div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px">Headless, then themed</div>
+      <div style="font-size:13.5px;line-height:1.55;color:var(--ink2);text-wrap:pretty">Bring your own markup, or drop in the prebuilt modal and retheme it with six CSS variables.</div>
+    </div>
+    <div style="border:1px solid var(--line);border-radius:16px;background:var(--surf);padding:20px">
+      <div style="width:34px;height:34px;border-radius:11px;background:var(--accSoft);display:grid;place-items:center;margin-bottom:13px;color:var(--acc)">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v4a2 2 0 0 1-2 2H4v4h2a2 2 0 0 1 2 2v4h4v-2a2 2 0 0 1 2-2h4v-4h-2a2 2 0 0 1-2-2V3Z"></path></svg>
+      </div>
+      <div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px">Adapters, not rewrites</div>
+      <div style="font-size:13.5px;line-height:1.55;color:var(--ink2);text-wrap:pretty">Wallets map their existing signer onto four methods. Reference adapters for Kasware, Kastle and KSPR ship in the repo.</div>
+    </div>
+  </div>
+
+  <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px;align-items:start">
+    <div style="border:1px solid var(--line);border-radius:18px;background:var(--surf);overflow:hidden">
+      <div style="display:flex;align-items:center;gap:9px;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--surf2)">
+        <span style="font:600 11.5px 'JetBrains Mono',monospace;color:var(--ink3)">quickstart.ts</span>
+        <span style="margin-left:auto;font:600 10.5px Figtree;color:var(--acc)">4 lines</span>
+      </div>
+      <pre style="margin:0;padding:18px;background:var(--code);font:500 12.5px/1.75 'JetBrains Mono',monospace;color:var(--codeInk);overflow-x:auto">{{ codeQuick }}</pre>
+    </div>
+    <div style="border:1px solid var(--line);border-radius:18px;background:var(--surf);overflow:hidden">
+      <div style="display:flex;align-items:center;gap:9px;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--surf2)">
+        <span style="font:600 11.5px 'JetBrains Mono',monospace;color:var(--ink3)">requested namespace</span>
+      </div>
+      <pre style="margin:0;padding:18px;background:var(--code);font:500 12.5px/1.75 'JetBrains Mono',monospace;color:var(--codeInk);overflow-x:auto">{{ codeNamespace }}</pre>
+    </div>
+  </section>
+
+  <section style="border:1px solid var(--line);border-radius:18px;background:var(--surf);overflow:hidden">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--line);background:var(--surf2);font-family:Sora,sans-serif;font-weight:600;font-size:15px;color:var(--ink)">Session lifecycle</div>
+    <div style="padding:20px;display:flex;flex-direction:column">
+      <sc-for list="{{ lifecycle }}" as="l" hint-placeholder-count="6">
+        <div style="display:flex;gap:14px;align-items:flex-start">
+          <span style="flex:none;display:flex;flex-direction:column;align-items:center;align-self:stretch;width:12px">
+            <span style="flex:none;width:11px;height:11px;border-radius:50%;background:{{ l.dot }};margin-top:4px"></span>
+            <span style="width:1.5px;flex:1;background:{{ l.lineColor }}"></span>
+          </span>
+          <span style="flex:1;min-width:0;padding-bottom:18px">
+            <span style="display:block;font:600 13px 'JetBrains Mono',monospace;color:var(--ink);margin-bottom:3px">{{ l.method }}</span>
+            <span style="display:block;font-size:13px;line-height:1.5;color:var(--ink2);text-wrap:pretty">{{ l.body }}</span>
+          </span>
+          <span style="flex:none;font:600 10.5px Figtree;letter-spacing:.05em;text-transform:uppercase;color:{{ l.sideFg }};background:{{ l.sideBg }};padding:3px 8px;border-radius:999px">{{ l.side }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="border:1px solid var(--line);border-radius:18px;background:var(--surf);overflow:hidden">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--line);background:var(--surf2);font-family:Sora,sans-serif;font-weight:600;font-size:15px;color:var(--ink)">Method map</div>
+    <div style="overflow-x:auto">
+      <div style="min-width:640px">
+        <div style="display:grid;grid-template-columns:1.1fr 1.2fr 2fr;gap:14px;padding:11px 20px;border-bottom:1px solid var(--line);font:700 10.5px Figtree;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3)">
+          <span>WalletConnect</span><span>Ghostlink</span><span>Notes</span>
+        </div>
+        <sc-for list="{{ methodMap }}" as="m" hint-placeholder-count="6">
+          <div style="display:grid;grid-template-columns:1.1fr 1.2fr 2fr;gap:14px;padding:12px 20px;border-bottom:1px solid var(--line);align-items:baseline">
+            <span style="font:500 12px 'JetBrains Mono',monospace;color:var(--ink3)">{{ m.wc }}</span>
+            <span style="font:600 12px 'JetBrains Mono',monospace;color:var(--acc)">{{ m.gl }}</span>
+            <span style="font-size:12.5px;line-height:1.5;color:var(--ink2)">{{ m.note }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <section style="border:1px solid var(--line);border-radius:18px;background:var(--surf);overflow:hidden">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--line);background:var(--surf2);font-family:Sora,sans-serif;font-weight:600;font-size:15px;color:var(--ink)">Error taxonomy</div>
+    <sc-for list="{{ errors }}" as="e" hint-placeholder-count="5">
+      <div style="display:flex;align-items:baseline;gap:14px;padding:12px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap">
+        <span style="flex:none;width:52px;font:700 12px 'JetBrains Mono',monospace;color:{{ e.color }}">{{ e.code }}</span>
+        <span style="flex:none;min-width:150px;font:600 12px 'JetBrains Mono',monospace;color:var(--ink)">{{ e.name }}</span>
+        <span style="flex:1;min-width:200px;font-size:12.5px;line-height:1.5;color:var(--ink2)">{{ e.note }}</span>
+      </div>
+    </sc-for>
+  </section>
+</main>
+</sc-if>
+
+<sc-if value="{{ tabComponents }}" hint-placeholder-val="{{ false }}">
+<main style="max-width:1180px;margin:0 auto;padding:40px 24px 90px;display:flex;flex-direction:column;gap:22px">
+  <section style="display:flex;flex-direction:column;gap:10px">
+    <h1 style="margin:0;font-family:Sora,sans-serif;font-size:34px;letter-spacing:-1.4px;font-weight:600;color:var(--ink)">Connect button</h1>
+    <p style="margin:0;max-width:62ch;font-size:15px;line-height:1.55;color:var(--ink2);text-wrap:pretty">One component, four states, three sizes. It renders the wallet state so the host app never has to.</p>
+  </section>
+
+  <section style="border:1px solid var(--line);border-radius:18px;background:var(--surf);padding:24px">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:22px">
+      <div style="display:flex;gap:4px;padding:4px;border-radius:11px;background:var(--chip)">
+        <sc-for list="{{ sizes }}" as="z" hint-placeholder-count="3">
+          <button onClick="{{ z.pick }}" style="height:29px;padding:0 13px;border-radius:8px;font:600 12.5px Figtree;background:{{ z.bg }};color:{{ z.fg }}">{{ z.name }}</button>
+        </sc-for>
+      </div>
+      <div style="display:flex;gap:4px;padding:4px;border-radius:11px;background:var(--chip);flex-wrap:wrap">
+        <sc-for list="{{ states }}" as="st" hint-placeholder-count="4">
+          <button onClick="{{ st.pick }}" style="height:29px;padding:0 13px;border-radius:8px;font:600 12.5px Figtree;background:{{ st.bg }};color:{{ st.fg }}">{{ st.name }}</button>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="display:grid;place-items:center;min-height:190px;border-radius:16px;background:var(--surf2);border:1px solid var(--line);padding:26px">
+      <sc-if value="{{ btnDisconnected }}" hint-placeholder-val="{{ true }}">
+        <button style="height:{{ btn.h }};padding:0 {{ btn.px }};border-radius:{{ btn.r }};background:var(--acc);color:var(--accInk);font-size:{{ btn.fs }};font-weight:700;display:flex;align-items:center;gap:9px" style-hover="filter:brightness(1.08)">
+          <svg width="{{ btn.icon }}" height="{{ btn.iconH }}" viewBox="0 0 34 20" fill="none" style="flex:none"><circle cx="11" cy="10" r="6.4" fill="currentColor"></circle><circle cx="23" cy="10" r="6.4" fill="none" stroke="currentColor" stroke-width="2.4"></circle></svg>
+          Connect wallet
+        </button>
+      </sc-if>
+      <sc-if value="{{ btnPairing }}" hint-placeholder-val="{{ false }}">
+        <button style="height:{{ btn.h }};padding:0 {{ btn.px }};border-radius:{{ btn.r }};border:1px solid var(--accLine);background:var(--accSoft);color:var(--acc);font-size:{{ btn.fs }};font-weight:700;display:flex;align-items:center;gap:10px">
+          <span style="width:14px;height:14px;border-radius:50%;border:2px solid var(--accLine);border-top-color:var(--acc);animation:spin .8s linear infinite"></span>
+          Waiting for wallet
+        </button>
+      </sc-if>
+      <sc-if value="{{ btnConnected }}" hint-placeholder-val="{{ false }}">
+        <button style="height:{{ btn.h }};padding:0 6px 0 {{ btn.px }};border-radius:{{ btn.r }};border:1px solid var(--line2);background:var(--surf);color:var(--ink);font-size:{{ btn.fs }};font-weight:700;display:flex;align-items:center;gap:11px">
+          <span style="display:flex;align-items:center;gap:7px">
+            <span style="width:7px;height:7px;border-radius:50%;background:var(--ok)"></span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:{{ btn.mono }}">kaspa:qr7v…f9x2</span>
+          </span>
+          <span style="height:{{ btn.chipH }};display:flex;align-items:center;padding:0 11px;border-radius:{{ btn.chipR }};background:var(--chip);font-family:'JetBrains Mono',monospace;font-size:{{ btn.mono }};color:var(--ink2)">4,218 KAS</span>
+        </button>
+      </sc-if>
+      <sc-if value="{{ btnWrongChain }}" hint-placeholder-val="{{ false }}">
+        <button style="height:{{ btn.h }};padding:0 {{ btn.px }};border-radius:{{ btn.r }};border:1px solid var(--dangerLine);background:var(--dangerSoft);color:var(--danger);font-size:{{ btn.fs }};font-weight:700;display:flex;align-items:center;gap:9px">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"></path><path d="M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"></path></svg>
+          Switch to Mainnet
+        </button>
+      </sc-if>
+    </div>
+
+    <div style="margin-top:14px;border:1px solid var(--line);border-radius:14px;overflow:hidden">
+      <pre style="margin:0;padding:16px;background:var(--code);font:500 12.5px/1.7 'JetBrains Mono',monospace;color:var(--codeInk);overflow-x:auto">{{ codeButton }}</pre>
+    </div>
+  </section>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px">
+    <section style="border:1px solid var(--line);border-radius:18px;background:var(--surf);padding:22px">
+      <div style="font:700 10.5px Figtree;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);margin-bottom:10px">Props</div>
+      <sc-for list="{{ props }}" as="p" hint-placeholder-count="6">
+        <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);align-items:baseline;flex-wrap:wrap">
+          <span style="flex:none;font:600 12px 'JetBrains Mono',monospace;color:var(--acc)">{{ p.name }}</span>
+          <span style="flex:none;font:500 11px 'JetBrains Mono',monospace;color:var(--ink3)">{{ p.type }}</span>
+          <span style="flex:1;min-width:90px;text-align:right;font-size:12px;color:var(--ink2);line-height:1.4">{{ p.note }}</span>
+        </div>
+      </sc-for>
+    </section>
+    <section style="border:1px solid var(--line);border-radius:18px;background:var(--surf);padding:22px">
+      <div style="font:700 10.5px Figtree;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);margin-bottom:14px">Theming contract</div>
+      <p style="margin:0 0 14px;font-size:13.5px;line-height:1.55;color:var(--ink2);text-wrap:pretty">Ghostlink ships unstyled structure plus a token layer. Override these on a wrapping element and every surface follows.</p>
+      <div style="border:1px solid var(--line);border-radius:12px;overflow:hidden">
+        <pre style="margin:0;padding:15px;background:var(--code);font:500 12px/1.75 'JetBrains Mono',monospace;color:var(--codeInk);overflow-x:auto">{{ codeTokens }}</pre>
+      </div>
+    </section>
+  </div>
+</main>
+</sc-if>
+
+<sc-if value="{{ tabIntegrate }}" hint-placeholder-val="{{ false }}">
+<main style="max-width:1180px;margin:0 auto;padding:40px 24px 90px;display:flex;flex-direction:column;gap:22px">
+  <section style="display:flex;flex-direction:column;gap:10px">
+    <h1 style="margin:0;font-family:Sora,sans-serif;font-size:34px;letter-spacing:-1.4px;font-weight:600;color:var(--ink)">Integrating with Kasper</h1>
+    <p style="margin:0;max-width:62ch;font-size:15px;line-height:1.55;color:var(--ink2);text-wrap:pretty">Kasper keeps markets, escrow and payouts. Ghostlink takes every screen between "connect" and a signed transaction.</p>
+  </section>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px">
+    <sc-for list="{{ integrationSteps }}" as="i" hint-placeholder-count="4">
+      <div style="border:1px solid var(--line);border-radius:16px;background:var(--surf);padding:20px">
+        <span style="display:inline-grid;place-items:center;width:28px;height:28px;border-radius:9px;background:var(--accSoft);font:800 12px 'JetBrains Mono',monospace;color:var(--acc);margin-bottom:12px">{{ i.n }}</span>
+        <div style="font-size:14.5px;font-weight:700;color:var(--ink);margin-bottom:6px">{{ i.title }}</div>
+        <div style="font-size:13px;line-height:1.55;color:var(--ink2);text-wrap:pretty">{{ i.body }}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:18px;align-items:start">
+    <div style="border:1px solid var(--line);border-radius:18px;background:var(--surf);overflow:hidden">
+      <div style="padding:12px 16px;border-bottom:1px solid var(--line);background:var(--surf2);font:600 11.5px 'JetBrains Mono',monospace;color:var(--ink3)">nuxt.config.ts</div>
+      <pre style="margin:0;padding:18px;background:var(--code);font:500 12.5px/1.75 'JetBrains Mono',monospace;color:var(--codeInk);overflow-x:auto">{{ codeNuxt }}</pre>
+    </div>
+    <div style="border:1px solid var(--line);border-radius:18px;background:var(--surf);overflow:hidden">
+      <div style="padding:12px 16px;border-bottom:1px solid var(--line);background:var(--surf2);font:600 11.5px 'JetBrains Mono',monospace;color:var(--ink3)">components/OrderTicket.vue</div>
+      <pre style="margin:0;padding:18px;background:var(--code);font:500 12.5px/1.75 'JetBrains Mono',monospace;color:var(--codeInk);overflow-x:auto">{{ codeComposable }}</pre>
+    </div>
+  </section>
+
+  <section style="border:1px solid var(--line);border-radius:18px;background:var(--surf);overflow:hidden">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--line);background:var(--surf2);font-family:Sora,sans-serif;font-weight:600;font-size:15px;color:var(--ink)">Where the line sits</div>
+    <sc-for list="{{ ownership }}" as="o" hint-placeholder-count="3">
+      <div style="display:flex;gap:16px;padding:14px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap">
+        <span style="flex:none;min-width:130px;font-size:13px;font-weight:700;color:{{ o.color }}">{{ o.k }}</span>
+        <span style="flex:1;min-width:220px;font-size:13px;line-height:1.5;color:var(--ink2);text-wrap:pretty">{{ o.v }}</span>
+      </div>
+    </sc-for>
+  </section>
+
+  <section style="border:1px solid var(--accLine);border-radius:18px;background:var(--accSoft);padding:22px;display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+    <div style="flex:1;min-width:220px">
+      <div style="font-family:Sora,sans-serif;font-weight:600;font-size:17px;color:var(--ink);margin-bottom:5px">See it running</div>
+      <div style="font-size:13.5px;line-height:1.5;color:var(--ink2)">The full connection flow prototype — nine states, relay log, method mapping.</div>
+    </div>
+    <a href="Wallet Connect.dc.html" style="flex:none;height:42px;padding:0 18px;border-radius:12px;background:var(--acc);color:var(--accInk);font-size:14px;font-weight:700;display:flex;align-items:center" style-hover="filter:brightness(1.08);color:var(--accInk)">Open the flow prototype</a>
+  </section>
+</main>
+</sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;defaultTheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;'dark'|'light'&quot;,&quot;section&quot;:&quot;Appearance&quot;}}">
+const SW = [
+  {name:'Spectre', token:'--gl-accent', hexD:'#8D7BFF', hexL:'#5B46E0', value:'var(--acc)'},
+  {name:'Void', token:'--gl-bg', hexD:'#0C0D11', hexL:'#F3F3F5', value:'var(--bg)'},
+  {name:'Surface', token:'--gl-surface', hexD:'#14161B', hexL:'#FFFFFF', value:'var(--surf)'},
+  {name:'Raised', token:'--gl-surface-2', hexD:'#1B1E25', hexL:'#F8F8FA', value:'var(--surf2)'},
+  {name:'Ink', token:'--gl-text', hexD:'#F3F4F7', hexL:'#13151A', value:'var(--ink)'},
+  {name:'Settled', token:'--gl-success', hexD:'#7FC8A9', hexL:'#2F7D5B', value:'var(--ok)'},
+  {name:'Rejected', token:'--gl-danger', hexD:'#E8897C', hexL:'#B4503C', value:'var(--danger)'},
+];
+
+const TAG = '<' + 'script setup lang="ts">';
+const ENDTAG = '<' + '/script>';
+
+const QUICK = 'import { Ghostlink } from "@ghostlink/sdk";\n\nconst gl = new Ghostlink({ projectId: "kasper-markets" });\nconst session = await gl.connect({ chains: ["kaspa:mainnet"] });\nconst sig = await gl.signMessage(session, "gm");';
+
+const NAMESPACE = '{\n  "kaspa": {\n    "chains":  ["kaspa:mainnet"],\n    "methods": ["kaspa_getAccounts",\n                "kaspa_signMessage",\n                "kaspa_signTransaction",\n                "kaspa_sendTransaction"],\n    "events":  ["accountsChanged",\n                "chainChanged",\n                "utxoUpdated"]\n  }\n}';
+
+const BUTTON = TAG + '\nimport { GhostlinkButton } from "@ghostlink/vue";\n' + ENDTAG + '\n\n<template>\n  <GhostlinkButton size="md" :chains="[\'kaspa:mainnet\']" />\n</template>';
+
+const TOKENS = '.app {\n  --gl-accent:    #8D7BFF;\n  --gl-radius:    12px;\n  --gl-surface:   #14161B;\n  --gl-text:      #F3F4F7;\n  --gl-font-ui:   "Figtree", sans-serif;\n  --gl-font-mono: "JetBrains Mono", monospace;\n}';
+
+const NUXT = '// nuxt.config.ts\nexport default defineNuxtConfig({\n  modules: ["@ghostlink/nuxt"],\n  ghostlink: {\n    projectId: "kasper-markets",\n    chains: ["kaspa:mainnet"],\n    relay: "wss://relay.ghostlink.dev",\n    autoReconnect: true,\n  },\n});';
+
+const COMPOSABLE = 'const { session, account, balance } = useGhostlink();\nconst { sendTransaction } = useGhostlinkSigner();\n\nasync function buyYes(kas: number) {\n  if (!session.value) return openGhostlinkModal();\n\n  return sendTransaction({\n    outputs: [{ address: MARKET_ESCROW, amount: kas }],\n    payload: encodeOrder({ market: id, side: "YES", kas }),\n  });\n}';
+
+class Component extends DCLogic {
+  state = {theme: this.props.defaultTheme || 'dark', tab: 'Brand', size: 'md', btnState: 'Disconnected', copied: false};
+
+  componentDidMount() { this.syncTheme(); }
+  componentWillUnmount() { clearTimeout(this._t); }
+  componentDidUpdate(prev) {
+    const p = prev || {};
+    if (this.props.defaultTheme && this.props.defaultTheme !== p.defaultTheme && this.props.defaultTheme !== this.state.theme) this.setTheme(this.props.defaultTheme);
+  }
+  syncTheme() {
+    const el = document.documentElement;
+    if (el.getAttribute('data-theme') !== this.state.theme) el.setAttribute('data-theme', this.state.theme);
+  }
+  setTheme(next) {
+    document.documentElement.setAttribute('data-theme', next);
+    this.setState({theme: next});
+  }
+  pill(on) { return on ? {bg: 'var(--chipOn)', fg: 'var(--chipOnInk)'} : {bg: 'transparent', fg: 'var(--ink2)'}; }
+
+  renderVals() {
+    const s = this.state, dark = s.theme === 'dark';
+    const SZ = {
+      sm: {h: '34px', px: '13px', r: '9px', fs: '13px', mono: '11.5px', icon: 17, iconH: 10, chipH: '24px', chipR: '6px'},
+      md: {h: '44px', px: '17px', r: '12px', fs: '14.5px', mono: '13px', icon: 21, iconH: 12, chipH: '32px', chipR: '8px'},
+      lg: {h: '54px', px: '22px', r: '14px', fs: '16px', mono: '14px', icon: 25, iconH: 15, chipH: '40px', chipR: '9px'},
+    };
+
+    return {
+      isDark: dark, isLight: !dark,
+      toggleTheme: () => this.setTheme(dark ? 'light' : 'dark'),
+      tabs: ['Brand', 'Docs', 'Components', 'Integrate'].map(n => ({name: n, ...this.pill(s.tab === n), pick: () => { this.setState({tab: n}); window.scrollTo(0, 0); }})),
+      tabBrand: s.tab === 'Brand', tabDocs: s.tab === 'Docs', tabComponents: s.tab === 'Components', tabIntegrate: s.tab === 'Integrate',
+      goDocs: () => { this.setState({tab: 'Docs'}); window.scrollTo(0, 0); },
+      copyInstall: () => { clearTimeout(this._t); this.setState({copied: true}); this._t = setTimeout(() => this.setState({copied: false}), 1600); },
+      copyLabel: s.copied ? 'copied' : 'copy',
+
+      lockups: [
+        {bg: 'var(--surf2)', fg: 'var(--ink)', markFill: 'var(--acc)', note: 'primary', noteFg: 'var(--ink3)'},
+        {bg: '#0C0D11', fg: '#F3F4F7', markFill: '#8D7BFF', note: 'on dark', noteFg: '#8D949D'},
+        {bg: 'var(--acc)', fg: 'var(--accInk)', markFill: 'var(--accInk)', note: 'reversed', noteFg: 'var(--accInk)'},
+      ],
+      swatches: SW.map(x => ({name: x.name, token: x.token, hex: dark ? x.hexD : x.hexL, value: x.value})),
+      voice: [
+        {mark: '✓', bg: 'var(--okSoft)', fg: 'var(--ok)', text: '"Approve the session in your wallet."', why: 'Says what to do and where.'},
+        {mark: '✕', bg: 'var(--dangerSoft)', fg: 'var(--danger)', text: '"Awaiting authorization handshake."', why: 'Protocol jargon aimed at a human.'},
+        {mark: '✓', bg: 'var(--okSoft)', fg: 'var(--ok)', text: '"Your keys never leave your wallet."', why: 'Plain claim, no hedging.'},
+        {mark: '✕', bg: 'var(--dangerSoft)', fg: 'var(--danger)', text: '"Bank-grade, military-strength security."', why: 'Unfalsifiable, so it reads as spin.'},
+      ],
+
+      codeQuick: QUICK, codeNamespace: NAMESPACE, codeButton: BUTTON, codeTokens: TOKENS,
+      codeNuxt: NUXT, codeComposable: COMPOSABLE,
+
+      lifecycle: [
+        {method: 'gl.pair()', side: 'app', body: 'Creates a pairing topic and symmetric key, returns a one-time kaspa-wc: URI for the QR code or deep link.'},
+        {method: 'wc_sessionPropose', side: 'app', body: 'Sends the requested namespace: chains, methods, events. The wallet renders this as its permission screen.'},
+        {method: 'wc_sessionApprove', side: 'wallet', body: 'Wallet returns the accounts it chose to share. Anything outside the proposal is rejected outright.'},
+        {method: 'wc_sessionSettle', side: 'both', body: 'Session topic is established with a 7-day expiry. The app can now request signatures without re-pairing.'},
+        {method: 'wc_sessionRequest', side: 'app', body: 'One request per signature or transaction. Every request still needs a fresh in-wallet approval.'},
+        {method: 'wc_sessionDelete', side: 'both', body: 'Either side can close the session. State is dropped locally and on the relay.'},
+      ].map((l, i, arr) => ({
+        ...l, lineColor: i === arr.length - 1 ? 'transparent' : 'var(--line)',
+        dot: l.side === 'wallet' ? 'var(--ok)' : (l.side === 'both' ? 'var(--ink3)' : 'var(--acc)'),
+        sideBg: l.side === 'wallet' ? 'var(--okSoft)' : (l.side === 'both' ? 'var(--chip)' : 'var(--accSoft)'),
+        sideFg: l.side === 'wallet' ? 'var(--ok)' : (l.side === 'both' ? 'var(--ink3)' : 'var(--acc)'),
+      })),
+      methodMap: [
+        {wc: 'eip155', gl: 'kaspa', note: 'CAIP-2 namespace. Chain ids kaspa:mainnet and kaspa:testnet-11.'},
+        {wc: 'eth_accounts', gl: 'kaspa_getAccounts', note: 'Returns the addresses shared at approval, not every account in the wallet.'},
+        {wc: 'personal_sign', gl: 'kaspa_signMessage', note: 'Schnorr signature over the UTF-8 message, hex-encoded.'},
+        {wc: 'eth_signTransaction', gl: 'kaspa_signTransaction', note: 'App supplies outputs and payload; wallet selects UTXOs and sets the fee.'},
+        {wc: 'eth_sendTransaction', gl: 'kaspa_sendTransaction', note: 'Signs and broadcasts. Resolves with the transaction id.'},
+        {wc: 'chainChanged', gl: 'chainChanged', note: 'Unchanged. Plus utxoUpdated for balance-sensitive UIs.'},
+      ],
+      errors: [
+        {code: '5000', name: 'USER_REJECTED', note: 'Proposal or request declined in the wallet. Nothing is stored.', color: 'var(--danger)'},
+        {code: '5100', name: 'UNSUPPORTED_CHAINS', note: 'Wallet does not hold an account on a requested chain id.', color: 'var(--danger)'},
+        {code: '5101', name: 'UNSUPPORTED_METHODS', note: 'Wallet cannot serve one of the proposed methods.', color: 'var(--danger)'},
+        {code: '6000', name: 'SESSION_CLOSED', note: 'Either side called delete. Re-pair to continue.', color: 'var(--ink2)'},
+        {code: '7001', name: 'PROPOSAL_EXPIRED', note: 'Pairing URI is single-use and lives five minutes. Issue a new one.', color: 'var(--ink2)'},
+      ],
+
+      sizes: ['sm', 'md', 'lg'].map(z => ({name: z, ...this.pill(s.size === z), pick: () => this.setState({size: z})})),
+      states: ['Disconnected', 'Pairing', 'Connected', 'Wrong chain'].map(n => ({name: n, ...this.pill(s.btnState === n), pick: () => this.setState({btnState: n})})),
+      btn: SZ[s.size],
+      btnDisconnected: s.btnState === 'Disconnected', btnPairing: s.btnState === 'Pairing',
+      btnConnected: s.btnState === 'Connected', btnWrongChain: s.btnState === 'Wrong chain',
+      props: [
+        {name: 'chains', type: 'ChainId[]', note: 'Namespaces to request'},
+        {name: 'size', type: "'sm' | 'md' | 'lg'", note: 'Control height'},
+        {name: 'variant', type: "'solid' | 'outline'", note: 'Fill treatment'},
+        {name: 'showBalance', type: 'boolean', note: 'KAS chip when connected'},
+        {name: 'onSession', type: '(s: Session) => void', note: 'Fires on settle'},
+        {name: 'label', type: 'string', note: 'Override button copy'},
+      ],
+
+      integrationSteps: [
+        {n: '1', title: 'Install the Nuxt module', body: 'Registers the composables, the modal and an auto-reconnect plugin. No client-only wrapper needed.'},
+        {n: '2', title: 'Replace the connect button', body: 'Kasper\u2019s header button becomes GhostlinkButton. Wallet chooser, QR pairing and session screens all come from the library.'},
+        {n: '3', title: 'Route the order ticket through the signer', body: 'buyYes() calls sendTransaction with the market escrow output. Ghostlink handles approval, broadcast and the pending state.'},
+        {n: '4', title: 'Subscribe to utxoUpdated', body: 'Balance and positions refresh from the event instead of polling the node.'},
+      ],
+      ownership: [
+        {k: 'Ghostlink owns', v: 'Pairing, session storage, approval UI, signing prompts, relay reconnect, error taxonomy', color: 'var(--acc)'},
+        {k: 'Kasper owns', v: 'Market data, order construction, escrow contract, positions, payouts', color: 'var(--ok)'},
+        {k: 'Shared contract', v: 'Transaction payload encoding and the market escrow address registry', color: 'var(--ink2)'},
+      ],
+    };
+  }
+}
+
+</script>
+</body>
+</html>

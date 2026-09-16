@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useId, useRef, useState, useSyncExternalStore } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, X, Search, ScanLine, Check, LoaderCircle, TriangleAlert, Link2, Copy, Camera, Clock, CircleX, Wallet } from 'lucide-react';
+import { ArrowLeft, X, Search, ScanLine, Check, LoaderCircle, TriangleAlert, Link2, Copy, Camera, Clock, CircleX } from 'lucide-react';
 import { trapDialogFocus, createMessageQr, getPresentation, remainingTime, scanQrCamera, scanQrImage } from 'ghostlink-core';
 import type { Ghostlink, GhostlinkSnapshot } from 'ghostlink-core';
 
@@ -18,7 +18,7 @@ export function GhostlinkConnectButton({ theme = 'dark', variables, label = 'Con
   const { client, snapshot } = useGhostlink(); const view = getPresentation(snapshot, client.app);
   useEffect(() => { void client.restoreSession().catch(() => {}); }, [client]);
   return <button type="button" className="gl-theme gl-connect" data-ghostlink-theme={theme} style={variables as CSSProperties} data-authenticated={!!snapshot.session} onClick={client.open} aria-label={snapshot.session ? `Account ${snapshot.session.address}` : label}>
-    {children ? children({ snapshot, open: client.open }) : snapshot.session ? <><span className="gl-wallet-mark" data-wallet={view.wallet?.id}>{view.wallet?.icon ? <img src={view.wallet.icon} alt="" /> : view.wallet?.mark ?? 'K'}</span>{view.address}</> : <><Wallet size={14} aria-hidden="true" />{label}</>}
+    {children ? children({ snapshot, open: client.open }) : snapshot.session ? <><span className="gl-wallet-mark" data-wallet={view.wallet?.id}>{view.wallet?.icon ? <img src={view.wallet.icon} alt="" /> : view.wallet?.mark ?? 'K'}</span>{view.address}</> : <><svg width="14" height="14" viewBox="0 0 34 20" fill="none" aria-hidden="true" focusable="false"><circle cx="11" cy="10" r="6.4" fill="currentColor" /><circle cx="23" cy="10" r="6.4" stroke="currentColor" strokeWidth="2.1" /></svg>{label}</>}
   </button>;
 }
 export function GhostlinkModal({ theme = 'dark', variables, children }: Appearance & { children?: (state: { snapshot: GhostlinkSnapshot; client: Ghostlink }) => ReactNode }) {

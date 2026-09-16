@@ -1,28 +1,29 @@
 .gl-theme {
-  --ghostlink-connect-background:#eaf2f5;--ghostlink-connect-text:#11191d;
-  --ghostlink-account-background:#121c21;--ghostlink-account-text:#a8bec9;--ghostlink-account-border:#28383f;
-  --ghostlink-bg:#0E0F11;--ghostlink-surface:#16181B;--ghostlink-surface-2:#1D2024;
+  --ghostlink-connect-background:var(--ghostlink-button);--ghostlink-connect-text:var(--ghostlink-button-text);
+  --ghostlink-account-background:var(--ghostlink-surface);--ghostlink-account-text:var(--ghostlink-text-secondary);--ghostlink-account-border:var(--ghostlink-line);
+  --ghostlink-bg:#0C0D11;--ghostlink-surface:#14161B;--ghostlink-surface-2:#1B1E25;
   --ghostlink-line:rgba(255,255,255,.08);--ghostlink-line-strong:rgba(255,255,255,.16);
-  --ghostlink-text:#F2F3F5;--ghostlink-text-secondary:#A7ADB4;--ghostlink-text-muted:#8D949D;
-  --ghostlink-accent:#D9DCE0;--ghostlink-accent-soft:rgba(255,255,255,.08);--ghostlink-accent-line:rgba(255,255,255,.22);
-  --ghostlink-danger:#E8897C;--ghostlink-danger-soft:rgba(232,137,124,.12);--ghostlink-danger-line:rgba(232,137,124,.28);
+  --ghostlink-text:#F3F4F7;--ghostlink-text-secondary:#A5AAB5;--ghostlink-text-muted:#8D949D;
+  --ghostlink-focus-ring:var(--ghostlink-text-muted);
+  --ghostlink-accent:#8D7BFF;--ghostlink-accent-soft:rgba(255,255,255,.08);--ghostlink-accent-line:rgba(255,255,255,.22);
+  --ghostlink-danger:#E8897C;--ghostlink-danger-soft:rgba(232,137,124,.12);--ghostlink-danger-line:rgba(232,137,124,.34);
   --ghostlink-warning:#D8B472;--ghostlink-warning-soft:rgba(216,180,114,.12);
-  --ghostlink-chip:rgba(255,255,255,.05);--ghostlink-button:#F2F3F5;--ghostlink-button-text:#0E0F11;
+  --ghostlink-chip:rgba(255,255,255,.05);--ghostlink-button:var(--ghostlink-text);--ghostlink-button-text:#0C0D11;
   --ghostlink-success:#7FC8A9;--ghostlink-success-soft:rgba(127,200,169,.12);
   --ghostlink-modal-shadow:0 50px 110px -40px rgba(0,0,0,.85);
   --ghostlink-font-body:Figtree,system-ui,sans-serif;
-  --ghostlink-font-heading:'Space Grotesk',system-ui,sans-serif;
+  --ghostlink-font-heading:Sora,system-ui,sans-serif;
   --ghostlink-font-mono:'JetBrains Mono',ui-monospace,monospace;
   font-family:var(--ghostlink-font-body);color:var(--ghostlink-text);-webkit-font-smoothing:antialiased;
 }
 .gl-theme[data-ghostlink-theme=light] {
-  --ghostlink-bg:#F2F3F4;--ghostlink-surface:#FFFFFF;--ghostlink-surface-2:#F7F8F9;
-  --ghostlink-line:rgba(16,20,24,.10);--ghostlink-line-strong:rgba(16,20,24,.18);
-  --ghostlink-text:#15181C;--ghostlink-text-secondary:#5D646B;--ghostlink-text-muted:#666D76;
-  --ghostlink-accent:#2B3036;--ghostlink-accent-soft:rgba(16,20,24,.06);--ghostlink-accent-line:rgba(16,20,24,.2);
-  --ghostlink-danger:#B4503C;--ghostlink-danger-soft:rgba(180,80,60,.08);--ghostlink-danger-line:rgba(180,80,60,.26);
+  --ghostlink-bg:#F3F3F5;--ghostlink-surface:#FFFFFF;--ghostlink-surface-2:#F8F8FA;
+  --ghostlink-line:rgba(14,16,22,.10);--ghostlink-line-strong:rgba(14,16,22,.18);
+  --ghostlink-text:#13151A;--ghostlink-text-secondary:#5C626C;--ghostlink-text-muted:#666D76;
+  --ghostlink-accent:#5B46E0;--ghostlink-accent-soft:rgba(14,16,22,.06);--ghostlink-accent-line:rgba(14,16,22,.2);
+  --ghostlink-danger:#B4503C;--ghostlink-danger-soft:rgba(180,80,60,.08);--ghostlink-danger-line:rgba(180,80,60,.3);
   --ghostlink-warning:#8C6A22;--ghostlink-warning-soft:rgba(140,106,34,.1);
-  --ghostlink-chip:rgba(16,20,24,.05);--ghostlink-button:#15181C;--ghostlink-button-text:#FFFFFF;
+  --ghostlink-chip:rgba(14,16,22,.05);--ghostlink-button-text:#FFFFFF;
   --ghostlink-success:#2F7D5B;--ghostlink-success-soft:rgba(47,125,91,.1);
   --ghostlink-modal-shadow:0 40px 90px -40px rgba(16,20,24,.4);
 }
@@ -30,7 +31,7 @@
 .gl-theme button,.gl-theme input,.gl-theme textarea,.gl-theme select {font:inherit;color:inherit}
 .gl-theme button {cursor:pointer;border:0;background:none}
 .gl-theme button:disabled {cursor:wait;opacity:.55}
-.gl-theme :focus-visible {outline:2px solid var(--ghostlink-accent);outline-offset:3px}
+.gl-theme :focus-visible {outline:2px solid var(--ghostlink-focus-ring);outline-offset:3px}
 .gl-theme a {color:var(--ghostlink-accent);text-decoration:none}
 .gl-theme a:hover {text-decoration:underline}
 .gl-theme svg {flex-shrink:0}
@@ -38,7 +39,7 @@
 .gl-dialog[open] {animation:gl-pop .3s cubic-bezier(.2,.9,.3,1) both}
 .gl-dialog::backdrop {background:rgba(0,0,0,.62);backdrop-filter:blur(4px)}
 .gl-header {display:flex;align-items:center;gap:10px;padding:15px 18px;border-bottom:1px solid var(--ghostlink-line)}
-.gl-title {flex:1;min-width:0;font:700 15.5px var(--ghostlink-font-heading);margin:0;text-wrap:balance}
+.gl-title {flex:1;min-width:0;font:600 15.5px var(--ghostlink-font-heading);margin:0;text-wrap:balance}
 .gl-icon-button {width:30px;height:30px;border-radius:9px;display:inline-grid;place-items:center;color:var(--ghostlink-text-muted)!important;padding:0;flex:none}
 .gl-icon-button:hover {background:var(--ghostlink-chip);color:var(--ghostlink-text)!important}
 .gl-status {display:flex;align-items:center;gap:6px;padding:4px 9px;border-radius:999px;background:var(--ghostlink-chip);font:600 10px var(--ghostlink-font-mono);color:var(--ghostlink-text-secondary);white-space:nowrap}
@@ -47,7 +48,8 @@
 .gl-body {padding:18px}
 .gl-search {display:flex;align-items:center;gap:9px;height:40px;padding:0 13px;border:1px solid var(--ghostlink-line);border-radius:12px;background:var(--ghostlink-surface-2);color:var(--ghostlink-text-muted);margin-bottom:14px}
 .gl-search input {flex:1;min-width:0;border:0;background:none;font-size:13.5px;outline:0;color:var(--ghostlink-text)}
-.gl-search:focus-within {outline:2px solid var(--ghostlink-accent);outline-offset:2px}
+.gl-search input:focus-visible {outline:none}
+.gl-search:focus-within {outline:2px solid var(--ghostlink-focus-ring);outline-offset:2px}
 .gl-tabs {display:flex;gap:4px;padding:4px;border-radius:11px;background:var(--ghostlink-chip);margin-bottom:14px;overflow-x:auto}
 .gl-tab {flex:1 0 auto;height:30px;padding:0 10px;white-space:nowrap;border-radius:8px;font-size:12.5px!important;font-weight:600!important;color:var(--ghostlink-text-secondary)!important}
 .gl-tab[aria-pressed=true] {background:var(--ghostlink-button);color:var(--ghostlink-button-text)!important}
@@ -107,7 +109,7 @@
 .gl-wait-mark::before,.gl-wait-mark::after {content:'';position:absolute;inset:0;border-radius:30px;border:2px solid var(--ghostlink-accent-line);animation:gl-ring 2s ease-out infinite}
 .gl-wait-mark::after {animation-delay:.6s}
 .gl-wait-mark .gl-wallet-mark {width:72px;height:72px;border-radius:24px;font-size:24px}
-.gl-heading {font:700 19px var(--ghostlink-font-heading);margin:0 0 8px}
+.gl-heading {font:600 19px var(--ghostlink-font-heading);margin:0 0 8px}
 .gl-progress {display:inline-flex;align-items:center;gap:9px;padding:9px 14px;border-radius:999px;background:var(--ghostlink-chip);font:600 11.5px var(--ghostlink-font-mono);color:var(--ghostlink-text-secondary);margin-bottom:20px}
 .gl-spin {animation:gl-spin .8s linear infinite}
 .gl-success-icon,.gl-error-icon {width:64px;height:64px;border-radius:22px;background:var(--ghostlink-success-soft);color:var(--ghostlink-success);display:grid;place-items:center;margin:0 auto 12px}
@@ -125,7 +127,6 @@
 .gl-connect {height:38px;padding:0 16px!important;border-radius:12px;background:var(--ghostlink-connect-background)!important;color:var(--ghostlink-connect-text)!important;display:inline-flex;align-items:center;justify-content:center;gap:9px;font-size:13px!important;font-weight:700!important;border:1px solid transparent!important}
 .gl-connect[data-authenticated=true] {background:var(--ghostlink-account-background)!important;color:var(--ghostlink-account-text)!important;border-color:var(--ghostlink-account-border)!important;padding:4px 12px 4px 5px!important;font:500 12px var(--ghostlink-font-mono)!important}
 .gl-connect .gl-wallet-mark {width:26px;height:26px;border-radius:8px;font-size:11px}
-.gl-connect[data-ghostlink-theme=light][data-authenticated=true] {background:var(--ghostlink-surface)!important;color:var(--ghostlink-text-secondary)!important;border-color:var(--ghostlink-line)!important}
 .gl-video {display:block;width:100%;border-radius:12px;margin-top:12px;max-height:220px;background:#000}
 .gl-sr-only {position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media(max-width:480px) {.gl-dialog {max-width:380px;border-radius:26px}.gl-status {font-size:9px;padding:4px 6px}.gl-header {gap:6px}.gl-actions {flex-wrap:wrap}}
