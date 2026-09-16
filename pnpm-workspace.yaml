@@ -1,6 +1,7 @@
 packages:
   - packages/*
   - examples/vue
+  - website
 
 allowBuilds:
   esbuild: true

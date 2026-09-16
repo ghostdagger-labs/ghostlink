@@ -4,6 +4,10 @@ Kaspa wallet login for TypeScript applications, with native Vue and React UI and
 
 This is a **pre-release implementation**. Source-backed adapters and automated fixtures are included; real-wallet version certification and testnet transaction evidence are tracked in [the compatibility record](docs/testing/compatibility-v1.json). Registry publication is separate.
 
+## Website
+
+The Nuxt landing page and same-origin demo live in `website/`. After installing and building, run `pnpm dev:website` and open http://127.0.0.1:3000. `docker compose up --build -d` runs the production website with persistent SQLite. See [website setup](website/README.md) and the [landing-page reconciliation roadmap](docs/roadmap/landing-page-reconciliation.md).
+
 ## Run the Vue showcase
 
 Use Node 24 and pnpm 11.7.0.

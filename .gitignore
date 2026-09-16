@@ -12,3 +12,6 @@ coverage/
 !.env.example
 !.env.sample
 .DS_Store
+
+.nuxt/
+.output/

@@ -3,14 +3,19 @@
   "private": true,
   "type": "module",
   "packageManager": "pnpm@11.7.0",
-  "engines": { "node": ">=24 <25" },
+  "engines": {
+    "node": ">=24 <25"
+  },
   "scripts": {
-    "build": "pnpm -r --filter './packages/*' build && pnpm --filter ghostlink-example-vue build",
+    "build": "pnpm -r --filter './packages/*' build && pnpm --filter ghostlink-example-vue build && pnpm --filter ghostlink-website build",
     "typecheck": "pnpm -r typecheck",
     "test": "vitest run",
     "test:browser": "playwright test",
     "dev": "pnpm --filter ghostlink-example-vue dev",
-    "check:package": "node tools/check-packages.mjs"
+    "check:package": "node tools/check-packages.mjs",
+    "dev:website": "pnpm --filter ghostlink-website dev",
+    "build:website": "pnpm -r --filter \"./packages/*\" build && pnpm --filter ghostlink-website build",
+    "test:website": "playwright test --config playwright.website.config.ts"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.2",

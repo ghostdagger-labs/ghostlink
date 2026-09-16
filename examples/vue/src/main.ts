@@ -3,6 +3,7 @@ import { createGhostlink, isNetwork } from 'ghostlink-core';
 import { GhostlinkPlugin } from 'ghostlink-vue';
 import 'ghostlink-core/styles.css';
 import 'ghostlink-core/fonts.css';
+import './standalone.css';
 import './style.css';
 import App from './App.vue';
 let network: 'mainnet' | 'testnet-10' | 'testnet-11' = 'testnet-11';

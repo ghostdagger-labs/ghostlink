@@ -1,0 +1,15 @@
+services:
+  website:
+    build:
+      context: .
+      dockerfile: website/Dockerfile
+    ports:
+      - "127.0.0.1:${GHOSTLINK_PORT:-3000}:3000"
+    environment:
+      GHOSTLINK_ORIGIN: ${GHOSTLINK_ORIGIN:-http://127.0.0.1:3000}
+      GHOSTLINK_DATABASE: /data/ghostlink.sqlite
+    volumes:
+      - ghostlink-data:/data
+    restart: unless-stopped
+volumes:
+  ghostlink-data:
