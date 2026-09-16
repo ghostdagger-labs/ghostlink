@@ -20,6 +20,7 @@ async function connectScreenshot(page: Page, background: string) {
 
 for (const width of [1280, 390]) for (const theme of ['dark', 'light']) test(`Vue ${theme} chooser at ${width}px matches reviewed baseline`, async ({ page }) => {
   await page.setViewportSize({ width, height: 1000 }); await page.goto('/');
+  await expect(page.getByRole('region', { name: 'Wallet requests', exact: true })).toHaveCount(0);
   if (theme === 'light') await page.getByRole('button', { name: 'Use light theme' }).click();
   await page.evaluate(() => document.fonts.ready);
   expect(await page.evaluate(() => document.fonts.check('600 20px Sora'))).toBe(true);
@@ -64,8 +65,6 @@ for (const theme of ['dark', 'light']) test(`${theme} overrides propagate to the
   await expect(button).toHaveCSS('background-color', 'rgb(185, 229, 215)');
   await expect(button).toHaveCSS('color', 'rgb(19, 41, 33)');
   await expect(button.locator('circle').first()).toHaveCSS('fill', 'rgb(19, 41, 33)');
-  await expect(page.locator('.example-panel .gl-primary').first()).toHaveCSS('background-color', 'rgb(185, 229, 215)');
-  await expect(page.locator('.example-panel .gl-primary').first()).toHaveCSS('color', 'rgb(19, 41, 33)');
   await button.click();
   await expect(page.locator('.gl-tab[aria-pressed=true]')).toHaveCSS('background-color', 'rgb(185, 229, 215)');
   await expect(page.locator('.gl-tab[aria-pressed=true]')).toHaveCSS('color', 'rgb(19, 41, 33)');
@@ -132,6 +131,8 @@ for (const width of [1280, 390]) for (const theme of ['dark', 'light']) test(`au
   await page.getByRole('button', { name: 'Try custom branding' }).click();
   await expect(button).toHaveCSS('background-color', 'rgb(185, 229, 215)');
   await expect(button).toHaveCSS('color', 'rgb(19, 41, 33)');
+  await expect(page.locator('.example-panel .gl-primary').first()).toHaveCSS('background-color', 'rgb(185, 229, 215)');
+  await expect(page.locator('.example-panel .gl-primary').first()).toHaveCSS('color', 'rgb(19, 41, 33)');
   await expect(button).toHaveCSS('border-top-color', 'rgb(47, 125, 91)');
   await button.click();
   await expect(page.getByRole('heading', { name: 'Session active' })).toBeVisible();

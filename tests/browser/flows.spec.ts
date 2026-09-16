@@ -8,9 +8,13 @@ for (const wallet of ['KasWare', 'Kastle']) test(`${wallet}: verified login, pro
   await injectWallet(page, wallet.toLowerCase() as 'kasware' | 'kastle'); await login(page, wallet);
   const scan = await new AxeBuilder({ page }).include('dialog').analyze(); expect(scan.violations).toEqual([]);
   await page.getByRole('button', { name: 'Close', exact: true }).click();
+  await expect(page.getByRole('region', { name: 'Wallet requests', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Test protected API' }).click(); await expect(page.locator('.example-result')).toContainText(account.address.split(':')[1]!);
   await page.reload(); await expect(page.getByRole('heading', { name: 'Ownership verified' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Wallet requests', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Sign out', exact: true }).first().click(); await expect(page.getByRole('heading', { name: 'Ready when you are' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Wallet requests', exact: true })).toHaveCount(0);
+  await expect(page.locator('.example-result')).toHaveCount(0);
 });
 test('manual Kaspium QR and paste authenticate without a provider or exported key', async ({ page }) => {
   await page.goto('/'); await page.getByRole('button', { name: 'Connect wallet', exact: true }).first().click();
