@@ -1,0 +1,289 @@
+import { defaultAdapters } from './adapters.js';
+import { createAuthClient } from './auth-client.js';
+import { accountId, addressPrefix, isNetwork, formatKas, parseLoginMessage } from './protocol.js';
+import type { Network } from './protocol.js';
+import { GhostlinkError } from './types.js';
+import type { AuthTransport, GhostlinkConfig, GhostlinkSnapshot, WalletAdapter, WalletAccount, TransactionRequest, TransferRequest } from './types.js';
+
+export class Ghostlink {
+  readonly app: GhostlinkConfig['app'];
+  readonly adapters: readonly WalletAdapter[];
+  private readonly auth: AuthTransport;
+  private state: GhostlinkSnapshot;
+  private listeners = new Set<() => void>();
+  private epoch = 0;
+  private destroyed = false;
+  private locked = false;
+  private unsubscribeWallet?: () => void;
+  private timer?: ReturnType<typeof setInterval>;
+  private channel?: BroadcastChannel;
+  private revokeTask: Promise<void> | null = null;
+  private nextRevocationAttempt = 0;
+  private revocationFailures = 0;
+  private restoration: Promise<void> | null = null;
+  private uiHosts = 0;
+  private review: { resolve: () => void; reject: (error: Error) => void } | null = null;
+
+  constructor(config: GhostlinkConfig) {
+    this.app = Object.freeze({ ...config.app });
+    const appUrl = new URL(config.app.url);
+    if (!['http:', 'https:'].includes(appUrl.protocol)) throw new Error('Application URL must use HTTP(S).');
+    this.adapters = config.adapters ?? defaultAdapters();
+    if (new Set(this.adapters.map(a => a.id)).size !== this.adapters.length) throw new Error('Wallet IDs must be unique.');
+    this.auth = config.auth && 'challenge' in config.auth ? config.auth : createAuthClient(config.auth);
+    const network = config.network ?? 'testnet-11';
+    if (!isNetwork(network)) throw new Error('Unsupported network.');
+    this.state = { open: false, step: 'choose', busy: false, network, walletId: null, account: null, connection: 'disconnected', authentication: 'unauthenticated', session: null, challenge: null, balance: null, error: null, revocationPending: false, wallets: [], request: null };
+    this.refreshWallets();
+  }
+  getSnapshot = (): GhostlinkSnapshot => this.state;
+  subscribe = (listener: () => void): (() => void) => { this.listeners.add(listener); return () => this.listeners.delete(listener); };
+  private patch(change: Partial<GhostlinkSnapshot>) {
+    if (this.destroyed) return;
+    this.state = Object.freeze({ ...this.state, ...change });
+    for (const listener of this.listeners) listener();
+  }
+  private startBrowserLifecycle() {
+    if (typeof window === 'undefined' || this.timer || this.destroyed) return;
+    this.timer = setInterval(() => {
+      const s = this.state.session;
+      if (s && Date.parse(s.expiresAt) <= Date.now()) void this.invalidate(false);
+      else if (s && Date.parse(s.idleExpiresAt) <= Date.now() && !this.locked && !this.restoration && !this.state.challenge) {
+        // Protected application requests may have extended the server's idle deadline.
+        // Recheck it only when our last known deadline expires; do not keep idle sessions alive by polling.
+        const epoch = this.epoch;
+        void this.restoreSession().catch(() => { if (this.epoch === epoch && this.state.session === s) void this.invalidate(false); });
+      }
+      if (this.state.revocationPending && Date.now() >= this.nextRevocationAttempt) void this.revoke();
+    }, 1000);
+    window.addEventListener('focus', this.onFocus);
+    window.addEventListener('online', this.onOnline);
+    window.addEventListener('kasware#initialized', this.refreshWallets);
+    if (typeof BroadcastChannel !== 'undefined') {
+      this.channel = new BroadcastChannel(`ghostlink:${new URL(this.app.url).origin}`);
+      this.channel.onmessage = (event: MessageEvent) => { if (event.data === 'invalidate') void this.invalidate(false); };
+    }
+  }
+  private onFocus = () => { this.refreshWallets(); if (!this.locked) void this.restoreSession().catch(() => {}); };
+  private onOnline = () => { if (this.state.revocationPending) void this.revoke(); };
+  refreshWallets = () => {
+    this.patch({ wallets: this.adapters.map(a => ({ id: a.id, name: a.name, kind: a.kind, mark: a.mark, icon: a.icon, installUrl: a.installUrl, available: a.isAvailable(), capabilities: { ...a.capabilities } })) });
+  };
+  open = () => { this.startBrowserLifecycle(); this.refreshWallets(); this.patch({ open: true, step: this.state.session ? 'connected' : 'choose', error: null }); };
+  close = () => {
+    const pendingAuth = this.state.authentication === 'authenticating' || !!this.state.challenge;
+    this.epoch++;
+    this.review?.reject(new GhostlinkError('CANCELLED', 'This request was cancelled.')); this.review = null;
+    this.patch({ open: false, challenge: null, request: null, authentication: this.state.session ? 'authenticated' : 'unauthenticated' });
+    if (pendingAuth) void this.revoke();
+  };
+  /** UI packages register a review host; headless consumers use wallet approval directly. */
+  attachUI = () => { this.uiHosts++; return () => { this.uiHosts--; if (!this.uiHosts && this.review) this.close(); }; };
+  confirmRequest = () => { this.review?.resolve(); this.review = null; };
+  private async reviewRequest(title: string, message: string) {
+    if (!this.uiHosts) return;
+    this.patch({ open: true, step: 'sign', request: { title, message } });
+    await new Promise<void>((resolve, reject) => { this.review = { resolve, reject }; });
+    this.patch({ step: 'connecting', request: null });
+  }
+  showWalletHelp = () => this.patch({ step: 'getwallet' });
+  back = () => { const pending = !!this.state.challenge || this.state.authentication === 'authenticating'; this.epoch++; this.review?.reject(new GhostlinkError('CANCELLED', 'This request was cancelled.')); this.review = null; this.patch({ step: this.state.session ? 'connected' : 'choose', challenge: null, request: null, error: null, authentication: this.state.session ? 'authenticated' : 'unauthenticated' }); if (pending) void this.revoke(); };
+  private adapter(): WalletAdapter {
+    const a = this.adapters.find(a => a.id === this.state.walletId);
+    if (!a) throw new GhostlinkError('UNAVAILABLE', 'Choose a wallet first.');
+    return a;
+  }
+  private check(epoch: number) { if (this.destroyed || epoch !== this.epoch) throw new GhostlinkError('CANCELLED', 'This request was cancelled.'); }
+  private async run<T>(operation: (epoch: number) => Promise<T>): Promise<T> {
+    if (this.destroyed) throw new GhostlinkError('CANCELLED', 'Ghostlink has been destroyed.');
+    if (this.locked) throw new GhostlinkError('BUSY', 'Finish or reject the pending request in your wallet first.');
+    this.startBrowserLifecycle();
+    this.locked = true; const epoch = ++this.epoch;
+    this.patch({ busy: true, error: null });
+    try { const result = await operation(epoch); this.check(epoch); return result; }
+    catch (e) {
+      const error = e instanceof GhostlinkError ? e : new GhostlinkError('SERVER_ERROR', 'The request could not be completed. Please try again.');
+      if (epoch === this.epoch && error.code !== 'CANCELLED') this.patch({ step: 'error', error: { code: error.code, message: error.message }, authentication: this.state.session ? 'authenticated' : 'unauthenticated' });
+      throw error;
+    } finally { this.locked = false; this.patch({ busy: false }); }
+  }
+  async connect(walletId?: string): Promise<void> {
+    if (!walletId) { this.open(); return; }
+    await this.run(async epoch => {
+      await this.finishRevocation(); this.check(epoch);
+      if (this.state.session) { await this.auth.logout(); this.check(epoch); this.channel?.postMessage('invalidate'); }
+      this.unsubscribeWallet?.(); this.unsubscribeWallet = undefined;
+      this.patch({ open: true, walletId, account: null, session: null, challenge: null, balance: null, connection: 'disconnected', authentication: 'unauthenticated' });
+      const a = this.adapter();
+      if (a.kind === 'manual') { this.patch({ step: 'address', connection: 'manual' }); return; }
+      if (!a.isAvailable()) throw new GhostlinkError('UNAVAILABLE', `Install ${a.name}, then return to connect.`);
+      this.patch({ step: 'connecting' });
+      const account = await a.connect(this.state.network); this.check(epoch);
+      this.validateAccount(account);
+      this.patch({ account: { ...account }, connection: 'connected', step: 'review' });
+      this.unsubscribeWallet = a.subscribe?.(() => { void this.invalidate(true); });
+      this.refreshWallets();
+    });
+  }
+  private validateAccount(a: WalletAccount) {
+    if (a.network !== this.state.network) throw new GhostlinkError('NETWORK_MISMATCH', `Select ${this.state.network} in your wallet.`);
+    try { accountId(a.address, a.network); } catch { throw new GhostlinkError('INVALID_REQUEST', `Enter your full wallet address starting with ${addressPrefix(this.state.network)}: for ${this.state.network}.`); }
+  }
+  private async checkAccount(epoch: number) {
+    const previous = this.state.account;
+    const current = await this.adapter().getAccount(); this.check(epoch);
+    if (!previous || !current || previous.address !== current.address || previous.network !== current.network) {
+      void this.invalidate(true);
+      throw new GhostlinkError('ACCOUNT_CHANGED', 'Your wallet account or network changed. Connect again.');
+    }
+    return current;
+  }
+  private async prepare(epoch: number, address?: string) {
+    await this.finishRevocation(); this.check(epoch);
+    const adapter = this.adapter();
+    let account: WalletAccount;
+    if (adapter.kind === 'manual') {
+      // Mobile address displays and OCR often insert grouping whitespace. Normalize only
+      // this pre-challenge input; the backend still checks the exact address checksum.
+      account = { address: (address ?? this.state.account?.address ?? '').replace(/\s+/g, ''), network: this.state.network };
+      this.validateAccount(account); this.patch({ account });
+    } else account = await this.checkAccount(epoch);
+    const challenge = await this.auth.challenge(account); this.check(epoch);
+    if (challenge.address !== account.address || challenge.network !== account.network || challenge.profile !== 'ghostlink-kaspa-v1' || challenge.message.length > 2000) throw new GhostlinkError('INVALID_REQUEST', 'The authentication service returned an invalid challenge.');
+    try {
+      const fields = parseLoginMessage(challenge.message, { origin: new URL(this.app.url).origin, network: account.network });
+      if (fields.address !== account.address || fields.expiresAt !== challenge.expiresAt) throw new Error('Challenge mismatch');
+    } catch { throw new GhostlinkError('INVALID_REQUEST', 'The authentication challenge does not match this application and account.'); }
+    this.patch({ challenge, step: adapter.kind === 'manual' ? 'manual' : 'sign', authentication: 'authenticating' });
+  }
+  prepareAuthentication = async (address?: string) => this.run(epoch => this.prepare(epoch, address));
+  async authenticate(input: { address?: string; signature?: string } = {}): Promise<void> {
+    await this.run(async epoch => {
+      if (!this.state.challenge) await this.prepare(epoch, input.address);
+      const challenge = this.state.challenge!;
+      if (Date.parse(challenge.expiresAt) <= Date.now()) throw new GhostlinkError('EXPIRED', 'This login request expired. Generate a new message.');
+      const a = this.adapter(); let signature = input.signature; let publicKey = this.state.account?.publicKey;
+      if (a.kind === 'manual') {
+        if (!signature) throw new GhostlinkError('INVALID_REQUEST', 'Paste or scan the signature from Kaspium.');
+      } else {
+        await this.checkAccount(epoch);
+        this.patch({ step: 'connecting' });
+        if (a.capabilities.authentication === 'caip122') {
+          if (!a.signIn) throw new GhostlinkError('UNSUPPORTED', 'The wallet has no supported native authentication route.');
+          const result = await a.signIn(challenge); this.check(epoch);
+          if (result.message !== challenge.message) throw new GhostlinkError('INVALID_REQUEST', 'The wallet changed the login message.');
+          signature = result.signature; publicKey = result.publicKey ?? publicKey;
+        } else signature = await a.signMessage(challenge.message);
+        this.check(epoch); await this.checkAccount(epoch);
+      }
+      if (!/^(0x)?[0-9a-fA-F]{128}$/.test(signature!)) throw new GhostlinkError('INVALID_SIGNATURE', 'Enter the complete Schnorr signature returned by your wallet.');
+      this.patch({ step: 'verifying' });
+      const session = await this.auth.verify({ challengeId: challenge.id, message: challenge.message, signature: signature!.replace(/^0x/, '').toLowerCase(), publicKey });
+      this.check(epoch);
+      if (session.address !== challenge.address || session.network !== challenge.network) throw new GhostlinkError('INVALID_REQUEST', 'The returned session does not match the signing account.');
+      this.patch({ session, authentication: 'authenticated', challenge: null, step: 'connected' });
+      try { if (typeof localStorage !== 'undefined') localStorage.setItem('ghostlink:last-wallet', a.id); } catch { /* Storage is optional. */ }
+      void this.refreshBalance();
+    });
+  }
+  async restoreSession(): Promise<void> {
+    if (this.destroyed) return;
+    this.startBrowserLifecycle();
+    if (this.locked || this.state.challenge) return;
+    if (this.restoration) return this.restoration;
+    const epoch = this.epoch;
+    this.restoration = (async () => {
+      await this.finishRevocation(); this.check(epoch);
+      const session = await this.auth.session(); this.check(epoch);
+      if (this.locked) return;
+      if (!session) { this.patch({ session: null, authentication: 'unauthenticated', step: this.state.open ? 'choose' : this.state.step }); return; }
+      if (session.network !== this.state.network) { await this.invalidate(true); return; }
+      if (this.state.connection === 'disconnected' && !this.state.walletId) {
+        let walletId: string | null = null;
+        try { if (typeof localStorage !== 'undefined') walletId = localStorage.getItem('ghostlink:last-wallet'); } catch { /* Storage is optional. */ }
+        const a = this.adapters.find(a => a.id === walletId);
+        if (a?.kind === 'manual') this.patch({ walletId: a.id, connection: 'manual' });
+        else if (a?.isAvailable()) {
+          let account: WalletAccount | null = null;
+          try { account = await a.getAccount(); } catch { /* A locked wallet requires an explicit reconnection. */ }
+          this.check(epoch);
+          if (account && account.address === session.address && account.network === session.network) { this.patch({ account, walletId: a.id, connection: 'connected' }); this.unsubscribeWallet = a.subscribe?.(() => { void this.invalidate(true); }); }
+          else { await this.invalidate(true); return; }
+        }
+      }
+      if (this.state.connection === 'connected') await this.checkAccount(epoch);
+      this.patch({ session, authentication: 'authenticated', account: this.state.account ?? { address: session.address, network: session.network }, step: this.state.open ? 'connected' : this.state.step });
+    })().finally(() => { this.restoration = null; });
+    return this.restoration;
+  }
+  private revoke(): Promise<void> {
+    this.patch({ revocationPending: true });
+    this.revokeTask ??= this.auth.logout().then(() => {
+      this.revocationFailures = 0; this.nextRevocationAttempt = 0;
+      this.patch({ revocationPending: false });
+    }).catch(() => {
+      this.nextRevocationAttempt = Date.now() + Math.min(30_000, 1000 * 2 ** Math.min(this.revocationFailures++, 5));
+      this.patch({ revocationPending: true });
+    }).finally(() => { this.revokeTask = null; });
+    return this.revokeTask;
+  }
+  private async finishRevocation() { if (this.state.revocationPending || this.revokeTask) { await this.revoke(); if (this.state.revocationPending) throw new GhostlinkError('SERVER_ERROR', 'Could not close the previous session. Reconnect to the server and try again.'); } }
+  private async invalidate(broadcast: boolean) {
+    this.epoch++; this.unsubscribeWallet?.(); this.unsubscribeWallet = undefined;
+    this.review?.reject(new GhostlinkError('CANCELLED', 'This request was cancelled.')); this.review = null;
+    this.patch({ session: null, account: null, challenge: null, request: null, balance: null, authentication: 'unauthenticated', connection: 'disconnected', step: 'choose' });
+    if (broadcast) this.channel?.postMessage('invalidate');
+    await this.revoke();
+  }
+  async disconnect(): Promise<void> {
+    const a = this.adapters.find(a => a.id === this.state.walletId);
+    await this.invalidate(true);
+    if (!this.locked) { try { await a?.disconnect?.(); } catch { /* Application revocation is authoritative; provider permissions may remain. */ } }
+    this.patch({ walletId: null });
+  }
+  async setNetwork(network: Network) { if (!isNetwork(network)) throw new GhostlinkError('INVALID_REQUEST', 'Unsupported network.'); if (network !== this.state.network) { await this.disconnect(); this.patch({ network }); } }
+  async switchWalletNetwork() { const a = this.adapter(); if (!a.switchNetwork) throw new GhostlinkError('UNSUPPORTED', 'Switch networks in your wallet.'); await this.run(async epoch => { this.patch({ step: 'connecting' }); await a.switchNetwork!(this.state.network); this.check(epoch); }); }
+  async refreshBalance() {
+    const epoch = this.epoch; const a = this.adapters.find(a => a.id === this.state.walletId);
+    if (!this.state.session || this.state.connection !== 'connected' || !a?.getBalance) return;
+    try { const balance = await a.getBalance(); this.check(epoch); this.patch({ balance }); } catch { if (epoch === this.epoch) this.patch({ balance: null }); }
+  }
+  private async signing<T>(operation: (a: WalletAdapter, epoch: number) => Promise<T>): Promise<T> {
+    return this.run(async epoch => {
+      if (!this.state.session || this.state.connection !== 'connected') throw new GhostlinkError('UNSUPPORTED', 'This operation requires an authenticated live wallet connection.');
+      const session = await this.auth.session(); this.check(epoch);
+      if (!session || session.address !== this.state.account?.address || session.network !== this.state.network) { await this.invalidate(true); throw new GhostlinkError('UNAUTHENTICATED', 'Your application session expired. Connect again.'); }
+      this.patch({ session });
+      await this.checkAccount(epoch); const result = await operation(this.adapter(), epoch); this.check(epoch); await this.checkAccount(epoch);
+      this.patch({ step: 'connected', request: null });
+      return result;
+    });
+  }
+  signMessage = (message: string) => this.signing(async (a, epoch) => { if (!message || message.length > 2000) throw new GhostlinkError('INVALID_REQUEST', 'Messages must contain 1–2000 characters.'); await this.reviewRequest('Signature request', message); this.check(epoch); await this.checkAccount(epoch); return a.signMessage(message); });
+  signTransaction = (input: TransactionRequest) => { const request = Object.freeze({ ...input }); return this.signing(async (a, epoch) => {
+    if (request.network !== this.state.network || request.address !== this.state.account?.address) throw new GhostlinkError('NETWORK_MISMATCH', 'The transaction account and network must match this session.');
+    if (!a.signTransaction || !a.capabilities.transactionFormats.includes(request.format)) throw new GhostlinkError('UNSUPPORTED', 'This transaction format is not supported by your wallet.');
+    if (!request.payload || request.payload.length > 1_000_000) throw new GhostlinkError('INVALID_REQUEST', 'Invalid transaction size.');
+    try { JSON.parse(request.payload); } catch { throw new GhostlinkError('INVALID_REQUEST', 'Enter a valid serialized JSON transaction.'); }
+    await this.reviewRequest('Transaction signature', `Network: ${request.network}\nAccount: ${request.address}\nFormat: ${request.format}\n\nReview the complete inputs, outputs, change and fee in your wallet. This request signs only and does not broadcast.`); this.check(epoch);
+    await this.checkAccount(epoch);
+    return a.signTransaction(request);
+  }); };
+  sendTransaction = (input: TransferRequest) => { const request = Object.freeze({ ...input }); return this.signing(async (a, epoch) => {
+    if (!a.sendTransaction || !a.capabilities.transfer) throw new GhostlinkError('UNSUPPORTED', 'This wallet does not support automated transfers.');
+    if (typeof request.amountSompi !== 'bigint' || (request.priorityFeeSompi !== undefined && typeof request.priorityFeeSompi !== 'bigint') || request.amountSompi <= 0n || (request.priorityFeeSompi ?? 0n) < 0n) throw new GhostlinkError('INVALID_REQUEST', 'Enter a positive transfer amount and a nonnegative fee.');
+    try { accountId(request.toAddress, this.state.network); } catch { throw new GhostlinkError('NETWORK_MISMATCH', 'The recipient address must match this network.'); }
+    await this.reviewRequest('Confirm transfer', `Network: ${this.state.network}\nTo: ${request.toAddress}\nAmount: ${formatKas(request.amountSompi)} KAS\nPriority fee: ${formatKas(request.priorityFeeSompi ?? 0n)} KAS\n\nThe wallet displays the final network fee. Approving in your wallet will sign and broadcast this transfer.`); this.check(epoch);
+    await this.checkAccount(epoch);
+    return a.sendTransaction(request);
+  }); };
+  destroy() {
+    if (this.destroyed) return;
+    if (this.state.challenge || this.state.authentication === 'authenticating') void this.auth.logout().catch(() => {});
+    this.epoch++; this.unsubscribeWallet?.(); clearInterval(this.timer); this.channel?.close();
+    this.review?.reject(new GhostlinkError('CANCELLED', 'Ghostlink has been destroyed.')); this.review = null;
+    if (typeof window !== 'undefined') { window.removeEventListener('focus', this.onFocus); window.removeEventListener('online', this.onOnline); window.removeEventListener('kasware#initialized', this.refreshWallets); }
+    this.listeners.clear(); this.destroyed = true;
+  }
+}
+export const createGhostlink = (config: GhostlinkConfig): Ghostlink => new Ghostlink(config);

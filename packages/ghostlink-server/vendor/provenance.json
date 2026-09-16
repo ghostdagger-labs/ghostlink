@@ -1,0 +1,15 @@
+{
+  "version": "v2.0.1",
+  "source": "https://github.com/kaspanet/rusty-kaspa/releases/tag/v2.0.1",
+  "archive": "https://github.com/kaspanet/rusty-kaspa/releases/download/v2.0.1/kaspa-wasm32-sdk-v2.0.1.zip",
+  "archiveSha256": "7eaffac9cd920ef2fdf540c6e10f2a2b7761170ebc62ec57dfa0f71c64567a71",
+  "files": {
+    "LICENSE": "fb06b99a835c4cdade7f2f180fd87c0198d552cf1e0cd14c34716411b009a92f",
+    "README.md": "1de8298e80ff6ac1e3b1549f6e5e01534ad624722f273c0ce6302ee5b20db7fd",
+    "kaspa.d.ts": "419603c791100bb19eeacbbfb49e3dc734d832a0bffc0d11582c73af6c30e704",
+    "kaspa.js": "1e0ad892861bf3e0a63ba8ed51366efc2b812c5a34c6895385ee2f9d026d2fc1",
+    "kaspa_bg.wasm": "9427733cb0cb1c78cc3f2cc9f77f4153426636925ced0256c5c30e4edc199eaa",
+    "kaspa_bg.wasm.d.ts": "69ea09e735bcde7357caaffa34317a22f23f447630853e6f36a396f6c333cfb6",
+    "package.json": "f200a3dcc702735e41a70b72af2f6cc99dd970579d198cc9f1fdb2e532d0c479"
+  }
+}

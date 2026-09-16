@@ -1,0 +1,38 @@
+{
+  "name": "ghostlink-core",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Framework-neutral Kaspa wallet authentication and connection SDK",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./fonts.css": "./dist/fonts.css",
+    "./assets/*": "./dist/assets/*"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean && node ../../tools/copy-core-assets.mjs",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "qrcode": "^1.5.4",
+    "@zxing/browser": "^0.1.5",
+    "@zxing/library": "^0.21.3"
+  },
+  "devDependencies": {
+    "@fontsource/figtree": "^5.2.0",
+    "@fontsource/space-grotesk": "^5.2.0",
+    "@fontsource/jetbrains-mono": "^5.2.0"
+  }
+}

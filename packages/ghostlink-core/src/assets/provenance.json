@@ -1,0 +1,29 @@
+[
+  {
+    "wallet": "kasware",
+    "repository": "https://github.com/kasware-wallet/extension",
+    "sourcePath": "src/assets/icon-128.png",
+    "sourceTree": "78bb30045edd4d898c4d61c4c75ba1bc37e18748",
+    "gitBlob": "4443e7b1f4ef1bf61bc2b0d88025ef541fe35984",
+    "sha256": "93d08b67df7526ef7824c8b4e57030278e0745a140e3121f69e8c9e3cfb27e65",
+    "retrieved": "2026-09-16"
+  },
+  {
+    "wallet": "kastle",
+    "repository": "https://github.com/forbole/kastle",
+    "sourcePath": "public/icon/128.png",
+    "sourceTree": "54587246516176a859e0cb0fdea822fe19f6e4ff",
+    "gitBlob": "951adcd98672a84670ec11c0256ff5d0cef6e21f",
+    "sha256": "aa77635a06827d40baf8a90edc8f83d46922a1e277e6924141564c5c0071b8f8",
+    "retrieved": "2026-09-16"
+  },
+  {
+    "wallet": "kaspium",
+    "repository": "https://github.com/azbuky/kaspium_wallet",
+    "sourcePath": "macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_128.png",
+    "sourceTree": "4646b96ba23da00f74eef5c423d1323cd6f25a99",
+    "gitBlob": "13b35eba55c6dabc3aac36f33d859266c18fa0d0",
+    "sha256": "15591f03f31313af6fd644ed0512106cc04365130b8b73244f1cfa6dddfb4400",
+    "retrieved": "2026-09-16"
+  }
+]

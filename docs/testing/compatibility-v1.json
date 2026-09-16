@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "profile": "ghostlink-kaspa-v1",
+  "updatedAt": "2026-09-16",
+  "note": "Implemented source-backed API candidates. Runtime capability detection is not real-wallet certification. Mainnet transactions are never automated by tests.",
+  "wallets": [
+    {
+      "wallet": "KasWare",
+      "adapter": "kasware",
+      "provider": "window.kasware",
+      "connection": "requestAccounts()",
+      "signing": "signMessage(message, { type: schnorr })",
+      "formats": [
+        "pskt-json"
+      ],
+      "transfer": "sendKaspa",
+      "source": "https://github.com/kasware-wallet/extension/blob/main/src/content-script/pageProvider/index.ts",
+      "networks": [
+        "mainnet",
+        "testnet-10",
+        "testnet-11"
+      ],
+      "signatureEncoding": "64-byte Schnorr hex",
+      "authenticationRoute": "compatibility",
+      "domainEnforcement": {
+        "status": "not-claimed",
+        "testedWalletBehavior": null
+      },
+      "evidence": {
+        "sourceReviewedAt": "2026-09-16",
+        "testedWalletVersions": [
+          "0.10.0"
+        ],
+        "liveLogin": {
+          "network": "mainnet",
+          "date": "2026-09-16",
+          "outcome": "verified application session shown; user confirmed successful login",
+          "walletVersion": "0.10.0",
+          "environment": "Brave on macOS",
+          "screenshot": "evidence/2026-09-16-kasware-mainnet-login.png",
+          "protectedApi": "not yet recorded"
+        },
+        "testnetTransactions": [],
+        "transactionTestingBlocker": "User reported on 2026-09-16 that the Testnet 11 account is unfunded."
+      },
+      "releaseStatus": "live-mainnet-login-confirmed; protected-api-and-testnet-evidence-pending"
+    },
+    {
+      "wallet": "Kastle",
+      "adapter": "kastle",
+      "provider": "window.kastle",
+      "connection": "connect()",
+      "signing": "signMessage(message)",
+      "formats": [
+        "kaspa-transaction-json"
+      ],
+      "transfer": "sendKaspa",
+      "source": "https://docs.kastle.cc/readme/how-to-integrate/kastle-wallet-api",
+      "networks": [
+        "mainnet",
+        "testnet-10"
+      ],
+      "signatureEncoding": "64-byte Schnorr hex",
+      "authenticationRoute": "compatibility",
+      "domainEnforcement": {
+        "status": "not-claimed",
+        "testedWalletBehavior": null
+      },
+      "evidence": {
+        "sourceReviewedAt": "2026-09-16",
+        "testedWalletVersions": [
+          "2.60.0"
+        ],
+        "liveLogin": {
+          "network": "mainnet",
+          "date": "2026-09-16",
+          "outcome": "verified application session shown; user confirmed successful login",
+          "walletVersion": "2.60.0",
+          "environment": "Brave on macOS",
+          "screenshot": "evidence/2026-09-16-kastle-mainnet-login.png",
+          "protectedApi": "not yet recorded"
+        },
+        "testnetTransactions": [],
+        "transactionTestingBlocker": "User reported on 2026-09-16 that the Testnet 10 account is unfunded.",
+        "networkSwitch": {
+          "walletVersion": "2.60.0",
+          "requestedNetwork": "testnet-11",
+          "outcome": "Wallet popup crashes: selectedNetwork is undefined. Source lookup contains only mainnet and testnet-10. Ghostlink now rejects this operation before invoking the provider.",
+          "source": "https://github.com/forbole/kastle/blob/v2.60.0/components/screens/browser-api/kaspa/SwitchKaspaNetwork.tsx",
+          "screenshot": "evidence/2026-09-16-kastle-testnet11-switch-crash.png",
+          "supportedRoutes": {
+            "networks": [
+              "mainnet",
+              "testnet-10"
+            ],
+            "outcome": "User confirmed network switching and login work on both networks after the fix.",
+            "date": "2026-09-16"
+          }
+        },
+        "testnetLogin": {
+          "network": "testnet-10",
+          "date": "2026-09-16",
+          "walletVersion": "2.60.0",
+          "outcome": "User confirmed working testnet login after adding the supported Testnet 10 route.",
+          "protectedApi": "not yet recorded"
+        }
+      },
+      "releaseStatus": "mainnet-and-testnet10-login-and-network-switch-confirmed; protected-api-and-transaction-evidence-pending"
+    },
+    {
+      "wallet": "Kaspium",
+      "adapter": "kaspium",
+      "provider": null,
+      "connection": "manual address + QR/paste",
+      "signing": "Sign message tool; exact message QR/paste, signature QR/copy",
+      "formats": [],
+      "transfer": null,
+      "source": "https://github.com/azbuky/kaspium_wallet/blob/main/lib/sign_message/sign_message_sheet.dart",
+      "networks": [
+        "mainnet",
+        "testnet-10",
+        "testnet-11"
+      ],
+      "signatureEncoding": "64-byte Schnorr hex",
+      "authenticationRoute": "compatibility",
+      "domainEnforcement": {
+        "status": "not-claimed",
+        "testedWalletBehavior": null
+      },
+      "evidence": {
+        "sourceReviewedAt": "2026-09-16",
+        "availableWalletVersion": "1.3.0",
+        "testedWalletVersions": [
+          "1.3.0"
+        ],
+        "liveLogin": {
+          "network": "mainnet",
+          "date": "2026-09-16",
+          "outcome": "User confirmed successful manual authentication after using Settings > Advanced > Sign message.",
+          "walletVersion": "1.3.0",
+          "environment": "Kaspium on iOS; Brave on macOS",
+          "protectedApi": "not yet recorded"
+        },
+        "testnetTransactions": []
+      },
+      "releaseStatus": "live-mainnet-manual-login-confirmed; protected-api-evidence-pending; no-automated-transactions",
+      "networkBinding": "Manual signing binds the explicit message chain; it does not detect or continuously monitor the mobile wallet network."
+    }
+  ]
+}
