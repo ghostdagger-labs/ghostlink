@@ -9,9 +9,14 @@ export async function injectWallet(page: Page, wallet: 'kasware' | 'kastle' = 'k
     const listeners = new Map<string, Set<() => void>>();
     test.__walletCalls = [];
     test.__emitWallet = (event: string) => listeners.get(event)?.forEach(fn => fn());
+    const readAccount = () => {
+      const fault = sessionStorage.getItem('ghostlink:fixture:account-lookup');
+      if (fault === 'throws') throw new Error('Wallet is still initializing');
+      return fault === 'empty' ? null : account;
+    };
     const p = {
       requestAccounts: async () => [account.address], connect: async () => true,
-      getAccounts: async () => [account.address], getAccount: async () => account,
+      getAccounts: async () => { const a = readAccount(); return a ? [a.address] : []; }, getAccount: async () => readAccount(),
       getPublicKey: async () => account.publicKey, getNetwork: async () => wallet === 'kasware' ? `kaspa_${account.network.replace('-', '_')}` : account.network,
       getBalance: async () => wallet === 'kasware' ? { total: 123456789 } : { balance: '123456789' }, getVersion: async () => 'automated-test-fixture',
       signMessage: async (message: string) => { test.__walletCalls.push('signMessage'); if (mode === 'reject') throw { code: 4001 }; if (mode === 'defer') await new Promise(r => { test.__finishSign = r; }); return test.__testSign(message); },

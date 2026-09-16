@@ -198,21 +198,34 @@ export class Ghostlink {
       if (this.locked) return;
       if (!session) { this.patch({ session: null, authentication: 'unauthenticated', step: this.state.open ? 'choose' : this.state.step }); return; }
       if (session.network !== this.state.network) { await this.invalidate(true); return; }
-      if (this.state.connection === 'disconnected' && !this.state.walletId) {
-        let walletId: string | null = null;
+      let walletId = this.state.walletId;
+      if (!walletId) {
         try { if (typeof localStorage !== 'undefined') walletId = localStorage.getItem('ghostlink:last-wallet'); } catch { /* Storage is optional. */ }
-        const a = this.adapters.find(a => a.id === walletId);
-        if (a?.kind === 'manual') this.patch({ walletId: a.id, connection: 'manual' });
-        else if (a?.isAvailable()) {
-          let account: WalletAccount | null = null;
-          try { account = await a.getAccount(); } catch { /* A locked wallet requires an explicit reconnection. */ }
+      }
+      const a = this.adapters.find(a => a.id === walletId);
+      let account: WalletAccount | null = null;
+      if (a?.kind === 'manual') this.patch({ walletId: a.id, connection: 'manual' });
+      else {
+        if (a?.isAvailable()) {
+          try { account = await a.getAccount(); } catch { /* Wallet availability is separate from server authentication. */ }
+        }
+        this.check(epoch);
+        if (account && (account.address !== session.address || account.network !== session.network)) { await this.invalidate(true); return; }
+        if (account && a) {
+          if (this.state.connection !== 'connected' || this.state.walletId !== a.id) {
+            this.unsubscribeWallet?.();
+            this.unsubscribeWallet = a.subscribe?.(() => { void this.invalidate(true); });
+          }
           this.check(epoch);
-          if (account && account.address === session.address && account.network === session.network) { this.patch({ account, walletId: a.id, connection: 'connected' }); this.unsubscribeWallet = a.subscribe?.(() => { void this.invalidate(true); }); }
-          else { await this.invalidate(true); return; }
+          this.patch({ walletId: a.id, connection: 'connected' });
+        } else {
+          // A locked or initializing provider is not evidence that the signing account changed.
+          // Retry on the next restoration/focus; signing remains blocked without a live connection.
+          this.unsubscribeWallet?.(); this.unsubscribeWallet = undefined;
+          this.patch({ connection: 'disconnected', balance: null });
         }
       }
-      if (this.state.connection === 'connected') await this.checkAccount(epoch);
-      this.patch({ session, authentication: 'authenticated', account: this.state.account ?? { address: session.address, network: session.network }, step: this.state.open ? 'connected' : this.state.step });
+      this.patch({ session, authentication: 'authenticated', account: account ?? { address: session.address, network: session.network }, step: this.state.open ? 'connected' : this.state.step });
     })().finally(() => { this.restoration = null; });
     return this.restoration;
   }

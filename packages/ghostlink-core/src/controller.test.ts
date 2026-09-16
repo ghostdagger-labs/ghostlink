@@ -45,6 +45,55 @@ describe('controller security transitions', () => {
     await expect(f.client.signMessage('message')).rejects.toMatchObject({ code: 'UNSUPPORTED' });
     await f.client.disconnect(); expect(f.auth.logout).toHaveBeenCalled();
   });
+  it.each(['empty', 'throws', 'missing'] as const)('restores authentication while a saved wallet is %s, then reconnects without signing', async mode => {
+    vi.stubGlobal('localStorage', { getItem: () => 'test' });
+    const f = fixture(); const subscribe = vi.spyOn(f.adapter, 'subscribe');
+    f.adapter.isAvailable = vi.fn(() => mode !== 'missing');
+    if (mode === 'throws') vi.mocked(f.adapter.getAccount).mockRejectedValue(new Error('Wallet initializing'));
+    else vi.mocked(f.adapter.getAccount).mockResolvedValue(null);
+    await f.client.restoreSession();
+    expect(f.client.getSnapshot()).toMatchObject({ session: f.session, authentication: 'authenticated', connection: 'disconnected' });
+    expect(f.auth.logout).not.toHaveBeenCalled(); expect(subscribe).not.toHaveBeenCalled();
+    await expect(f.client.signMessage('message')).rejects.toMatchObject({ code: 'UNSUPPORTED' });
+
+    f.adapter.isAvailable = () => true; vi.mocked(f.adapter.getAccount).mockResolvedValue(account);
+    await f.client.restoreSession(); await f.client.restoreSession();
+    expect(f.client.getSnapshot()).toMatchObject({ session: f.session, connection: 'connected', walletId: 'test', account });
+    expect(subscribe).toHaveBeenCalledTimes(1);
+    expect(f.adapter.connect).not.toHaveBeenCalled(); expect(f.adapter.signMessage).not.toHaveBeenCalled();
+    expect(f.auth.verify).not.toHaveBeenCalled(); expect(f.auth.logout).not.toHaveBeenCalled();
+  });
+  it.each(['empty', 'throws'] as const)('retains an existing login when a restoration lookup is %s', async mode => {
+    const f = fixture(); await f.login();
+    if (mode === 'throws') vi.mocked(f.adapter.getAccount).mockRejectedValue(new Error('Wallet locked'));
+    else vi.mocked(f.adapter.getAccount).mockResolvedValue(null);
+    await f.client.restoreSession();
+    expect(f.client.getSnapshot()).toMatchObject({ session: f.session, authentication: 'authenticated', connection: 'disconnected', balance: null });
+    expect(f.auth.logout).not.toHaveBeenCalled();
+    await expect(f.client.sendTransaction({ toAddress: account.address, amountSompi: 1n })).rejects.toMatchObject({ code: 'UNSUPPORTED' });
+    expect(f.adapter.sendTransaction).not.toHaveBeenCalled();
+    vi.mocked(f.adapter.getAccount).mockResolvedValue(account); await f.client.restoreSession();
+    expect(f.client.getSnapshot().connection).toBe('connected');
+    f.event(); await vi.waitFor(() => expect(f.auth.logout).toHaveBeenCalledOnce());
+    expect(f.client.getSnapshot().session).toBeNull();
+  });
+  it.each(['address', 'network'] as const)('still revokes restoration when the wallet reports a different %s', async field => {
+    vi.stubGlobal('localStorage', { getItem: () => 'test' });
+    const f = fixture();
+    vi.mocked(f.adapter.getAccount).mockResolvedValue(field === 'address' ? { ...account, address: 'kaspatest:other' } : { ...account, network: 'mainnet' });
+    await f.client.restoreSession();
+    expect(f.client.getSnapshot()).toMatchObject({ session: null, authentication: 'unauthenticated' });
+    expect(f.auth.logout).toHaveBeenCalledOnce();
+  });
+  it('does not restore a wallet lookup that completes after sign-out', async () => {
+    vi.stubGlobal('localStorage', { getItem: () => 'test' });
+    const f = fixture(); const gate = deferred<typeof account | null>();
+    vi.mocked(f.adapter.getAccount).mockImplementation(() => gate.promise);
+    const restore = f.client.restoreSession(); const stale = expect(restore).rejects.toMatchObject({ code: 'CANCELLED' });
+    await vi.waitFor(() => expect(f.adapter.getAccount).toHaveBeenCalled());
+    await f.client.disconnect(); gate.resolve(account); await stale;
+    expect(f.client.getSnapshot()).toMatchObject({ session: null, authentication: 'unauthenticated', connection: 'disconnected' });
+  });
   it('normalizes grouped manual-address whitespace before creating the exact challenge', async () => {
     const f = fixture(); await f.client.connect('kaspium');
     await f.client.prepareAuthentication(account.address.match(/.{1,8}/g)!.join(' \n'));
