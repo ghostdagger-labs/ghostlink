@@ -98,4 +98,5 @@ export function kaspiumAdapter(): WalletAdapter {
   const unavailable = async (): Promise<never> => { throw new GhostlinkError('UNSUPPORTED', 'Kaspium uses manual message signing; there is no live wallet connection.'); };
   return { id: 'kaspium', icon: new URL('./assets/kaspium.png', import.meta.url).href, name: 'Kaspium', kind: 'manual', mark: 'KM', installUrl: 'https://kaspium.io/', capabilities: { ...baseCaps }, isAvailable: () => true, connect: unavailable, getAccount: async () => null, signMessage: unavailable };
 }
-export const defaultAdapters = () => [kaswareAdapter(), kastleAdapter(), kaspiumAdapter()];
+// Manual mobile signing remains available through explicit adapter configuration.
+export const defaultAdapters = () => [kaswareAdapter(), kastleAdapter()];

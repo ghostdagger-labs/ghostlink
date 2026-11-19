@@ -2,6 +2,8 @@
 
 Updated September 16, 2026. This revision supersedes the original draft, retained verbatim in [archive/ghostlink spec.original.md](archive/ghostlink%20spec.original.md). The unmodified [Design Prototype](Ghostlink%20UI/Ghostlink%20Prototype.html) remains the source of truth for UI styling and interaction surfaces. Protocol and security behavior follow this specification, the [v1 authentication profile](../protocol/kaspa-authentication-profile-v1.md), and the actual documented wallet APIs.
 
+Visibility update, November 19, 2026: default adapters and public UI expose KasWare and Kastle only. Kaspium manual signing described below remains an explicit opt-in with a development harness. Mobile/hardware UI stays hidden pending the [integration UX and security criteria](../roadmap/wallet-integrations.md). Kaspire, Ledger and KSPR are deferred candidates; Kuro is dropped and Tangem is out of scope. This changes visibility, not the authentication profile or historical compatibility evidence.
+
 ## Scope and package boundaries
 
 Ghostlink is a strict TypeScript SDK on Node 24, built in a pnpm workspace. `ghostlink-core` owns framework-neutral state, adapters, authentication transport, presentation functions and scoped CSS. `ghostlink-vue` and `ghostlink-react` provide native components and lifecycle bindings. `ghostlink-server` owns official Kaspa verification, Web HTTP handlers, a Node adapter, sessions and durable SQLite storage. The Vue/Vite showcase and its Node backend live in `examples/vue`. Packages ship ESM, declarations, separate styles, local fonts and their required runtime assets. Server-only code must stay outside browser bundles; public imports must be SSR safe.

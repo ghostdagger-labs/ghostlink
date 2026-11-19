@@ -15,7 +15,7 @@ await client.authenticate();
 // Dispose: unsubscribe(); client.destroy();
 ```
 
-Use `ghostlink-server` to verify login and maintain the session. A connected provider alone is never authentication. Default adapters are KasWare, Kastle, and Kaspium manual QR/paste signing. Capabilities are checked at runtime; they are not proof of wallet identity or real-wallet certification. Generic message signing does not provide wallet-side phishing resistance.
+Use `ghostlink-server` to verify login and maintain the session. A connected provider alone is never authentication. Default adapters are the KasWare and Kastle browser wallets. Mobile and hardware options are hidden by default. Kaspium manual QR/paste signing remains available by explicitly passing `adapters: [...defaultAdapters(), kaspiumAdapter()]` (both functions are exported by this package). Capabilities are checked at runtime; they are not proof of wallet identity or real-wallet certification. Generic message signing does not provide wallet-side phishing resistance.
 
 UI packages import `ghostlink-core/styles.css` and optional local `ghostlink-core/fonts.css`. Override scoped `--ghostlink-*` variables for branding. `createGhostlink` and imports are SSR safe. The client owns no keys and contains no server/WASM verifier code.
 

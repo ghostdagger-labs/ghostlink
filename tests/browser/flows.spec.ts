@@ -17,7 +17,7 @@ for (const wallet of ['KasWare', 'Kastle']) test(`${wallet}: verified login, pro
   await expect(page.locator('.example-result')).toHaveCount(0);
 });
 test('manual Kaspium QR and paste authenticate without a provider or exported key', async ({ page }) => {
-  await page.goto('/'); await page.getByRole('button', { name: 'Connect wallet', exact: true }).first().click();
+  await page.goto('/manual.html'); await page.getByRole('button', { name: 'Connect wallet', exact: true }).first().click();
   await page.getByRole('button', { name: /Kaspium Mobile/ }).click(); await page.getByLabel('Signing address', { exact: true }).fill(account.address);
   await page.getByRole('button', { name: 'Create login message' }).click();
   await expect(page.getByAltText('QR code containing the exact login message')).toBeVisible();
@@ -39,7 +39,7 @@ test('manual Kaspium QR and paste authenticate without a provider or exported ke
 });
 test('manual wrong signing key and expired challenge never authenticate', async ({ page }) => {
   await page.clock.install();
-  await page.goto('/'); await page.getByRole('button', { name: 'Connect wallet', exact: true }).first().click(); await page.getByRole('button', { name: /Kaspium Mobile/ }).click(); await page.getByLabel('Signing address', { exact: true }).fill(account.address); await page.getByRole('button', { name: 'Create login message' }).click();
+  await page.goto('/manual.html'); await page.getByRole('button', { name: 'Connect wallet', exact: true }).first().click(); await page.getByRole('button', { name: /Kaspium Mobile/ }).click(); await page.getByLabel('Signing address', { exact: true }).fill(account.address); await page.getByRole('button', { name: 'Create login message' }).click();
   const message = await page.locator('dialog details pre').textContent(); await page.getByLabel('Signature from Kaspium').fill(sign(message!, '2'.padStart(64, '0')));
   await page.getByRole('button', { name: 'Verify and sign in' }).click(); await expect(page.getByRole('alert')).toContainText('does not match');
   await page.getByRole('button', { name: 'Try again' }).click(); await expect(page.getByRole('heading', { name: 'Scan to sign' })).toBeVisible(); await page.clock.fastForward(301_000); await expect(page.getByRole('button', { name: 'Generate a new message' })).toBeVisible();
@@ -116,7 +116,7 @@ test('Kastle unsupported Testnet 11 shows useful guidance without opening a wall
 });
 
 test('manual signature paste completes verification and a protected request', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/manual.html');
   await page.getByRole('button', { name: 'Connect wallet', exact: true }).first().click();
   await page.getByRole('button', { name: /Kaspium Mobile/ }).click();
   await page.getByLabel('Signing address', { exact: true }).fill(account.address.match(/.{1,8}/g)!.join(' '));
@@ -143,7 +143,7 @@ test('localhost navigation redirects to the exact configured authentication orig
 });
 
 test('manual checksum errors let the user edit the address and continue', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/manual.html');
   await page.getByRole('button', { name: 'Connect wallet', exact: true }).first().click();
   await page.getByRole('button', { name: /Kaspium Mobile/ }).click();
   await page.getByLabel('Signing address', { exact: true }).fill(account.address + 'q');

@@ -9,17 +9,17 @@ const snippets = { TypeScript: { file: 'app.ts', code: tsCode }, Vue: { file: 'C
 const code = computed(() => snippets[lang.value].code);
 const codeFile = computed(() => snippets[lang.value].file);
 const codeTabs = computed(() => (Object.keys(snippets) as (keyof typeof snippets)[]).map(name => ({ name, bg: lang.value === name ? 'var(--chipOn)' : 'transparent', fg: lang.value === name ? 'var(--chipOnInk)' : 'var(--ink3)', pick: () => { lang.value = name; } })));
-const heroStats = [{ v: '3', k: 'login adapters' }, { v: '2', k: 'UI integrations' }, { v: 'TypeScript', k: 'typed APIs' }];
-const marquee = Array.from({ length: 8 }, () => [{ name: 'KasWare' }, { name: 'Kastle' }, { name: 'Kaspium · manual login' }]).flat();
+const heroStats = [{ v: '2', k: 'browser wallets' }, { v: '2', k: 'UI integrations' }, { v: 'TypeScript', k: 'typed APIs' }];
+const marquee = Array.from({ length: 8 }, () => [{ name: 'KasWare' }, { name: 'Kastle' }]).flat();
 const payoffs = [
  { text: 'One typed controller for supported wallet login flows.' },
- { text: 'Browser wallet detection and manual Kaspium QR/paste signing.' },
+ { text: 'Browser wallet detection for KasWare and Kastle.' },
  { text: 'Errors you can handle, with feedback already written for users.' },
  { text: 'Vue and React components backed by the same public APIs.' },
 ];
 const compare = [
  { before: 'Connect to different browser wallet APIs', after: 'One typed wallet controller' },
- { before: 'Build a manual mobile signing flow', after: 'Kaspium message QR and signature input' },
+ { before: 'Handle wallet discovery and availability', after: 'Browser wallet detection and install guidance' },
  { before: 'Create and verify login challenges', after: 'Node verification backend' },
  { before: 'Check and restore application sessions', after: 'Server-verified session restoration' },
  { before: 'Build each framework’s login interface', after: 'Native Vue and React components' },
@@ -27,12 +27,8 @@ const compare = [
 const wallets = [
  { name: 'KasWare', kind: 'Browser extension · login', mark: 'KW', bg: '#5E52C4', status: 'Supported' },
  { name: 'Kastle', kind: 'Browser extension · login', mark: 'KS', bg: '#46506B', status: 'Supported' },
- { name: 'KSPR Wallet', kind: 'Adapter planned', mark: 'KP', bg: '#3F5A78', status: 'Planned' },
- { name: 'Kaspium', kind: 'Mobile · manual login', mark: 'KM', bg: '#6B5B44', status: 'Beta' },
- { name: 'Tangem', kind: 'Adapter planned', mark: 'TG', bg: '#4A5057', status: 'Planned' },
- { name: 'Ledger', kind: 'Adapter planned', mark: 'LX', bg: '#24282E', status: 'Planned' },
-].map(w => ({ ...w, fg: w.status === 'Supported' ? 'var(--okText)' : w.status === 'Beta' ? 'var(--acc)' : 'var(--ink3)', chip: w.status === 'Supported' ? 'var(--okSoft)' : w.status === 'Beta' ? 'var(--accSoft)' : 'var(--chip)' }));
-const preview = wallets.filter(w => w.status !== 'Planned').map(w => ({ ...w, badge: w.name === 'Kaspium' ? 'Manual' : 'Extension', fg: 'var(--ink2)', chip: 'var(--chip)' }));
+].map(w => ({ ...w, fg: 'var(--okText)', chip: 'var(--okSoft)' }));
+const preview = wallets.map(w => ({ ...w, badge: 'Extension', fg: 'var(--ink2)', chip: 'var(--chip)' }));
 </script>
 <template>
 <div class="landing" :data-theme="theme" style="min-height:100vh;background:var(--bg)">
@@ -126,7 +122,7 @@ const preview = wallets.filter(w => w.status !== 'Planned').map(w => ({ ...w, ba
         </div>
         <span style="font:600 11px 'JetBrains Mono',monospace;color:var(--ink3)">01 · choose</span>
         <div style="font-size:17px;font-weight:700;color:var(--ink)">Choose your wallet</div>
-        <p style="margin:0;font-size:13.5px;line-height:1.6;color:var(--ink2);text-wrap:pretty">Choose KasWare or Kastle in your browser, or use Kaspium’s manual message-signing flow. Your private keys stay in your wallet.</p>
+        <p style="margin:0;font-size:13.5px;line-height:1.6;color:var(--ink2);text-wrap:pretty">Choose KasWare or Kastle in your browser. Your private keys stay in your wallet.</p>
       </div>
       <div style="border:1px solid var(--line);border-radius:18px;background:var(--surf);padding:24px;display:flex;flex-direction:column;gap:16px">
         <div style="height:120px;border-radius:13px;background:var(--surf2);display:grid;place-items:center;padding:0 18px">
@@ -151,7 +147,7 @@ const preview = wallets.filter(w => w.status !== 'Planned').map(w => ({ ...w, ba
         </div>
         <span style="font:600 11px 'JetBrains Mono',monospace;color:var(--ink3)">02 · sign</span>
         <div style="font-size:17px;font-weight:700;color:var(--ink)">Review before you sign</div>
-        <p style="margin:0;font-size:13.5px;line-height:1.6;color:var(--ink2);text-wrap:pretty">Review the application, account and network in the login message. Approve it in your wallet. Kaspium users transfer the message and signature by QR or paste.</p>
+        <p style="margin:0;font-size:13.5px;line-height:1.6;color:var(--ink2);text-wrap:pretty">Review the application, account and network in the login message. Approve it in your wallet to finish signing in.</p>
       </div>
       <div style="border:1px solid var(--line);border-radius:18px;background:var(--surf);padding:24px;display:flex;flex-direction:column;gap:16px">
         <div style="height:120px;border-radius:13px;background:var(--surf2);display:grid;place-items:center">
@@ -208,9 +204,9 @@ const preview = wallets.filter(w => w.status !== 'Planned').map(w => ({ ...w, ba
         <span style="font:600 10.5px Figtree;letter-spacing:.09em;text-transform:uppercase;color:var(--acc)">Wallet support</span>
         <h2 style="margin:12px 0 0;font-family:Sora,sans-serif;font-size:38px;line-height:1.1;letter-spacing:-1.6px;font-weight:600;color:var(--ink);text-wrap:balance">Adapters, not rewrites.</h2>
       </div>
-      <p style="margin:0;max-width:40ch;font-size:14px;line-height:1.6;color:var(--ink2);text-wrap:pretty">Login support reflects the adapters available today. KasWare and Kastle use browser extensions; Kaspium uses manual message signing. More adapters are planned.</p>
+      <p style="margin:0;max-width:40ch;font-size:14px;line-height:1.6;color:var(--ink2);text-wrap:pretty">Connect with the KasWare or Kastle browser extension. Both use wallet-approved login messages and server-verified sessions.</p>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px">
       <template v-for="(w, index) in wallets" :key="index">
         <div style="border:1px solid var(--line);border-radius:16px;background:var(--surf);padding:18px;display:flex;align-items:center;gap:13px">
           <span :style="`width:38px;height:38px;flex:none;border-radius:12px;background:${w.bg};display:grid;place-items:center;font:800 13px Sora,sans-serif;color:#fff`">{{ w.mark }}</span>
@@ -269,7 +265,7 @@ const preview = wallets.filter(w => w.status !== 'Planned').map(w => ({ ...w, ba
     <div>
       <span style="font:600 10.5px Figtree;letter-spacing:.09em;text-transform:uppercase;color:var(--acc)">Live demo</span>
       <h2 style="margin:12px 0 14px;max-width:24ch;font-family:Sora,sans-serif;font-size:36px;line-height:1.1;letter-spacing:-1.5px;font-weight:600;color:var(--ink);text-wrap:balance">Try the real login flow.</h2>
-      <p style="margin:0 0 22px;max-width:46ch;font-size:15px;line-height:1.6;color:var(--ink2);text-wrap:pretty">Choose a wallet, review a login message, and try a protected backend request in the Vue example. Kaspium supports manual signing with QR or paste.</p>
+      <p style="margin:0 0 22px;max-width:46ch;font-size:15px;line-height:1.6;color:var(--ink2);text-wrap:pretty">Choose a browser wallet, review a login message, and try a protected backend request in the Vue example.</p>
       <div style="display:flex;gap:11px;flex-wrap:wrap">
         <NuxtLink to="/demo" style="height:46px;padding:0 20px;border-radius:12px;background:var(--acc);color:var(--accInk);font-size:14.5px;font-weight:700;display:flex;align-items:center" data-hover="lp-hover-9">Open the demo</NuxtLink>
         <NuxtLink to="/docs" style="height:46px;padding:0 18px;border-radius:12px;border:1px solid var(--line2);color:var(--ink2);font-size:14.5px;font-weight:700;display:flex;align-items:center" data-hover="lp-hover-10">Read the docs</NuxtLink>
@@ -296,7 +292,6 @@ const preview = wallets.filter(w => w.status !== 'Planned').map(w => ({ ...w, ba
           </div>
         </template>
       </div>
-      <div style="margin-top:12px;height:40px;border-radius:12px;border:1px dashed var(--line2);display:grid;place-items:center;font-size:12.5px;font-weight:600;color:var(--ink3)">Kaspium: manual QR or paste signing</div>
     </div>
   </div>
 </section>

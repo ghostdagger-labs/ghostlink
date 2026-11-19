@@ -11,7 +11,7 @@ const dialog = ref<HTMLDialogElement>(); const video = ref<HTMLVideoElement>();
 const query = ref(''); const tab = ref('All'); const address = ref(''); const signature = ref('');
 const qr = ref(''); const notice = ref(''); const camera = ref(false); const now = ref(Date.now());
 let tick: ReturnType<typeof setInterval>; let detach: (() => void) | undefined; let stopCamera: (() => void) | undefined;
-const tabs = ['All', 'Installed', 'Mobile'];
+const tabs = computed(() => s.value.wallets.some(w => w.kind === 'manual') ? ['All', 'Installed', 'Mobile'] : ['All', 'Installed']);
 const wallets = computed(() => s.value.wallets.filter(w => (tab.value === 'All' || (tab.value === 'Installed' ? w.kind === 'injected' && w.available : w.kind === 'manual')) && w.name.toLowerCase().includes(query.value.trim().toLowerCase())));
 const expired = computed(() => !!s.value.challenge && Date.parse(s.value.challenge.expiresAt) <= now.value);
 async function act(work: () => Promise<unknown>) { notice.value = ''; try { await work(); } catch { /* Core presents the typed error. */ } }

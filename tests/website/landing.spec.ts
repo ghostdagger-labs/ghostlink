@@ -34,9 +34,9 @@ test('truthful content, tabs, keyboard access, links and unavailable package', a
   for (const button of await page.getByRole('button', { name: 'Package installation coming soon' }).all()) await expect(button).toBeDisabled();
   const wallets = page.locator('#wallets');
   await expect(wallets.getByText('Supported', { exact: true })).toHaveCount(2);
-  await expect(wallets.getByText('Beta', { exact: true })).toHaveCount(1);
-  await expect(wallets.getByText('Planned', { exact: true })).toHaveCount(3);
-  await expect(page.locator('main')).not.toContainText(/11kB|seven-day|2,000 lines|@ghostlink\/sdk|relay reconnect|all nine states/);
+  await expect(wallets.getByText('Beta', { exact: true })).toHaveCount(0);
+  await expect(wallets.getByText('Planned', { exact: true })).toHaveCount(0);
+  await expect(page.locator('main')).not.toContainText(/11kB|seven-day|2,000 lines|@ghostlink\/sdk|relay reconnect|all nine states|Kaspium|Kaspire|KSPR|Kuro|Tangem|Ledger|mobile|hardware/i);
   await page.getByRole('link', { name: 'Wallets', exact: true }).hover();
   await expect(page.getByRole('link', { name: 'Wallets', exact: true })).toHaveCSS('color', 'rgb(243, 244, 247)');
   await page.getByRole('link', { name: 'Wallets', exact: true }).click(); await expect(page).toHaveURL(/#wallets$/);

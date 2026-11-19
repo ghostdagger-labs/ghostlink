@@ -1,5 +1,19 @@
 # Kaspium manual authentication
 
+As of November 19, 2026, this flow is **hidden from the default UI** because it does not meet the one-scan mobile UX requirement. It remains available for explicit integrations and development testing; it is not automatic wallet pairing. See the [integration decision and future candidates](../roadmap/wallet-integrations.md).
+
+To opt in explicitly:
+
+```ts
+import { createGhostlink, defaultAdapters, kaspiumAdapter } from 'ghostlink-core';
+const client = createGhostlink({
+  app: { name: 'Your dApp', url: 'https://app.example' },
+  adapters: [...defaultAdapters(), kaspiumAdapter()],
+});
+```
+
+For repository testing, run `pnpm dev` and open `http://127.0.0.1:5173/manual.html`. This dedicated development harness enables the adapter; it is excluded from the example production build. The normal example and website demo use browser wallets only.
+
 Kaspium 1.3.0 supports signing a message without connecting a browser provider. Ghostlink turns the returned signature into a verified application session. This does not grant automated message or transaction access to the mobile wallet.
 
 1. Select the intended network in the application. For a `kaspa:` receiving address, choose Mainnet.

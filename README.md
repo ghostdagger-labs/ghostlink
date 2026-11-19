@@ -1,6 +1,8 @@
 # Ghostlink
 
-Kaspa wallet login for TypeScript applications, with native Vue and React UI and a Node verification backend. Connect KasWare or Kastle, or sign a login message manually with Kaspium. Authentication is established by the backend, independently from live wallet connectivity.
+Kaspa wallet login for TypeScript applications, with native Vue and React UI and a Node verification backend. Connect the KasWare or Kastle browser extension. Authentication is established by the backend, independently from live wallet connectivity.
+
+Mobile and hardware options are hidden from the default UI while their UX and security are evaluated. See the [deferred integration findings](docs/roadmap/wallet-integrations.md) for Kaspire, Ledger and KSPR. Kaspium manual signing remains an [explicit SDK opt-in](docs/integration/kaspium.md).
 
 This is a **pre-release implementation**. Source-backed adapters and automated fixtures are included; real-wallet version certification and testnet transaction evidence are tracked in [the compatibility record](docs/testing/compatibility-v1.json). Registry publication is separate.
 
@@ -18,7 +20,7 @@ pnpm build
 pnpm dev
 ```
 
-Open http://127.0.0.1:5173 in the browser where your wallet is installed. Select Testnet 11 for KasWare or Testnet 10 for Kastle in both the application and wallet. Mainnet is also available for login. Login requires no funds. The backend uses SQLite under `examples/vue/.data/`. Kaspium uses QR/paste message signing; no pairing service or key export is required. The example also includes an explicit transfer form and signing-only payload input; only approve transactions you intend to send. Test fixtures never submit mainnet transactions.
+Open http://127.0.0.1:5173 in the browser where your wallet is installed. Select Testnet 11 for KasWare or Testnet 10 for Kastle in both the application and wallet. Mainnet is also available for login. Login requires no funds. The backend uses SQLite under `examples/vue/.data/`. The example also includes an explicit transfer form and signing-only payload input; only approve transactions you intend to send. Test fixtures never submit mainnet transactions.
 
 To serve the production build locally with the same Node process, use `pnpm --filter ghostlink-example-vue start` and open http://127.0.0.1:5174. Configure `GHOSTLINK_ORIGIN`, `PORT`, and `GHOSTLINK_DATABASE` for your environment. The sample listens on loopback. A deployed HTTPS reverse proxy must preserve the configured Host.
 
@@ -126,6 +128,6 @@ pnpm test:browser
 pnpm check:package
 ```
 
-`check:package` prepares local npm tarballs and verifies a clean consumer install, SSR rendering and packaged assets. No publication occurs. The React development harness is `/react.html` under the Vite dev server and is not included in the example production build.
+`check:package` prepares local npm tarballs and verifies a clean consumer install, SSR rendering and packaged assets. No publication occurs. The React development harness is `/react.html`; the explicit Kaspium manual-signing harness is `/manual.html`. Both are available only under the Vite dev server and are not included in the example production build.
 
 Further reading: [corrected specification](docs/design/ghostlink%20spec.md), [security model](docs/security/model.md), [authentication profile](docs/protocol/kaspa-authentication-profile-v1.md), [wallet adapters](docs/integration/wallet-adapters.md), [Kaspium walkthrough](docs/integration/kaspium.md), [theming](docs/integration/theming.md), [live acceptance procedure](docs/testing/live-wallets.md), [visual fidelity](docs/testing/visual-fidelity.md). The original design prototype is preserved under `docs/design/Ghostlink UI/`.

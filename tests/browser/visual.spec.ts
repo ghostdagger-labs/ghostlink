@@ -30,6 +30,9 @@ for (const width of [1280, 390]) for (const theme of ['dark', 'light']) test(`Vu
   await expect(page.getByRole('button', { name: 'Connect wallet', exact: true }).first()).toHaveScreenshot(`connect-${theme}-${width}.png`);
   await page.getByRole('button', { name: 'Connect wallet', exact: true }).first().click();
   const dialog = page.getByRole('dialog'); await expect(dialog).toBeVisible();
+  await expect(dialog.locator('.gl-wallet-name')).toHaveText(['KasWare', 'Kastle']);
+  await expect(dialog.locator('.gl-tab')).toHaveText(['All', 'Installed']);
+  await expect(dialog.getByRole('button', { name: /mobile|hardware|Kaspium/i })).toHaveCount(0);
   await expect(dialog).toHaveScreenshot(`chooser-${theme}-${width}.png`);
   const violations = (await new AxeBuilder({ page }).include('dialog').analyze()).violations; expect(violations).toEqual([]);
   const box = await dialog.boundingBox(); expect(box!.width).toBe(width === 1280 ? 440 : 358);
@@ -52,6 +55,9 @@ for (const theme of ['dark', 'light']) test(`native Vue and React ${theme} rende
   const reactButton = await connectScreenshot(reactPage, background);
   expect(reactButton.equals(vueButton), 'Both renderers should produce identical connect controls').toBe(true);
   await reactPage.getByRole('button', { name: 'Connect wallet', exact: true }).click();
+  await expect(reactPage.locator('.gl-wallet-name')).toHaveText(['KasWare', 'Kastle']);
+  await expect(reactPage.locator('.gl-tab')).toHaveText(['All', 'Installed']);
+  await expect(reactPage.getByRole('button', { name: /mobile|hardware|Kaspium/i })).toHaveCount(0);
   await reactPage.addStyleTag({ content: `body{background:${background}!important}body>:not(dialog){visibility:hidden!important}` });
   const react = await reactPage.getByRole('dialog').screenshot({ animations: 'disabled' });
   expect(react.equals(vue), 'Both renderers should produce identical modal pixels on the same background').toBe(true);

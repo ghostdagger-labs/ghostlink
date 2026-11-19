@@ -4,6 +4,8 @@ The compatibility matrix is a versioned evidence record, not a marketing list. E
 
 ## Prerequisites
 
+The default example and website demo expose browser wallets only. Kaspium testing requires the explicit `/manual.html` development harness or [adapter opt-in](../integration/kaspium.md), following the [2026-11-19 visibility decision](../roadmap/wallet-integrations.md).
+
 Run `pnpm build && pnpm dev`, open http://127.0.0.1:5173 in the browser containing the extension, and select Testnet 11 for KasWare or Testnet 10 for Kastle in both the application and wallet. Mainnet login is valid acceptance evidence but does not replace testnet transaction testing. Use a wallet account dedicated to testing. For Kaspium 1.3.0, open Settings → Advanced → Sign message and use the QR button inside its message field (the home-screen payment scanner does not accept login-message QR codes); never export private keys. Record the exact extension/mobile version from its own About/settings screen, platform, browser version and date. Wallet version strings supplied to dApps are only hints.
 
 ## Login acceptance for each wallet

@@ -1,6 +1,6 @@
 # Ghostlink website
 
-Nuxt 4 / Vue / TypeScript landing page, docs placeholder, and the existing Vue example at `/demo`. The Node server uses the unchanged `ghostlink-server` API and SQLite. The original design files are preserved; the [claim audit and roadmap](../docs/roadmap/landing-page-reconciliation.md) explain copy corrections.
+Nuxt 4 / Vue / TypeScript landing page, docs placeholder, and the existing Vue example at `/demo`. The default experience presents KasWare and Kastle browser wallets only; mobile/hardware options and prospective wallet cards are hidden. The [deferred integration findings](../docs/roadmap/wallet-integrations.md) record the UX policy and future candidates. The Node server uses the unchanged `ghostlink-server` API and SQLite. The original design files are preserved; the [claim audit and roadmap](../docs/roadmap/landing-page-reconciliation.md) explain copy corrections.
 
 ## Local development
 

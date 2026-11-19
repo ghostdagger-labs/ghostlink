@@ -28,7 +28,7 @@ export function GhostlinkModal({ theme = 'dark', variables, children }: Appearan
   const [address, setAddress] = useState(''); const [signature, setSignature] = useState(''); const [qr, setQr] = useState('');
   const [notice, setNotice] = useState(''); const [camera, setCamera] = useState(false); const [now, setNow] = useState(Date.now());
   const stopCamera = useRef<(() => void) | undefined>(undefined);
-  const tabs = ['All', 'Installed', 'Mobile'];
+  const tabs = s.wallets.some(w => w.kind === 'manual') ? ['All', 'Installed', 'Mobile'] : ['All', 'Installed'];
   const wallets = s.wallets.filter(w => (tab === 'All' || (tab === 'Installed' ? w.kind === 'injected' && w.available : w.kind === 'manual')) && w.name.toLowerCase().includes(query.trim().toLowerCase()));
   const expired = !!s.challenge && Date.parse(s.challenge.expiresAt) <= now;
   async function act(work: () => Promise<unknown>) { setNotice(''); try { await work(); } catch { /* Core presents typed failures. */ } }
