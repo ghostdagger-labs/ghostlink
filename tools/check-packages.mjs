@@ -31,6 +31,11 @@ import { renderToString as renderVue } from 'vue/server-renderer';
 const client = createGhostlink({ app: { name: 'SSR consumer', url: 'https://app.example' } });
 assert.match(renderToString(createElement(ReactProvider, { client }, createElement(ReactButton), createElement(ReactModal))), /Connect wallet/);
 assert.match(await renderVue(createSSRApp({ render: () => h(VueProvider, { client }, { default: () => [h(VueButton),h(VueModal)] }) })), /Connect wallet/);
+assert.equal(client.getSnapshot().initialization, 'idle');
+assert.equal(client.getSnapshot().initializationError, null);
+assert.deepEqual(client.getSnapshot().wallets, []);
+const release = client.attach(); release(); release();
+assert.equal(client.getSnapshot().initialization, 'idle');
 client.destroy();
 const cssPath = new URL(import.meta.resolve('ghostlink-core/styles.css'));
 const fontPath = new URL(import.meta.resolve('ghostlink-core/fonts.css'));
@@ -52,7 +57,7 @@ console.log('Clean consumer: Vue/React SSR, CSS, fonts, wallet assets, Node SQLi
 `);
 execFileSync(process.execPath, ['verify.mjs'], { cwd: consumer, stdio: 'inherit' });
 writeFileSync(join(consumer, 'verify.ts'), `
-import { createGhostlink, type AuthSession, type AuthenticationListener, type TransactionRequest } from 'ghostlink-core';
+import { createGhostlink, type AuthSession, type AuthenticationListener, type InitializationState, type TransactionRequest } from 'ghostlink-core';
 import { GhostlinkProvider as VueProvider, useGhostlink as useVue } from 'ghostlink-vue';
 import { GhostlinkProvider as ReactProvider, useGhostlink as useReact } from 'ghostlink-react';
 import { createGhostlinkServer, createSqliteStorage } from 'ghostlink-server';
@@ -60,7 +65,9 @@ const client = createGhostlink({ app: { name: 'Typed consumer', url: 'https://ap
 const onAuthenticated: AuthenticationListener = async session => { const address: string = session.address; void address; };
 const unsubscribe: () => void = client.onAuthenticated(onAuthenticated);
 const authenticate: () => Promise<Readonly<AuthSession>> = () => client.authenticate();
-void [unsubscribe, authenticate];
+const release: () => void = client.attach();
+const initialization: InitializationState = client.getSnapshot().initialization;
+void [unsubscribe, authenticate, release, initialization];
 const request: TransactionRequest = { format: 'pskt-json', payload: '{}', network: 'testnet-11', address: 'kaspatest:fixture' };
 void [client, request, VueProvider, ReactProvider, useVue, useReact, createGhostlinkServer, createSqliteStorage];
 `);

@@ -1,8 +1,15 @@
 <script setup lang="ts">
-import { provide } from 'vue';
-import type { Ghostlink } from 'ghostlink-core';
+import { onMounted, onUnmounted, provide, watch } from 'vue';
+import { GhostlinkError, type Ghostlink } from 'ghostlink-core';
 import { GhostlinkKey } from './context';
 const props = defineProps<{ client: Ghostlink }>();
-provide(GhostlinkKey, props.client);
+const client = props.client;
+provide(GhostlinkKey, client);
+watch(() => props.client, next => {
+  if (next !== client) throw new GhostlinkError('INVALID_REQUEST', 'GhostlinkProvider requires a stable client. Remount the provider with a new key to replace it.');
+}, { flush: 'sync' });
+let release: (() => void) | undefined;
+onMounted(() => { release = client.attach(); });
+onUnmounted(() => { release?.(); });
 </script>
 <template><slot /></template>

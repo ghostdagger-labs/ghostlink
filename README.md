@@ -42,7 +42,7 @@ const client = createGhostlink({
   auth: { baseUrl: '/auth/ghostlink' },
 });
 createApp(App).use(GhostlinkPlugin, client).mount('#app');
-// Call client.destroy() when disposing the application/controller.
+// The plugin initializes on app mount and releases browser activity on app unmount.
 ```
 
 ```vue
@@ -60,13 +60,14 @@ import { GhostlinkConnectButton, GhostlinkModal } from 'ghostlink-vue';
 ## React
 
 ```tsx
+import { useState } from 'react';
 import { createGhostlink } from 'ghostlink-core';
 import { GhostlinkProvider, GhostlinkConnectButton, GhostlinkModal } from 'ghostlink-react';
 import 'ghostlink-core/styles.css';
 import 'ghostlink-core/fonts.css';
 
-const client = createGhostlink({ app: { name: 'Your dApp', url: 'https://app.example' } });
 export function WalletLogin() {
+  const [client] = useState(() => createGhostlink({ app: { name: 'Your dApp', url: 'https://app.example' } }));
   return <GhostlinkProvider client={client}>
     <GhostlinkConnectButton />
     <GhostlinkModal />
@@ -74,7 +75,9 @@ export function WalletLogin() {
 }
 ```
 
-Create a controller per application instance/request boundary rather than sharing authenticated SSR state across users. Imports and construction are SSR safe; discovery and lifecycle listeners start in the browser. `useGhostlink()` returns the reactive snapshot and client. Dispose a controller when its owning application is unmounted, not during incidental component rerenders.
+Keep a stable client per provider lifetime and a separate client per SSR request. Construction and server rendering are passive. The provider initializes after browser mounting, including when using only hooks and custom UI, and releases its attachment on cleanup. It never destroys the supplied client or signs out an established session. React Strict Mode cleanup is reversible. Use a keyed provider remount to replace a client; reserve `destroy()` for permanently retiring an instance, outside reusable effect cleanup.
+
+`useGhostlink()` returns the reactive snapshot and client. Gate identity-dependent UI on `snapshot.initialization === 'ready'` (Vue script uses `snapshot.value`). `idle` and `restoring` are unresolved; `error` exposes `initializationError`, with retry through `client.restoreSession()`. A retained session alone does not establish readiness. See [lifecycle, ownership and SSR](docs/integration/lifecycle.md) for the full contract and headless setup.
 
 ## Verification server
 
@@ -99,7 +102,7 @@ Frameworks using Web requests can call `auth.handle(request, { ip: trustedPeerAd
 
 ## Client operations
 
-`connect()` opens wallet selection; `connect(id)` connects a specific adapter. Call `authenticate()` to obtain and verify a login signature; its promise returns the verified session. The modal handles intermediate review; `prepareAuthentication(address?)` creates the manual or injected login challenge. `disconnect()` clears local state and requests server revocation; inspect `revocationPending` if offline. `restoreSession()` consults the server. `getSnapshot()`, `subscribe(listener)` and `destroy()` support headless integrations.
+`connect()` opens wallet selection; `connect(id)` connects a specific adapter. Call `authenticate()` to obtain and verify a login signature; its promise returns the verified session. The modal handles intermediate review; `prepareAuthentication(address?)` creates the manual or injected login challenge. `disconnect()` clears local state and requests server revocation; inspect `revocationPending` if offline. `restoreSession()` consults the server. `getSnapshot()`, `subscribe(listener)` and `attach()` support headless integrations. A headless owner releases the function returned by `attach()` when finished; `destroy()` permanently retires the client.
 
 ### Authentication completion
 
@@ -150,6 +153,6 @@ pnpm test:browser
 pnpm check:package
 ```
 
-`check:package` prepares local npm tarballs and verifies a clean consumer install, SSR rendering and packaged assets. No publication occurs. The React development harness is `/react.html`; the explicit Kaspium manual-signing harness is `/manual.html`. Both are available only under the Vite dev server and are not included in the example production build.
+`check:package` prepares local npm tarballs and verifies a clean consumer install, SSR rendering and packaged assets. No publication occurs. The React development harness is `/react.html`; the explicit Kaspium manual-signing harness is `/manual.html`; `/lifecycle.html` tests hook-only provider ownership and hydration. These harnesses are available only under the Vite dev server and are not included in the example production build.
 
 Further reading: [corrected specification](docs/design/ghostlink%20spec.md), [security model](docs/security/model.md), [authentication profile](docs/protocol/kaspa-authentication-profile-v1.md), [wallet adapters](docs/integration/wallet-adapters.md), [Kaspium walkthrough](docs/integration/kaspium.md), [theming](docs/integration/theming.md), [live acceptance procedure](docs/testing/live-wallets.md), [visual fidelity](docs/testing/visual-fidelity.md). The original design prototype is preserved under `docs/design/Ghostlink UI/`.

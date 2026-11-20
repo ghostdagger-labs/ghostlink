@@ -11,5 +11,5 @@ const { snapshot } = useGhostlink();
 <template>
   <GhostlinkConnectButton />
   <GhostlinkModal />
-  <p v-if="snapshot.session">Signed in</p>
+  <p v-if="snapshot.initialization === 'ready' && snapshot.session">Signed in</p>
 </template>

@@ -9,6 +9,6 @@ export function WalletLogin() {
   return <>
     <GhostlinkConnectButton />
     <GhostlinkModal />
-    {snapshot.session && <p>Signed in</p>}
+    {snapshot.initialization === 'ready' && snapshot.session && <p>Signed in</p>}
   </>;
 }

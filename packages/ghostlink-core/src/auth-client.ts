@@ -5,11 +5,12 @@ export function createAuthClient(options: { baseUrl?: string; fetch?: typeof fet
   let csrf: string | null = null;
   let bootstrap: Promise<void> | null = null;
   const fetcher = options.fetch ?? ((...args: Parameters<typeof fetch>) => globalThis.fetch(...args));
-  async function request<T>(path: string, body?: unknown): Promise<T> {
+  async function request<T>(path: string, body?: unknown, signal?: AbortSignal): Promise<T> {
     const response = await fetcher(`${base}${path}`, {
       method: body === undefined ? 'GET' : 'POST', credentials: 'same-origin', cache: 'no-store',
       headers: body === undefined ? {} : { 'Content-Type': 'application/json', 'X-Ghostlink-CSRF': csrf ?? '' },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      ...(signal ? { signal } : {}),
     });
     let data: Record<string, unknown>;
     try { data = await response.json() as Record<string, unknown>; }
@@ -25,7 +26,7 @@ export function createAuthClient(options: { baseUrl?: string; fetch?: typeof fet
   return {
     async challenge(account) { await ensureCsrf(); return request<AuthChallenge>('/challenge', account); },
     async verify(input) { await ensureCsrf(); return request<AuthSession>('/verify', input); },
-    async session() { const data = await request<{ session: AuthSession | null; csrfToken: string }>('/session'); csrf = data.csrfToken; return data.session; },
+    async session(options) { const data = await request<{ session: AuthSession | null; csrfToken: string }>('/session', undefined, options?.signal); csrf = data.csrfToken; return data.session; },
     async logout() { await ensureCsrf(); await request('/logout', {}); },
   };
 }

@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client';
-import { useEffect, useState } from 'react';
+import { StrictMode, useEffect, useState } from 'react';
 import { createGhostlink } from 'ghostlink-core';
 import { GhostlinkProvider, GhostlinkConnectButton, GhostlinkModal } from 'ghostlink-react';
 import 'ghostlink-core/styles.css';
@@ -11,5 +11,5 @@ function Harness() {
   return <main className="gl-theme" style={{ padding: 32 }}><h1>React development harness</h1><GhostlinkConnectButton /><GhostlinkModal /><p>Completed sign-ins: <output aria-label="Authentication completions">{completions}</output></p></main>;
 }
 const root = createRoot(document.getElementById('app')!);
-root.render(<GhostlinkProvider client={client}><Harness /></GhostlinkProvider>);
+root.render(<StrictMode><GhostlinkProvider client={client}><Harness /></GhostlinkProvider></StrictMode>);
 if (import.meta.hot) import.meta.hot.dispose(() => { root.unmount(); client.destroy(); });

@@ -10,6 +10,7 @@ const client = createGhostlink({ app: { name: 'Ghostlink Example', url: window.l
 const unsubscribe = client.subscribe(() => {
   try { sessionStorage.setItem('ghostlink:example:network', client.getSnapshot().network); } catch { /* Optional storage. */ }
 });
-onBeforeUnmount(() => { unsubscribe(); client.destroy(); });
+// The provider releases browser activity; this component owns only its extra subscription.
+onBeforeUnmount(unsubscribe);
 </script>
 <template><GhostlinkProvider :client="client"><Example /></GhostlinkProvider></template>

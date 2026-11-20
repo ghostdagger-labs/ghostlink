@@ -6,7 +6,11 @@ const client = createGhostlink({
   auth: { baseUrl: '/auth/ghostlink' },
 });
 
-// Opens wallet selection; the UI guides login.
+// In a framework app, its provider owns initialization.
+// Headless consumers acquire and later release browser activity:
+const release = client.attach();
+
+// Opens wallet selection when a UI host is mounted.
 client.open();
-// Dispose the controller when your app unmounts.
-// client.destroy();
+// Release this headless owner when finished.
+// release();

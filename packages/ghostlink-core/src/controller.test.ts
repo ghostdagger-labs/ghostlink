@@ -154,6 +154,7 @@ describe('controller security transitions', () => {
   it('honors protected-route activity at the server without polling idle sessions alive', async () => {
     vi.useFakeTimers(); vi.stubGlobal('window', { addEventListener: vi.fn(), removeEventListener: vi.fn() });
     const f = fixture(); await f.login();
+    f.client.attach(); await f.client.restoreSession(); f.auth.session.mockClear();
     f.auth.session.mockResolvedValue({ ...f.session, idleExpiresAt: new Date(Date.now() + 2_700_000).toISOString() });
     await vi.advanceTimersByTimeAsync(1_799_000); expect(f.auth.session).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(1000);
@@ -179,6 +180,181 @@ describe('controller security transitions', () => {
     const f = fixture(); await f.login(); f.client.attachUI(); vi.mocked(f.adapter.signMessage).mockClear();
     const operation = f.client.signMessage('Read this'); const rejection = expect(operation).rejects.toMatchObject({ code: 'CANCELLED' });
     await vi.waitFor(() => expect(f.client.getSnapshot().request).not.toBeNull()); f.client.back(); await rejection; expect(f.adapter.signMessage).not.toHaveBeenCalled();
+  });
+});
+describe('provider-owned lifecycle', () => {
+  function browser() {
+    vi.useFakeTimers();
+    const target = new EventTarget();
+    vi.stubGlobal('window', target);
+    vi.stubGlobal('localStorage', { getItem: () => 'test', setItem: vi.fn() });
+    const channels: { closed: boolean }[] = [];
+    vi.stubGlobal('BroadcastChannel', class {
+      closed = false;
+      onmessage = null;
+      constructor() { channels.push(this); }
+      close() { this.closed = true; }
+      postMessage() {}
+    });
+    return { target, channels };
+  }
+  it('constructs a deterministic idle snapshot without discovering wallets, even in a browser', () => {
+    browser();
+    const f = fixture();
+    const available = vi.spyOn(f.adapter, 'isAvailable');
+    const capabilities = vi.fn(() => f.adapter.capabilities);
+    const adapter = { ...f.adapter, get capabilities() { return capabilities(); } };
+    const client = createGhostlink({ app: f.client.app, adapters: [adapter], auth: f.auth });
+    clean.push(() => client.destroy());
+    expect(client.getSnapshot()).toMatchObject({ initialization: 'idle', initializationError: null, wallets: [], session: null });
+    expect(available).not.toHaveBeenCalled(); expect(capabilities).not.toHaveBeenCalled();
+    expect(f.auth.session).not.toHaveBeenCalled(); expect(vi.getTimerCount()).toBe(0);
+  });
+  it('is passive on the server, including an explicit attachment', () => {
+    const f = fixture(); const available = vi.spyOn(f.adapter, 'isAvailable');
+    const release = f.client.attach(); release(); release();
+    expect(f.client.getSnapshot()).toMatchObject({ initialization: 'idle', wallets: [] });
+    expect(available).not.toHaveBeenCalled(); expect(f.auth.session).not.toHaveBeenCalled();
+  });
+  it('exposes unresolved identity and shares one pending initialization across attachments', async () => {
+    browser(); const f = fixture(); const gate = deferred<AuthSession | null>();
+    f.auth.session.mockReturnValue(gate.promise);
+    const release = f.client.attach(); const releaseOther = f.client.attach();
+    const ready = f.client.restoreSession();
+    await Promise.resolve();
+    expect(f.client.getSnapshot()).toMatchObject({ initialization: 'restoring', initializationError: null, session: null, busy: false });
+    expect(f.auth.session).toHaveBeenCalledTimes(1);
+    gate.resolve(null); await ready;
+    expect(f.client.getSnapshot()).toMatchObject({ initialization: 'ready', authentication: 'unauthenticated', session: null });
+    expect(f.adapter.connect).not.toHaveBeenCalled(); expect(f.adapter.signMessage).not.toHaveBeenCalled();
+    release(); releaseOther();
+  });
+  it('exposes a failed check separately from wallet errors and can retry without remounting', async () => {
+    browser(); const f = fixture(); f.auth.session.mockRejectedValue(new TypeError('offline'));
+    f.client.attach();
+    await expect(f.client.restoreSession()).rejects.toMatchObject({ code: 'SERVER_ERROR' });
+    expect(f.client.getSnapshot()).toMatchObject({ initialization: 'error', initializationError: { code: 'SERVER_ERROR' }, error: null, step: 'choose' });
+    f.auth.session.mockResolvedValue(null); await f.client.restoreSession();
+    expect(f.client.getSnapshot()).toMatchObject({ initialization: 'ready', initializationError: null, session: null });
+  });
+  it('keeps the last known session unresolved when a later check fails, without logging out', async () => {
+    browser(); const f = fixture(); f.client.attach(); await f.client.restoreSession();
+    f.auth.session.mockRejectedValue(new TypeError('offline'));
+    await expect(f.client.restoreSession()).rejects.toMatchObject({ code: 'SERVER_ERROR' });
+    expect(f.client.getSnapshot()).toMatchObject({ initialization: 'error', session: f.session });
+    expect(f.auth.logout).not.toHaveBeenCalled();
+  });
+  it('releases only the final attachment and preserves caller subscriptions and server login', async () => {
+    const { target, channels } = browser(); const f = fixture();
+    const off = vi.fn(); f.adapter.subscribe = vi.fn(() => off);
+    const observed = vi.fn(); f.client.subscribe(observed);
+    const release = f.client.attach(); const other = f.client.attach(); await f.client.restoreSession();
+    expect(vi.getTimerCount()).toBe(1); expect(channels).toHaveLength(1);
+    release(); release(); expect(off).not.toHaveBeenCalled(); expect(vi.getTimerCount()).toBe(1);
+    other(); other(); expect(off).toHaveBeenCalledTimes(1); expect(vi.getTimerCount()).toBe(0);
+    expect(channels.every(c => c.closed)).toBe(true);
+    expect(f.client.getSnapshot()).toMatchObject({ initialization: 'idle', session: f.session, connection: 'disconnected' });
+    expect(f.auth.logout).not.toHaveBeenCalled();
+    f.auth.session.mockClear(); observed.mockClear();
+    target.dispatchEvent(new Event('focus')); target.dispatchEvent(new Event('online'));
+    target.dispatchEvent(new Event('kasware#initialized')); await vi.advanceTimersByTimeAsync(2000);
+    expect(f.auth.session).not.toHaveBeenCalled(); expect(observed).not.toHaveBeenCalled();
+    const again = f.client.attach(); await f.client.restoreSession();
+    expect(observed).toHaveBeenCalled(); expect(f.adapter.subscribe).toHaveBeenCalledTimes(2);
+    expect(f.client.getSnapshot()).toMatchObject({ initialization: 'ready', session: f.session, connection: 'connected' });
+    expect(f.completed).not.toHaveBeenCalled(); again();
+  });
+  it('tolerates setup-cleanup-setup without duplicate requests, timers or terminal destruction', async () => {
+    const { channels } = browser(); const f = fixture();
+    const first = f.client.attach(); first(); const second = f.client.attach();
+    await f.client.restoreSession();
+    expect(f.auth.session).toHaveBeenCalledTimes(1); expect(vi.getTimerCount()).toBe(1);
+    expect(channels.filter(c => !c.closed)).toHaveLength(1);
+    expect(f.auth.logout).not.toHaveBeenCalled(); second();
+  });
+  it('does not let a detached response overwrite or clear a newer restoration', async () => {
+    browser(); const f = fixture(); const old = deferred<AuthSession | null>(); const fresh = deferred<AuthSession | null>();
+    f.auth.session.mockReturnValueOnce(old.promise).mockReturnValueOnce(fresh.promise);
+    const release = f.client.attach(); const obsolete = expect(f.client.restoreSession()).rejects.toMatchObject({ code: 'CANCELLED' });
+    await Promise.resolve(); release(); f.client.attach(); const current = f.client.restoreSession();
+    await Promise.resolve(); old.resolve(f.session); await obsolete;
+    expect(f.client.getSnapshot()).toMatchObject({ initialization: 'restoring', session: null });
+    const joined = f.client.restoreSession(); expect(f.auth.session).toHaveBeenCalledTimes(2);
+    fresh.resolve(null); await Promise.all([current, joined]);
+    expect(f.client.getSnapshot()).toMatchObject({ initialization: 'ready', session: null });
+  });
+  it('ignores a wallet lookup that completes after the last release', async () => {
+    browser(); const f = fixture(); const gate = deferred<typeof account | null>();
+    vi.mocked(f.adapter.getAccount).mockReturnValue(gate.promise);
+    const subscribe = vi.spyOn(f.adapter, 'subscribe');
+    const release = f.client.attach(); const obsolete = expect(f.client.restoreSession()).rejects.toMatchObject({ code: 'CANCELLED' });
+    await vi.waitFor(() => expect(f.adapter.getAccount).toHaveBeenCalled());
+    release(); gate.resolve(account); await obsolete;
+    expect(subscribe).not.toHaveBeenCalled();
+    expect(f.client.getSnapshot()).toMatchObject({ initialization: 'idle', session: null, connection: 'disconnected' });
+  });
+  it('aborts pending session I/O on final release and keeps cancellation out of readiness errors', async () => {
+    browser(); const f = fixture(); let signal: AbortSignal | undefined;
+    const client = createGhostlink({ app: f.client.app, adapters: [f.adapter], auth: {
+      ...f.auth,
+      session: options => new Promise((_resolve, reject) => {
+        signal = options?.signal;
+        signal?.addEventListener('abort', () => reject(new Error('aborted')), { once: true });
+      }),
+    } });
+    clean.push(() => client.destroy());
+    const release = client.attach(); const cancelled = expect(client.restoreSession()).rejects.toMatchObject({ code: 'CANCELLED' });
+    await Promise.resolve(); expect(signal?.aborted).toBe(false);
+    release(); await cancelled;
+    expect(signal?.aborted).toBe(true);
+    expect(client.getSnapshot()).toMatchObject({ initialization: 'idle', initializationError: null });
+  });
+  it('resumes initialization after an operation supersedes the first check', async () => {
+    browser(); const f = fixture(); const gate = deferred<AuthSession | null>();
+    f.auth.session.mockReturnValueOnce(gate.promise).mockResolvedValue(null);
+    f.client.attach(); const obsolete = expect(f.client.restoreSession()).rejects.toMatchObject({ code: 'CANCELLED' });
+    await Promise.resolve(); await f.client.connect('test'); gate.resolve(null); await obsolete;
+    await f.client.restoreSession();
+    expect(f.client.getSnapshot()).toMatchObject({ initialization: 'ready', connection: 'connected', step: 'review' });
+  });
+  it('cancels pending review on release while preserving an established login', async () => {
+    browser(); const f = fixture(); const first = f.client.attach(); await f.client.restoreSession();
+    // A separate attachment keeps the same client alive until both owners release it.
+    const release = f.client.attach(); f.client.attachUI();
+    const operation = f.client.signMessage('Review this'); const cancelled = expect(operation).rejects.toMatchObject({ code: 'CANCELLED' });
+    await vi.waitFor(() => expect(f.client.getSnapshot().request).not.toBeNull());
+    release(); expect(f.client.getSnapshot().request).not.toBeNull();
+    first(); await cancelled;
+    expect(f.adapter.signMessage).not.toHaveBeenCalled(); expect(f.auth.logout).not.toHaveBeenCalled();
+  });
+  it.each(['success', 'lost response'])('cancels late verification (%s) and safely restores after reattachment', async outcome => {
+    browser(); const f = fixture(); f.auth.session.mockResolvedValue(null);
+    const release = f.client.attach(); await f.client.restoreSession(); await f.client.connect('test');
+    const gate = deferred<AuthSession>(); f.auth.verify.mockReturnValue(gate.promise);
+    const operation = f.client.authenticate(); const cancelled = expect(operation).rejects.toMatchObject({ code: 'CANCELLED' });
+    await vi.waitFor(() => expect(f.auth.verify).toHaveBeenCalled());
+    release(); await vi.waitFor(() => expect(f.auth.logout).toHaveBeenCalledTimes(1));
+    f.client.attach();
+    if (outcome === 'success') gate.resolve(f.session); else gate.reject(new TypeError('Verification response lost'));
+    await cancelled; await f.client.restoreSession();
+    expect(f.auth.logout).toHaveBeenCalledTimes(2); expect(f.completed).not.toHaveBeenCalled();
+    expect(f.client.getSnapshot()).toMatchObject({ initialization: 'ready', session: null, busy: false });
+  });
+  it('does not turn an unavailable idle-session check into repeated polling or logout', async () => {
+    browser(); const f = fixture(); f.client.attach(); await f.client.restoreSession();
+    f.auth.session.mockRejectedValue(new TypeError('offline'));
+    await vi.advanceTimersByTimeAsync(1_810_000);
+    expect(f.auth.session).toHaveBeenCalledTimes(2);
+    expect(f.client.getSnapshot()).toMatchObject({ initialization: 'error', session: f.session });
+    expect(f.auth.logout).not.toHaveBeenCalled();
+  });
+  it('keeps explicit destruction terminal and idempotent', async () => {
+    browser(); const f = fixture(); const release = f.client.attach(); await f.client.restoreSession();
+    f.client.destroy(); f.client.destroy(); release();
+    expect(vi.getTimerCount()).toBe(0); expect(f.auth.logout).not.toHaveBeenCalled();
+    expect(() => f.client.attach()).toThrow('destroyed');
+    await expect(f.client.restoreSession()).rejects.toMatchObject({ code: 'CANCELLED' });
+    await expect(f.client.connect('test')).rejects.toMatchObject({ code: 'CANCELLED' });
   });
 });
 describe('authentication completion', () => {

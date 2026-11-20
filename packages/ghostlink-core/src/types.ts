@@ -36,11 +36,15 @@ export type AuthenticationListener = (session: Readonly<AuthSession>) => void | 
 export interface AuthTransport {
   challenge(account: WalletAccount): Promise<AuthChallenge>;
   verify(input: { challengeId: string; message: string; signature: string; publicKey?: string }): Promise<AuthSession>;
-  session(): Promise<AuthSession | null>;
+  session(options?: { signal?: AbortSignal }): Promise<AuthSession | null>;
   logout(): Promise<void>;
 }
 export type FlowStep = 'choose' | 'connecting' | 'review' | 'address' | 'sign' | 'manual' | 'verifying' | 'connected' | 'error' | 'getwallet';
+export type InitializationState = 'idle' | 'restoring' | 'ready' | 'error';
 export interface GhostlinkSnapshot {
+  /** Identity is unresolved until ready. Retry a failed check with restoreSession(). */
+  initialization: InitializationState;
+  initializationError: { code: ErrorCode; message: string } | null;
   open: boolean; step: FlowStep; busy: boolean; network: Network;
   walletId: string | null; account: WalletAccount | null;
   connection: 'disconnected' | 'connected' | 'manual';

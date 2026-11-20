@@ -9,15 +9,22 @@ const client = createGhostlink({
   network: 'testnet-11',
   auth: { baseUrl: '/auth/ghostlink' },
 });
+const release = client.attach(); // Browser lifecycle; framework providers do this for you.
 const unsubscribe = client.subscribe(() => console.log(client.getSnapshot()));
+await client.restoreSession(); // Wait for the shared initialization before deciding whether to log in.
 await client.connect('kasware');
 const session = await client.authenticate(); // Verified readonly session.
-// Dispose: unsubscribe(); client.destroy();
+// Cleanup: unsubscribe(); release();
+// Only when permanently retiring this instance: client.destroy();
 ```
 
 Use `ghostlink-server` to verify login and maintain the session. A connected provider alone is never authentication. Default adapters are the KasWare and Kastle browser wallets. Mobile and hardware options are hidden by default. Kaspium manual QR/paste signing remains available by explicitly passing `adapters: [...defaultAdapters(), kaspiumAdapter()]` (both functions are exported by this package). Capabilities are checked at runtime; they are not proof of wallet identity or real-wallet certification. Generic message signing does not provide wallet-side phishing resistance.
 
 UI packages import `ghostlink-core/styles.css` and optional local `ghostlink-core/fonts.css`. Override scoped `--ghostlink-*` variables for branding. `createGhostlink` and imports are SSR safe. The client owns no keys and contains no server/WASM verifier code.
+
+Construction is passive: no wallet discovery, timers, listeners or session requests. `attach()` acquires browser activity and begins session restoration; its returned release function is idempotent. Attachments share one active lifecycle. The final release stops browser/wallet listeners and timers, cancels pending work, and closes the UI without signing out an established backend session. A later attachment rechecks the session. `attach()` is passive on the server. `destroy()` is terminal; a destroyed client cannot be attached again. Explicit headless operations remain available, but background monitoring requires an attachment.
+
+Check `snapshot.initialization` before using identity: `idle` means inactive or not checked, `restoring` means the check is pending, `ready` means identity has been resolved, and `error` means it could not be checked. A retained session in `idle`, `restoring`, or `error` is only the last known session. `initializationError` carries a typed failure separately from wallet-operation `error`; retry with `await client.restoreSession()`. Only `ready` with `session === null` is a resolved signed-out state. Successful login and explicit sign-out also resolve identity. Session restoration never triggers wallet approval or `onAuthenticated`.
 
 Verified authentication closes the modal by default. Set `closeOnAuthenticate: false` in `createGhostlink` to keep session details open. The account button or `client.open()` still opens details and sign-out on demand. This policy applies only to login completion, not later wallet requests.
 

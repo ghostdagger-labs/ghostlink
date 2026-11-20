@@ -2,11 +2,16 @@ import { createContext, useContext, useEffect, useId, useRef, useState, useSyncE
 import type { CSSProperties, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { ArrowLeft, X, ScanLine, Check, LoaderCircle, TriangleAlert, Link2, Copy, Camera, Clock, CircleX } from 'lucide-react';
-import { trapDialogFocus, createMessageQr, getPresentation, remainingTime, scanQrCamera, scanQrImage } from 'ghostlink-core';
+import { GhostlinkError, trapDialogFocus, createMessageQr, getPresentation, remainingTime, scanQrCamera, scanQrImage } from 'ghostlink-core';
 import type { Ghostlink, GhostlinkSnapshot } from 'ghostlink-core';
 
 const Context = createContext<Ghostlink | null>(null);
-export function GhostlinkProvider({ client, children }: { client: Ghostlink; children: ReactNode }) { return <Context.Provider value={client}>{children}</Context.Provider>; }
+export function GhostlinkProvider({ client, children }: { client: Ghostlink; children: ReactNode }) {
+  const initialClient = useRef(client);
+  if (initialClient.current !== client) throw new GhostlinkError('INVALID_REQUEST', 'GhostlinkProvider requires a stable client. Remount the provider with a new key to replace it.');
+  useEffect(() => client.attach(), [client]);
+  return <Context.Provider value={client}>{children}</Context.Provider>;
+}
 export function useGhostlink() {
   const client = useContext(Context);
   if (!client) throw new Error('Wrap this component in GhostlinkProvider.');
@@ -16,8 +21,7 @@ export function useGhostlink() {
 interface Appearance { theme?: 'dark' | 'light'; variables?: Record<string, string>; }
 export function GhostlinkConnectButton({ theme = 'dark', variables, label = 'Connect wallet', children }: Appearance & { label?: string; children?: (state: { snapshot: GhostlinkSnapshot; open: () => void }) => ReactNode }) {
   const { client, snapshot } = useGhostlink(); const view = getPresentation(snapshot, client.app);
-  useEffect(() => { void client.restoreSession().catch(() => {}); }, [client]);
-  return <button type="button" className="gl-theme gl-connect" data-ghostlink-theme={theme} style={variables as CSSProperties} data-authenticated={!!snapshot.session} onClick={client.open} aria-label={snapshot.session ? `Account ${snapshot.session.address}` : label}>
+  return <button type="button" className="gl-theme gl-connect" data-ghostlink-theme={theme} style={variables as CSSProperties} data-authenticated={!!snapshot.session} disabled={snapshot.initialization === 'idle' || snapshot.initialization === 'restoring'} onClick={client.open} aria-label={snapshot.session ? `Account ${snapshot.session.address}` : label}>
     {children ? children({ snapshot, open: client.open }) : snapshot.session ? <><span className="gl-wallet-mark" data-wallet={view.wallet?.id}>{view.wallet?.icon ? <img src={view.wallet.icon} alt="" /> : view.wallet?.mark ?? 'K'}</span>{view.address}</> : <><svg width="14" height="14" viewBox="0 0 34 20" fill="none" aria-hidden="true" focusable="false"><circle cx="11" cy="10" r="6.4" fill="currentColor" /><circle cx="23" cy="10" r="6.4" stroke="currentColor" strokeWidth="2.1" /></svg>{label}</>}
   </button>;
 }

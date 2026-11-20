@@ -23,6 +23,8 @@ export class Ghostlink {
   private nextRevocationAttempt = 0;
   private revocationFailures = 0;
   private restoration: Promise<void> | null = null;
+  private restorationAbort?: AbortController;
+  private attachments = 0;
   private uiHosts = 0;
   private review: { resolve: () => void; reject: (error: Error) => void } | null = null;
 
@@ -36,8 +38,9 @@ export class Ghostlink {
     this.closeOnAuthenticate = config.closeOnAuthenticate ?? true;
     const network = config.network ?? 'testnet-11';
     if (!isNetwork(network)) throw new Error('Unsupported network.');
-    this.state = { open: false, step: 'choose', busy: false, network, walletId: null, account: null, connection: 'disconnected', authentication: 'unauthenticated', session: null, challenge: null, balance: null, error: null, revocationPending: false, wallets: [], request: null };
-    this.refreshWallets();
+    // Construction is passive, including adapter capability getters and discovery.
+    // SSR and the first hydration render must observe the same initial snapshot.
+    this.state = Object.freeze({ initialization: 'idle', initializationError: null, open: false, step: 'choose', busy: false, network, walletId: null, account: null, connection: 'disconnected', authentication: 'unauthenticated', session: null, challenge: null, balance: null, error: null, revocationPending: false, wallets: [], request: null });
   }
   getSnapshot = (): GhostlinkSnapshot => this.state;
   subscribe = (listener: () => void): (() => void) => { this.listeners.add(listener); return () => this.listeners.delete(listener); };
@@ -51,16 +54,58 @@ export class Ghostlink {
     this.state = Object.freeze({ ...this.state, ...change });
     for (const listener of this.listeners) listener();
   }
+  /** Acquire browser activity. Providers release their attachment, never the supplied client. */
+  attach = (): (() => void) => {
+    if (this.destroyed) throw new GhostlinkError('CANCELLED', 'Ghostlink has been destroyed.');
+    if (typeof window === 'undefined') return () => {};
+    this.attachments++;
+    if (this.attachments === 1) {
+      this.patch({ initialization: 'idle', initializationError: null });
+      this.startBrowserLifecycle();
+      this.initializeIfNeeded();
+    }
+    let released = false;
+    return () => {
+      if (released || this.destroyed) return;
+      released = true;
+      if (--this.attachments === 0) this.deactivate();
+    };
+  };
+  private initializeIfNeeded() {
+    if (this.attachments && this.state.initialization === 'idle' && !this.locked && !this.state.challenge) {
+      void this.restoreSession().catch(() => { /* Readiness exposes the failure to consumers. */ });
+    }
+  }
+  private deactivate() {
+    const pendingAuth = !!this.state.challenge || this.state.authentication === 'authenticating';
+    this.epoch++;
+    this.restorationAbort?.abort(); this.restorationAbort = undefined;
+    this.restoration = null;
+    this.unsubscribeWallet?.(); this.unsubscribeWallet = undefined;
+    clearInterval(this.timer); this.timer = undefined;
+    if (this.channel) { this.channel.onmessage = null; this.channel.close(); this.channel = undefined; }
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('focus', this.onFocus);
+      window.removeEventListener('online', this.onOnline);
+      window.removeEventListener('kasware#initialized', this.refreshWallets);
+    }
+    this.review?.reject(new GhostlinkError('CANCELLED', 'This request was cancelled.'));
+    this.review = null;
+    this.patch({ initialization: 'idle', initializationError: null, open: false, challenge: null, request: null,
+      connection: 'disconnected', balance: null, account: this.state.session ? { address: this.state.session.address, network: this.state.session.network } : null,
+      authentication: this.state.session ? 'authenticated' : 'unauthenticated', step: this.state.session ? 'connected' : 'choose' });
+    // Established sessions survive teardown. Unfinished login attempts must still be cancelled.
+    if (pendingAuth) void this.revoke();
+  }
   private startBrowserLifecycle() {
     if (typeof window === 'undefined' || this.timer || this.destroyed) return;
     this.timer = setInterval(() => {
       const s = this.state.session;
       if (s && Date.parse(s.expiresAt) <= Date.now()) void this.invalidate(false);
-      else if (s && Date.parse(s.idleExpiresAt) <= Date.now() && !this.locked && !this.restoration && !this.state.challenge) {
+      else if (s && this.state.initialization === 'ready' && Date.parse(s.idleExpiresAt) <= Date.now() && !this.locked && !this.restoration && !this.state.challenge) {
         // Protected application requests may have extended the server's idle deadline.
         // Recheck it only when our last known deadline expires; do not keep idle sessions alive by polling.
-        const epoch = this.epoch;
-        void this.restoreSession().catch(() => { if (this.epoch === epoch && this.state.session === s) void this.invalidate(false); });
+        void this.restoreSession().catch(() => { /* A failed check leaves readiness unresolved. */ });
       }
       if (this.state.revocationPending && Date.now() >= this.nextRevocationAttempt) void this.revoke();
     }, 1000);
@@ -77,7 +122,7 @@ export class Ghostlink {
   refreshWallets = () => {
     this.patch({ wallets: this.adapters.map(a => ({ id: a.id, name: a.name, kind: a.kind, mark: a.mark, icon: a.icon, installUrl: a.installUrl, available: a.isAvailable(), capabilities: { ...a.capabilities } })) });
   };
-  open = () => { this.startBrowserLifecycle(); this.refreshWallets(); this.patch({ open: true, step: this.state.session ? 'connected' : 'choose', error: null }); };
+  open = () => { this.refreshWallets(); this.patch({ open: true, step: this.state.session ? 'connected' : 'choose', error: null }); };
   close = () => {
     const pendingAuth = this.state.authentication === 'authenticating' || !!this.state.challenge;
     this.epoch++;
@@ -105,7 +150,6 @@ export class Ghostlink {
   private async run<T>(operation: (epoch: number) => Promise<T>): Promise<T> {
     if (this.destroyed) throw new GhostlinkError('CANCELLED', 'Ghostlink has been destroyed.');
     if (this.locked) throw new GhostlinkError('BUSY', 'Finish or reject the pending request in your wallet first.');
-    this.startBrowserLifecycle();
     this.locked = true; const epoch = ++this.epoch;
     this.patch({ busy: true, error: null });
     try { const result = await operation(epoch); this.check(epoch); return result; }
@@ -113,7 +157,7 @@ export class Ghostlink {
       const error = e instanceof GhostlinkError ? e : new GhostlinkError('SERVER_ERROR', 'The request could not be completed. Please try again.');
       if (epoch === this.epoch && error.code !== 'CANCELLED') this.patch({ step: 'error', error: { code: error.code, message: error.message }, authentication: this.state.session ? 'authenticated' : 'unauthenticated' });
       throw error;
-    } finally { this.locked = false; this.patch({ busy: false }); }
+    } finally { this.locked = false; this.patch({ busy: false }); this.initializeIfNeeded(); }
   }
   async connect(walletId?: string): Promise<void> {
     if (!walletId) { this.open(); return; }
@@ -186,11 +230,23 @@ export class Ghostlink {
       }
       if (!/^(0x)?[0-9a-fA-F]{128}$/.test(signature!)) throw new GhostlinkError('INVALID_SIGNATURE', 'Enter the complete Schnorr signature returned by your wallet.');
       this.patch({ step: 'verifying' });
-      const session = Object.freeze({ ...await this.auth.verify({ challengeId: challenge.id, message: challenge.message, signature: signature!.replace(/^0x/, '').toLowerCase(), publicKey }) });
+      let verified: AuthSession;
+      try {
+        verified = await this.auth.verify({ challengeId: challenge.id, message: challenge.message, signature: signature!.replace(/^0x/, '').toLowerCase(), publicKey });
+      } finally {
+        // Even a lost verification response may have created a session. Finish any
+        // earlier revocation, then revoke again before a new owner can restore it.
+        if (this.destroyed || epoch !== this.epoch) {
+          await this.revokeTask;
+          await this.revoke();
+          this.check(epoch);
+        }
+      }
+      const session = Object.freeze({ ...verified });
       this.check(epoch);
       if (session.address !== challenge.address || session.network !== challenge.network) throw new GhostlinkError('INVALID_REQUEST', 'The returned session does not match the signing account.');
       // Do not call close(): that cancels in-flight operations and revokes pending login.
-      this.patch({ session, authentication: 'authenticated', challenge: null, step: 'connected', open: this.closeOnAuthenticate ? false : this.state.open });
+      this.patch({ initialization: 'ready', initializationError: null, session, authentication: 'authenticated', challenge: null, step: 'connected', open: this.closeOnAuthenticate ? false : this.state.open });
       try { if (typeof localStorage !== 'undefined') localStorage.setItem('ghostlink:last-wallet', a.id); } catch { /* Storage is optional. */ }
       void this.refreshBalance();
       return { session, epoch };
@@ -206,19 +262,20 @@ export class Ghostlink {
     return result.session;
   }
   async restoreSession(): Promise<void> {
-    if (this.destroyed) return;
-    this.startBrowserLifecycle();
+    if (this.destroyed) throw new GhostlinkError('CANCELLED', 'Ghostlink has been destroyed.');
     if (this.locked || this.state.challenge) return;
     if (this.restoration) return this.restoration;
     const epoch = this.epoch;
-    this.restoration = (async () => {
+    const abort = new AbortController();
+    const task = (async () => {
       await this.finishRevocation(); this.check(epoch);
-      const session = await this.auth.session(); this.check(epoch);
+      this.refreshWallets();
+      const session = await this.auth.session({ signal: abort.signal }); this.check(epoch);
       if (this.locked) return;
       if (!session) {
         // No login is expected before signing. Returning from wallet approval must
         // preserve the current step; reset only when an existing session ended.
-        this.patch({ session: null, authentication: 'unauthenticated', step: this.state.session && this.state.open ? 'choose' : this.state.step });
+        this.patch({ initialization: 'ready', initializationError: null, session: null, authentication: 'unauthenticated', step: this.state.session && this.state.open ? 'choose' : this.state.step });
         return;
       }
       if (session.network !== this.state.network) { await this.invalidate(true); return; }
@@ -249,9 +306,24 @@ export class Ghostlink {
           this.patch({ connection: 'disconnected', balance: null });
         }
       }
-      this.patch({ session, authentication: 'authenticated', account: account ?? { address: session.address, network: session.network }, step: this.state.open ? 'connected' : this.state.step });
-    })().finally(() => { this.restoration = null; });
-    return this.restoration;
+      this.patch({ initialization: 'ready', initializationError: null, session, authentication: 'authenticated', account: account ?? { address: session.address, network: session.network }, step: this.state.open ? 'connected' : this.state.step });
+    })().catch(cause => {
+      this.check(epoch);
+      const error = cause instanceof GhostlinkError ? cause : new GhostlinkError('SERVER_ERROR', 'Could not check your session. Reconnect and try again.');
+      this.patch({ initialization: 'error', initializationError: { code: error.code, message: error.message } });
+      throw error;
+    }).finally(() => {
+      // An old request must not clear a newer attachment's restoration task.
+      if (this.restoration !== task) return;
+      this.restoration = null;
+      this.restorationAbort = undefined;
+      if (epoch !== this.epoch && this.state.initialization === 'restoring') this.patch({ initialization: 'idle' });
+      this.initializeIfNeeded();
+    });
+    this.restoration = task;
+    this.restorationAbort = abort;
+    this.patch({ initialization: 'restoring', initializationError: null });
+    return task;
   }
   private revoke(): Promise<void> {
     this.patch({ revocationPending: true });
@@ -268,7 +340,7 @@ export class Ghostlink {
   private async invalidate(broadcast: boolean) {
     this.epoch++; this.unsubscribeWallet?.(); this.unsubscribeWallet = undefined;
     this.review?.reject(new GhostlinkError('CANCELLED', 'This request was cancelled.')); this.review = null;
-    this.patch({ session: null, account: null, challenge: null, request: null, balance: null, authentication: 'unauthenticated', connection: 'disconnected', step: 'choose' });
+    this.patch({ initialization: 'ready', initializationError: null, session: null, account: null, challenge: null, request: null, balance: null, authentication: 'unauthenticated', connection: 'disconnected', step: 'choose' });
     if (broadcast) this.channel?.postMessage('invalidate');
     await this.revoke();
   }
@@ -316,10 +388,8 @@ export class Ghostlink {
   }); };
   destroy() {
     if (this.destroyed) return;
-    if (this.state.challenge || this.state.authentication === 'authenticating') void this.auth.logout().catch(() => {});
-    this.epoch++; this.unsubscribeWallet?.(); clearInterval(this.timer); this.channel?.close();
-    this.review?.reject(new GhostlinkError('CANCELLED', 'Ghostlink has been destroyed.')); this.review = null;
-    if (typeof window !== 'undefined') { window.removeEventListener('focus', this.onFocus); window.removeEventListener('online', this.onOnline); window.removeEventListener('kasware#initialized', this.refreshWallets); }
+    this.attachments = 0;
+    this.deactivate();
     this.listeners.clear(); this.authenticationListeners.clear(); this.destroyed = true;
   }
 }
