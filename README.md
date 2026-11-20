@@ -99,7 +99,29 @@ Frameworks using Web requests can call `auth.handle(request, { ip: trustedPeerAd
 
 ## Client operations
 
-`connect()` opens wallet selection; `connect(id)` connects a specific adapter. Call `authenticate()` to obtain and verify a login signature. The modal handles intermediate review; `prepareAuthentication(address?)` creates the manual or injected login challenge. `disconnect()` clears local state and requests server revocation; inspect `revocationPending` if offline. `restoreSession()` consults the server. `getSnapshot()`, `subscribe(listener)` and `destroy()` support headless integrations.
+`connect()` opens wallet selection; `connect(id)` connects a specific adapter. Call `authenticate()` to obtain and verify a login signature; its promise returns the verified session. The modal handles intermediate review; `prepareAuthentication(address?)` creates the manual or injected login challenge. `disconnect()` clears local state and requests server revocation; inspect `revocationPending` if offline. `restoreSession()` consults the server. `getSnapshot()`, `subscribe(listener)` and `destroy()` support headless integrations.
+
+### Authentication completion
+
+Successful authentication closes the modal by default in Vue and React, including explicit manual signing. The connect button becomes an account button; clicking it reopens session details and sign-out. Set `closeOnAuthenticate: false` when creating the controller to keep details open after login instead. This option applies to authentication completion, not subsequent wallet requests.
+
+Register a completion listener before opening the modal to resume your site's flow:
+
+```ts
+const client = createGhostlink({
+  app: { name: 'Your dApp', url: 'https://app.example' },
+  closeOnAuthenticate: true, // Default; false keeps session details open.
+});
+const unsubscribe = client.onAuthenticated(session => {
+  // Resume your checkout or other application flow using session.address.
+});
+client.open();
+// Call unsubscribe() when the host flow unmounts; destroy() also removes listeners.
+```
+
+`onAuthenticated` fires once per successful fresh login, only after backend verification and after the operation lock is released. It does not fire for connection approval, cancellation, rejection, failed verification, session restoration, account details, or other wallet requests. Each listener receives a readonly session. Synchronous and asynchronous listener failures are reported to the console without changing authentication or blocking other listeners; listener promises are not awaited. The host owns navigation, continuation, and error handling. Payment still requires a separate explicit wallet approval.
+
+Headless callers can instead use `const session = await client.authenticate()`. Choose either that result or the completion listener to advance a given flow, so it runs once. Observe `subscribe()` / the framework snapshot for ordinary session restoration and sign-out changes. The example's **Test sign** and **Refresh balance** controls live in its Wallet requests panel, outside the reusable account details UI.
 
 After verified login and a live connection:
 

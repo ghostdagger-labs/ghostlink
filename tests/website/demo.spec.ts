@@ -6,7 +6,6 @@ for (const wallet of ['KasWare', 'Kastle'] as const) test(`${wallet}: Nuxt login
   await page.goto('/demo');
   await page.getByLabel('Network', { exact: true }).selectOption(wallet === 'KasWare' ? 'testnet-11' : 'testnet-10');
   await login(page, wallet, '/demo');
-  await page.getByRole('button', { name: 'Close', exact: true }).click();
   await page.getByRole('button', { name: 'Test protected API' }).click();
   await expect(page.locator('.example-result')).toContainText('Your protected backend request succeeded.');
   await page.reload(); await expect(page.getByRole('heading', { name: 'Ownership verified' })).toBeVisible();

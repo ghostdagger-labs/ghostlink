@@ -32,6 +32,7 @@ export interface WalletAdapter {
 }
 export interface AuthChallenge { id: string; profile: 'ghostlink-kaspa-v1'; message: string; address: string; network: Network; expiresAt: string; }
 export interface AuthSession { accountId: string; address: string; network: Network; chainId: ChainId; issuedAt: string; expiresAt: string; idleExpiresAt: string; }
+export type AuthenticationListener = (session: Readonly<AuthSession>) => void | Promise<void>;
 export interface AuthTransport {
   challenge(account: WalletAccount): Promise<AuthChallenge>;
   verify(input: { challengeId: string; message: string; signature: string; publicKey?: string }): Promise<AuthSession>;
@@ -53,4 +54,6 @@ export interface WalletDescriptor { id: string; name: string; kind: WalletAdapte
 export interface GhostlinkConfig {
   app: { name: string; url: string; icon?: string }; network?: Network;
   adapters?: WalletAdapter[]; auth?: AuthTransport | { baseUrl?: string; fetch?: typeof fetch };
+  /** Close the modal after a fresh, verified login. Defaults to true. */
+  closeOnAuthenticate?: boolean;
 }

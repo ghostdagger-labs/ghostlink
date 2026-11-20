@@ -27,6 +27,6 @@ Messages expire after five minutes. If expired, generate a fresh message and sig
 
 If the address fails validation, copy it directly from Kaspium and compare the complete value; image text recognition can confuse characters such as `q` and `a`. An unknown or unsupported address type is rejected. No private key or seed phrase is needed.
 
-The authenticated card reports **Authentication only**. Backend session restoration and logout work; automated wallet operations remain unavailable because manual signing provides no live provider or account/network monitoring.
+After verification, the modal closes by default and `onAuthenticated` delivers the verified session. Set `closeOnAuthenticate: false` to keep details open. Reopening the account card reports **Authentication only**. Backend session restoration and logout work; automated wallet operations remain unavailable because manual signing provides no live provider or account/network monitoring.
 
 Versioned sources: [Advanced menu](https://github.com/azbuky/kaspium_wallet/blob/v1.3.0/lib/settings_advanced/advanced_menu.dart), [message input/signature copy](https://github.com/azbuky/kaspium_wallet/blob/v1.3.0/lib/sign_message/sign_message_sheet.dart). Live results are recorded separately in [the compatibility matrix](../testing/compatibility-v1.json).

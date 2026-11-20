@@ -3,14 +3,16 @@ import { createAuthClient } from './auth-client.js';
 import { accountId, addressPrefix, isNetwork, formatKas, parseLoginMessage } from './protocol.js';
 import type { Network } from './protocol.js';
 import { GhostlinkError } from './types.js';
-import type { AuthTransport, GhostlinkConfig, GhostlinkSnapshot, WalletAdapter, WalletAccount, TransactionRequest, TransferRequest } from './types.js';
+import type { AuthSession, AuthTransport, AuthenticationListener, GhostlinkConfig, GhostlinkSnapshot, WalletAdapter, WalletAccount, TransactionRequest, TransferRequest } from './types.js';
 
 export class Ghostlink {
   readonly app: GhostlinkConfig['app'];
   readonly adapters: readonly WalletAdapter[];
   private readonly auth: AuthTransport;
+  private readonly closeOnAuthenticate: boolean;
   private state: GhostlinkSnapshot;
   private listeners = new Set<() => void>();
+  private authenticationListeners = new Set<AuthenticationListener>();
   private epoch = 0;
   private destroyed = false;
   private locked = false;
@@ -31,6 +33,7 @@ export class Ghostlink {
     this.adapters = config.adapters ?? defaultAdapters();
     if (new Set(this.adapters.map(a => a.id)).size !== this.adapters.length) throw new Error('Wallet IDs must be unique.');
     this.auth = config.auth && 'challenge' in config.auth ? config.auth : createAuthClient(config.auth);
+    this.closeOnAuthenticate = config.closeOnAuthenticate ?? true;
     const network = config.network ?? 'testnet-11';
     if (!isNetwork(network)) throw new Error('Unsupported network.');
     this.state = { open: false, step: 'choose', busy: false, network, walletId: null, account: null, connection: 'disconnected', authentication: 'unauthenticated', session: null, challenge: null, balance: null, error: null, revocationPending: false, wallets: [], request: null };
@@ -38,6 +41,11 @@ export class Ghostlink {
   }
   getSnapshot = (): GhostlinkSnapshot => this.state;
   subscribe = (listener: () => void): (() => void) => { this.listeners.add(listener); return () => this.listeners.delete(listener); };
+  /** Fresh verified logins only; restoration, connection and wallet requests do not emit. */
+  onAuthenticated = (listener: AuthenticationListener): (() => void) => {
+    if (!this.destroyed) this.authenticationListeners.add(listener);
+    return () => { this.authenticationListeners.delete(listener); };
+  };
   private patch(change: Partial<GhostlinkSnapshot>) {
     if (this.destroyed) return;
     this.state = Object.freeze({ ...this.state, ...change });
@@ -157,8 +165,8 @@ export class Ghostlink {
     this.patch({ challenge, step: adapter.kind === 'manual' ? 'manual' : 'sign', authentication: 'authenticating' });
   }
   prepareAuthentication = async (address?: string) => this.run(epoch => this.prepare(epoch, address));
-  async authenticate(input: { address?: string; signature?: string } = {}): Promise<void> {
-    await this.run(async epoch => {
+  async authenticate(input: { address?: string; signature?: string } = {}): Promise<Readonly<AuthSession>> {
+    const result = await this.run(async epoch => {
       if (!this.state.challenge) await this.prepare(epoch, input.address);
       const challenge = this.state.challenge!;
       if (Date.parse(challenge.expiresAt) <= Date.now()) throw new GhostlinkError('EXPIRED', 'This login request expired. Generate a new message.');
@@ -178,13 +186,24 @@ export class Ghostlink {
       }
       if (!/^(0x)?[0-9a-fA-F]{128}$/.test(signature!)) throw new GhostlinkError('INVALID_SIGNATURE', 'Enter the complete Schnorr signature returned by your wallet.');
       this.patch({ step: 'verifying' });
-      const session = await this.auth.verify({ challengeId: challenge.id, message: challenge.message, signature: signature!.replace(/^0x/, '').toLowerCase(), publicKey });
+      const session = Object.freeze({ ...await this.auth.verify({ challengeId: challenge.id, message: challenge.message, signature: signature!.replace(/^0x/, '').toLowerCase(), publicKey }) });
       this.check(epoch);
       if (session.address !== challenge.address || session.network !== challenge.network) throw new GhostlinkError('INVALID_REQUEST', 'The returned session does not match the signing account.');
-      this.patch({ session, authentication: 'authenticated', challenge: null, step: 'connected' });
+      // Do not call close(): that cancels in-flight operations and revokes pending login.
+      this.patch({ session, authentication: 'authenticated', challenge: null, step: 'connected', open: this.closeOnAuthenticate ? false : this.state.open });
       try { if (typeof localStorage !== 'undefined') localStorage.setItem('ghostlink:last-wallet', a.id); } catch { /* Storage is optional. */ }
       void this.refreshBalance();
+      return { session, epoch };
     });
+    this.check(result.epoch);
+    // Host continuation runs after the operation lock is released. Its errors must
+    // not turn a verified login into an authentication failure or block other hosts.
+    const report = (error: unknown) => { console.error('Ghostlink onAuthenticated listener failed.', error); };
+    for (const listener of [...this.authenticationListeners]) {
+      if (!this.authenticationListeners.has(listener)) continue;
+      try { void Promise.resolve(listener(result.session)).catch(report); } catch (error) { report(error); }
+    }
+    return result.session;
   }
   async restoreSession(): Promise<void> {
     if (this.destroyed) return;
@@ -301,7 +320,7 @@ export class Ghostlink {
     this.epoch++; this.unsubscribeWallet?.(); clearInterval(this.timer); this.channel?.close();
     this.review?.reject(new GhostlinkError('CANCELLED', 'Ghostlink has been destroyed.')); this.review = null;
     if (typeof window !== 'undefined') { window.removeEventListener('focus', this.onFocus); window.removeEventListener('online', this.onOnline); window.removeEventListener('kasware#initialized', this.refreshWallets); }
-    this.listeners.clear(); this.destroyed = true;
+    this.listeners.clear(); this.authenticationListeners.clear(); this.destroyed = true;
   }
 }
 export const createGhostlink = (config: GhostlinkConfig): Ghostlink => new Ghostlink(config);

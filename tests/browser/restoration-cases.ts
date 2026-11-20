@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { injectWallet } from './helpers';
+import { expectSignedIn, injectWallet } from './helpers';
 
 export function connectionFocusCase(route: '/' | '/react.html' | '/demo') {
   test(`KasWare: returning from connection approval preserves the sign-in review on ${route}`, async ({ page }) => {
@@ -24,7 +24,7 @@ export function connectionFocusCase(route: '/' | '/react.html' | '/demo') {
 
     await page.getByRole('button', { name: 'Continue to sign in' }).click();
     await page.getByRole('button', { name: 'Sign message', exact: true }).click();
-    await expect(page.getByRole('heading', { name: 'Session active' })).toBeVisible();
+    await expectSignedIn(page);
     expect(await page.evaluate(() => (window as any).__walletCalls)).toEqual(['signMessage']);
     expect((await page.request.get('/api/private')).status()).toBe(200);
   });
@@ -40,8 +40,7 @@ export function restorationCases(route: '/' | '/demo') {
       await page.getByRole('button', { name: new RegExp(`${wallet} Browser wallet Installed`) }).click();
       await page.getByRole('button', { name: 'Continue to sign in' }).click();
       await page.getByRole('button', { name: 'Sign message', exact: true }).click();
-      await expect(page.getByRole('heading', { name: 'Session active' })).toBeVisible();
-      await page.getByRole('button', { name: 'Close', exact: true }).click();
+      await expectSignedIn(page);
       await page.evaluate(value => sessionStorage.setItem('ghostlink:fixture:account-lookup', value), fault);
       const logoutRequests: string[] = [];
       page.on('request', request => { if (request.url().endsWith('/auth/ghostlink/logout')) logoutRequests.push(request.url()); });

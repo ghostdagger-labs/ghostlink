@@ -11,6 +11,7 @@ import App from './App.vue';
 const client = createGhostlink({
   app: { name: 'Ghostlink Example', url: window.location.origin },
   network: 'testnet-11',
+  closeOnAuthenticate: !new URLSearchParams(location.search).has('keep-open'),
   adapters: [...defaultAdapters(), kaspiumAdapter()],
 });
 const app = createApp(App).use(GhostlinkPlugin, client);

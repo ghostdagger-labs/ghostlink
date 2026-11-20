@@ -96,7 +96,6 @@ onUnmounted(() => { clearInterval(tick); detach?.(); stop(); });
           <div class="gl-center" style="margin-bottom:16px"><span class="gl-success-icon"><Check :size="30" /></span><h3 class="gl-heading">Session active</h3><p class="gl-copy" style="margin:4px 0 0">{{ view.wallet?.name ?? 'Kaspa account' }} · {{ view.networkLabel }}</p></div>
           <div class="gl-rows"><div v-for="row in view.sessionRows" :key="row.label" class="gl-row"><span class="gl-row-label">{{ row.label }}</span><span class="gl-row-value" :title="row.full">{{ row.value }}</span></div></div>
           <p v-if="s.connection !== 'connected'" class="gl-copy">Your application session is authenticated. Automated wallet requests require a live provider connection.</p>
-          <div v-if="s.connection === 'connected'" class="gl-actions" style="margin-bottom:12px"><button type="button" class="gl-button" :disabled="s.busy" @click="client.refreshBalance">Refresh balance</button><button type="button" class="gl-button" :disabled="s.busy" @click="act(() => client.signMessage(`Test signature for ${view.domain}. This message does not authorize a transaction.`))">Test sign</button></div>
           <button type="button" class="gl-button gl-danger gl-full" @click="act(() => client.disconnect())">Sign out</button>
         </section>
         <section v-else-if="s.step === 'error'" class="gl-body gl-center" style="padding:30px 22px 20px">

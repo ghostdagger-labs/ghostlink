@@ -6,7 +6,6 @@ test('Docker keeps the verified session across a container restart', async ({ pa
   const container = process.env.GHOSTLINK_TEST_CONTAINER;
   test.skip(!container, 'Opt-in check: requires the dedicated local test container.');
   await injectWallet(page); await login(page, 'KasWare', '/demo');
-  await page.getByRole('button', { name: 'Close', exact: true }).click();
   execFileSync('docker', ['restart', container!], { timeout: 25_000, stdio: 'pipe' });
   await expect.poll(async () => {
     try { return (await request.get('/api/health', { timeout: 1000 })).status(); } catch { return 0; }

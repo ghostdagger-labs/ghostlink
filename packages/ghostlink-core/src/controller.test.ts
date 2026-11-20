@@ -2,21 +2,22 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createGhostlink } from './controller';
 import { kaspiumAdapter, kastleAdapter, kaswareAdapter } from './adapters';
 import { GhostlinkError } from './types';
-import type { AuthSession, AuthTransport, WalletAdapter, TransactionRequest } from './types';
+import type { AuthSession, AuthTransport, GhostlinkConfig, WalletAdapter, TransactionRequest } from './types';
 import { account, sign } from '../../../tests/fixtures/keys';
 import { serializeLoginMessage } from './protocol';
 const clean: (() => void)[] = [];
 afterEach(() => { clean.splice(0).forEach(f => f()); vi.unstubAllGlobals(); vi.useRealTimers(); });
 const deferred = <T>() => { let resolve!: (value: T) => void; let reject!: (e: unknown) => void; const promise = new Promise<T>((a,b) => { resolve = a; reject = b; }); return { promise, resolve, reject }; };
-function fixture() {
+function fixture(config: Pick<GhostlinkConfig, 'closeOnAuthenticate'> = {}) {
   let event = () => {};
   const session: AuthSession = { ...account, accountId: 'kaspa:testnet-11:' + account.address.split(':')[1], chainId: 'kaspa:testnet-11', issuedAt: new Date().toISOString(), expiresAt: new Date(Date.now()+86_400_000).toISOString(), idleExpiresAt: new Date(Date.now()+1_800_000).toISOString() };
   const challenge = { id: '1'.repeat(64), profile: 'ghostlink-kaspa-v1' as const, ...account, expiresAt: new Date(Date.parse(session.issuedAt)+300_000).toISOString(), message: '' };
   challenge.message = serializeLoginMessage({ ...account, domain: 'app.example', uri: 'https://app.example/login', nonce: '1'.repeat(64), issuedAt: session.issuedAt, expiresAt: challenge.expiresAt });
   const auth = { challenge: vi.fn(async () => challenge), verify: vi.fn(async () => session), session: vi.fn(async (): Promise<AuthSession | null> => session), logout: vi.fn(async () => {}) } satisfies AuthTransport;
   const adapter: WalletAdapter = { id: 'test', name: 'Test Wallet', mark: 'T', kind: 'injected', installUrl: 'https://example.com', capabilities: { authentication: 'compatibility', domainBinding: 'not-enforced', messageSigning: true, transfer: true, transactionFormats: ['kaspa-transaction-json'] }, isAvailable: () => true, connect: vi.fn(async () => account), getAccount: vi.fn(async () => account), signMessage: vi.fn(async m => sign(m)), sendTransaction: vi.fn(async () => 'txid'), signTransaction: vi.fn(async () => '{"signed":true}'), subscribe: fn => { event = fn; return () => { event = () => {}; }; } };
-  const client = createGhostlink({ app: { name: 'App', url: 'https://app.example' }, adapters: [adapter, kaspiumAdapter()], auth }); clean.push(() => client.destroy());
-  return { client, adapter, auth, challenge, session, event: () => event(), login: async () => { await client.connect('test'); await client.authenticate(); } };
+  const client = createGhostlink({ app: { name: 'App', url: 'https://app.example' }, adapters: [adapter, kaspiumAdapter()], auth, ...config }); clean.push(() => client.destroy());
+  const completed = vi.fn(); client.onAuthenticated(completed);
+  return { client, adapter, auth, challenge, session, completed, event: () => event(), login: async () => { await client.connect('test'); return client.authenticate(); } };
 }
 describe('controller security transitions', () => {
   it('preserves the connection review when focus restoration finds no login session yet', async () => {
@@ -33,7 +34,7 @@ describe('controller security transitions', () => {
     expect(f.adapter.connect).toHaveBeenCalledOnce();
   });
   it('returns to the chooser when restoration finds that an authenticated session ended', async () => {
-    const f = fixture(); await f.login();
+    const f = fixture(); await f.login(); f.client.open();
     f.auth.session.mockResolvedValue(null);
     await f.client.restoreSession();
     expect(f.client.getSnapshot()).toMatchObject({ open: true, step: 'choose', authentication: 'unauthenticated', session: null });
@@ -42,9 +43,16 @@ describe('controller security transitions', () => {
   });
   it('authenticates only after backend verification', async () => {
     const f = fixture(); const gate = deferred<AuthSession>(); f.auth.verify.mockImplementation(() => gate.promise);
+    const observed = vi.fn(); f.client.onAuthenticated(() => { observed(f.client.getSnapshot()); });
     await f.client.connect('test'); const operation = f.client.authenticate(); await vi.waitFor(() => expect(f.auth.verify).toHaveBeenCalled());
-    expect(f.client.getSnapshot().session).toBeNull(); gate.resolve(f.session); await operation;
-    expect(f.client.getSnapshot().authentication).toBe('authenticated');
+    expect(f.client.getSnapshot()).toMatchObject({ open: true, step: 'verifying', session: null }); expect(f.completed).not.toHaveBeenCalled();
+    gate.resolve(f.session); const session = await operation;
+    expect(session).toEqual(f.session); expect(Object.isFrozen(session)).toBe(true);
+    expect(f.client.getSnapshot()).toMatchObject({ open: false, busy: false, authentication: 'authenticated' });
+    expect(f.completed).toHaveBeenCalledExactlyOnceWith(session); expect(f.auth.logout).not.toHaveBeenCalled();
+    expect(observed).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ open: false, busy: false, authentication: 'authenticated', session: f.session }));
+    f.client.open(); expect(f.client.getSnapshot()).toMatchObject({ open: true, step: 'connected' });
+    expect(f.completed).toHaveBeenCalledTimes(1);
   });
   it('serializes approval prompts and ignores a late cancelled login', async () => {
     const f = fixture(); const gate = deferred<string>(); vi.mocked(f.adapter.signMessage).mockImplementation(() => gate.promise);
@@ -52,16 +60,19 @@ describe('controller security transitions', () => {
     await vi.waitFor(() => expect(f.adapter.signMessage).toHaveBeenCalled());
     await expect(f.client.authenticate()).rejects.toMatchObject({ code: 'BUSY' }); f.client.close(); gate.resolve(sign(f.challenge.message)); await rejection;
     expect(f.auth.verify).not.toHaveBeenCalled(); expect(f.client.getSnapshot().session).toBeNull(); expect(f.auth.logout).toHaveBeenCalled();
+    expect(f.completed).not.toHaveBeenCalled();
   });
   it('revokes if verification completes after cancellation', async () => {
     const f = fixture(); const gate = deferred<AuthSession>(); f.auth.verify.mockImplementation(() => gate.promise);
     await f.client.connect('test'); const login = f.client.authenticate(); const rejection = expect(login).rejects.toMatchObject({ code: 'CANCELLED' });
     await vi.waitFor(() => expect(f.auth.verify).toHaveBeenCalled()); f.client.close(); gate.resolve(f.session); await rejection;
     expect(f.client.getSnapshot().session).toBeNull(); expect(f.auth.logout).toHaveBeenCalled();
+    expect(f.completed).not.toHaveBeenCalled();
   });
   it('supports manual authentication and restoration without live connectivity', async () => {
     const f = fixture(); await f.client.connect('kaspium'); await f.client.prepareAuthentication(account.address); await f.client.authenticate({ signature: sign(f.challenge.message) });
-    expect(f.client.getSnapshot()).toMatchObject({ connection: 'manual', authentication: 'authenticated' });
+    expect(f.client.getSnapshot()).toMatchObject({ open: false, connection: 'manual', authentication: 'authenticated' });
+    expect(f.completed).toHaveBeenCalledExactlyOnceWith(f.session);
     await f.client.restoreSession(); expect(f.client.getSnapshot().session?.address).toBe(account.address);
     await expect(f.client.signMessage('message')).rejects.toMatchObject({ code: 'UNSUPPORTED' });
     await f.client.disconnect(); expect(f.auth.logout).toHaveBeenCalled();
@@ -83,6 +94,7 @@ describe('controller security transitions', () => {
     expect(subscribe).toHaveBeenCalledTimes(1);
     expect(f.adapter.connect).not.toHaveBeenCalled(); expect(f.adapter.signMessage).not.toHaveBeenCalled();
     expect(f.auth.verify).not.toHaveBeenCalled(); expect(f.auth.logout).not.toHaveBeenCalled();
+    expect(f.completed).not.toHaveBeenCalled();
   });
   it.each(['empty', 'throws'] as const)('retains an existing login when a restoration lookup is %s', async mode => {
     const f = fixture(); await f.login();
@@ -127,6 +139,7 @@ describe('controller security transitions', () => {
     expect(f.adapter.signMessage).not.toHaveBeenCalled();
     f.adapter.signIn = vi.fn(async () => ({ message: 'changed', signature: sign('changed') }));
     await expect(f.client.authenticate()).rejects.toMatchObject({ code: 'INVALID_REQUEST' }); expect(f.auth.verify).not.toHaveBeenCalled();
+    expect(f.completed).not.toHaveBeenCalled();
   });
   it('invalidates observed wallet changes and reports failed revocation truthfully', async () => {
     const f = fixture(); await f.login(); f.auth.logout.mockRejectedValue(new Error('offline')); f.event();
@@ -166,6 +179,62 @@ describe('controller security transitions', () => {
     const f = fixture(); await f.login(); f.client.attachUI(); vi.mocked(f.adapter.signMessage).mockClear();
     const operation = f.client.signMessage('Read this'); const rejection = expect(operation).rejects.toMatchObject({ code: 'CANCELLED' });
     await vi.waitFor(() => expect(f.client.getSnapshot().request).not.toBeNull()); f.client.back(); await rejection; expect(f.adapter.signMessage).not.toHaveBeenCalled();
+  });
+});
+describe('authentication completion', () => {
+  it.each(['test', 'kaspium'])('can keep account details open after verified %s login', async wallet => {
+    const f = fixture({ closeOnAuthenticate: false });
+    await f.client.connect(wallet);
+    const session = await f.client.authenticate(wallet === 'kaspium' ? { address: account.address, signature: sign(f.challenge.message) } : {});
+    expect(f.client.getSnapshot()).toMatchObject({ open: true, step: 'connected', busy: false, session });
+    expect(f.completed).toHaveBeenCalledExactlyOnceWith(session);
+    f.client.close(); expect(f.client.getSnapshot().session).toEqual(session);
+    expect(f.auth.logout).not.toHaveBeenCalled();
+  });
+  it('signals only fresh logins, not restoration, account details, balance or message requests', async () => {
+    const f = fixture();
+    await f.client.restoreSession(); expect(f.completed).not.toHaveBeenCalled();
+    await f.login(); expect(f.completed).toHaveBeenCalledTimes(1);
+    await f.client.restoreSession(); f.client.open(); await f.client.refreshBalance(); await f.client.signMessage('A separate request');
+    expect(f.completed).toHaveBeenCalledTimes(1);
+    await f.client.disconnect(); await f.login(); expect(f.completed).toHaveBeenCalledTimes(2);
+  });
+  it('lets a host begin its next operation after authentication releases the lock', async () => {
+    const f = fixture(); let continuation: Promise<string> | undefined;
+    f.client.onAuthenticated(() => { continuation = f.client.signMessage('Continue the host flow'); });
+    await f.login(); await expect(continuation).resolves.toBe(sign('Continue the host flow'));
+    expect(f.adapter.signMessage).toHaveBeenLastCalledWith('Continue the host flow');
+    expect(f.completed).toHaveBeenCalledTimes(1);
+  });
+  it.each(['rejection', 'verification failure', 'session mismatch'])('does not signal completion after %s', async failure => {
+    const f = fixture();
+    if (failure === 'rejection') vi.mocked(f.adapter.signMessage).mockRejectedValue(new GhostlinkError('USER_REJECTED', 'Rejected'));
+    else if (failure === 'verification failure') f.auth.verify.mockRejectedValue(new GhostlinkError('INVALID_SIGNATURE', 'Invalid signature'));
+    else f.auth.verify.mockResolvedValue({ ...f.session, network: 'mainnet' });
+    await f.client.connect('test'); await expect(f.client.authenticate()).rejects.toBeInstanceOf(GhostlinkError);
+    expect(f.completed).not.toHaveBeenCalled();
+    expect(f.client.getSnapshot()).toMatchObject({ open: true, step: 'error', session: null });
+  });
+  it('isolates synchronous and asynchronous host errors from successful authentication', async () => {
+    const f = fixture(); const report = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      f.client.onAuthenticated(() => { throw new Error('Host navigation failed'); });
+      f.client.onAuthenticated(async () => { throw new Error('Host continuation failed'); });
+      const otherHost = vi.fn(); f.client.onAuthenticated(otherHost);
+      await expect(f.login()).resolves.toEqual(f.session);
+      await vi.waitFor(() => expect(report).toHaveBeenCalledTimes(2));
+      expect(otherHost).toHaveBeenCalledExactlyOnceWith(f.session);
+      expect(f.client.getSnapshot()).toMatchObject({ open: false, authentication: 'authenticated', error: null });
+    } finally { report.mockRestore(); }
+  });
+  it('removes unsubscribed listeners and does not notify after destruction during verification', async () => {
+    const f = fixture(); const removed = vi.fn(); const unsubscribe = f.client.onAuthenticated(removed); unsubscribe();
+    await f.login(); expect(removed).not.toHaveBeenCalled(); f.completed.mockClear();
+    const gate = deferred<AuthSession>(); f.auth.verify.mockImplementation(() => gate.promise);
+    await f.client.connect('test'); const operation = f.client.authenticate(); const rejection = expect(operation).rejects.toMatchObject({ code: 'CANCELLED' });
+    await vi.waitFor(() => expect(f.auth.verify).toHaveBeenCalledTimes(2));
+    f.client.destroy(); gate.resolve(f.session); await rejection;
+    expect(f.completed).not.toHaveBeenCalled();
   });
 });
 describe('actual provider normalization', () => {

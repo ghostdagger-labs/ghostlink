@@ -36,5 +36,14 @@ export async function login(page: Page, wallet = 'KasWare', route = '/', network
   await page.getByRole('button', { name: new RegExp(`${wallet} Browser wallet Installed`) }).click();
   await page.getByRole('button', { name: 'Continue to sign in' }).click();
   await page.getByRole('button', { name: 'Sign message', exact: true }).click();
+  await expectSignedIn(page);
+}
+export async function expectSignedIn(page: Page) {
+  await expect(page.getByRole('dialog')).not.toBeVisible();
+  await expect(page.getByRole('button', { name: /^Account / }).first()).toBeVisible();
+}
+export async function openAccount(page: Page) {
+  await page.getByRole('button', { name: /^Account / }).first().click();
   await expect(page.getByRole('heading', { name: 'Session active' })).toBeVisible();
+  await page.getByRole('dialog').evaluate(el => Promise.all(el.getAnimations().map(animation => animation.finished)));
 }

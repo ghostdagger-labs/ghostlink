@@ -52,11 +52,15 @@ console.log('Clean consumer: Vue/React SSR, CSS, fonts, wallet assets, Node SQLi
 `);
 execFileSync(process.execPath, ['verify.mjs'], { cwd: consumer, stdio: 'inherit' });
 writeFileSync(join(consumer, 'verify.ts'), `
-import { createGhostlink, type TransactionRequest } from 'ghostlink-core';
+import { createGhostlink, type AuthSession, type AuthenticationListener, type TransactionRequest } from 'ghostlink-core';
 import { GhostlinkProvider as VueProvider, useGhostlink as useVue } from 'ghostlink-vue';
 import { GhostlinkProvider as ReactProvider, useGhostlink as useReact } from 'ghostlink-react';
 import { createGhostlinkServer, createSqliteStorage } from 'ghostlink-server';
-const client = createGhostlink({ app: { name: 'Typed consumer', url: 'https://app.example' } });
+const client = createGhostlink({ app: { name: 'Typed consumer', url: 'https://app.example' }, closeOnAuthenticate: false });
+const onAuthenticated: AuthenticationListener = async session => { const address: string = session.address; void address; };
+const unsubscribe: () => void = client.onAuthenticated(onAuthenticated);
+const authenticate: () => Promise<Readonly<AuthSession>> = () => client.authenticate();
+void [unsubscribe, authenticate];
 const request: TransactionRequest = { format: 'pskt-json', payload: '{}', network: 'testnet-11', address: 'kaspatest:fixture' };
 void [client, request, VueProvider, ReactProvider, useVue, useReact, createGhostlinkServer, createSqliteStorage];
 `);

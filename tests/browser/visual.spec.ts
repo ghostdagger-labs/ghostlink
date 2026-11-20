@@ -125,7 +125,6 @@ for (const width of [1280, 390]) for (const theme of ['dark', 'light']) test(`au
   await page.setViewportSize({ width, height: 1000 });
   await injectWallet(page, 'kastle', 'normal', 'mainnet');
   await login(page, 'Kastle', '/', 'mainnet');
-  await page.getByRole('button', { name: 'Close', exact: true }).click();
   if (theme === 'light') await page.getByRole('button', { name: 'Use light theme' }).click();
   await page.evaluate(() => document.fonts.ready);
   const button = page.locator('.example-header .gl-connect');
