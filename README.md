@@ -4,7 +4,7 @@ Kaspa wallet login for TypeScript applications, with native Vue and React UI and
 
 Mobile and hardware options are hidden from the default UI while their UX and security are evaluated. See the [deferred integration findings](docs/roadmap/wallet-integrations.md) for Kaspire, Ledger and KSPR. Kaspium manual signing remains an [explicit SDK opt-in](docs/integration/kaspium.md).
 
-This is a **pre-release implementation**. The first public npm version, `0.1.0-beta.1`, is prepared under `@ghostdagger` but has not been published. Source-backed adapters and automated fixtures are included; real-wallet version certification and testnet transaction evidence are tracked in [the compatibility record](docs/testing/compatibility-v1.json). See [release setup and publishing](docs/releases/publishing.md) for GitHub Actions, npm ownership and remaining release prerequisites.
+The first public **beta release**, `0.1.0-beta.1`, is available on npm under `@ghostdagger`. Install matching versions using `@beta` or the exact version. npm also assigns `latest` to this initial release; it remains a beta. Source-backed adapters and automated fixtures are included; real-wallet version certification and testnet transaction evidence are tracked in [the compatibility record](docs/testing/compatibility-v1.json). See [release setup and publishing](docs/releases/publishing.md) for GitHub Actions, npm ownership and remaining release prerequisites.
 
 ## Integration guides
 
@@ -30,7 +30,7 @@ To serve the production build locally with the same Node process, use `pnpm --fi
 
 ## Minimal Vue setup
 
-After the first npm release, install `@ghostdagger/ghostlink-core` and `@ghostdagger/ghostlink-vue` at the same version, alongside Vue 3.5+. Before publication, use the local archive checks described below. Set up the server below first.
+Install `@ghostdagger/ghostlink-core@0.1.0-beta.1` and `@ghostdagger/ghostlink-vue@0.1.0-beta.1`, alongside Vue 3.5+. Set up the server below first.
 
 ```ts
 import { createApp } from 'vue';

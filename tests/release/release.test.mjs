@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { test } from 'node:test';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -72,4 +73,45 @@ test('only an explicit registry 404 permits publishing; partial releases and net
   await assert.rejects(checkRegistry(release, { absent: true, fetcher: async () => { throw new Error('offline'); } }));
   let index = 0;
   await assert.rejects(checkRegistry(release, { absent: true, fetcher: async () => new Response('{}', { status: index++ === 0 ? 404 : 200 }) }));
+});
+
+test('registry verification waits for install metadata after npm accepts a publication', async () => {
+  const contents = 'tested archive';
+  const pkg = { name: packageNames[0], version: '0.1.0-beta.1', integrity: `sha512-${createHash('sha512').update(contents).digest('base64')}` };
+  const tarball = 'https://registry.npmjs.org/@ghostdagger/ghostlink-core/-/ghostlink-core-0.1.0-beta.1.tgz';
+  let calls = 0;
+  let downloads = 0;
+  await checkRegistry({ packages: [pkg] }, { attempts: 4, intervalMs: 0, fetcher: async (url, options) => {
+    if (url === tarball) return ++downloads === 1 ? new Response('', { status: 404 }) : new Response(contents);
+    assert.equal(url, 'https://registry.npmjs.org/@ghostdagger%2fghostlink-core');
+    assert.equal(options.headers.Accept, 'application/vnd.npm.install-v1+json');
+    calls++;
+    if (calls === 1) return new Response('', { status: 404 });
+    const versions = calls === 2 ? { '0.0.0-stage': {} } : { [pkg.version]: { name: pkg.name, version: pkg.version, dist: { integrity: pkg.integrity, tarball } } };
+    return Response.json({ versions });
+  } });
+  assert.equal(calls, 4);
+  assert.equal(downloads, 2);
+});
+
+test('registry verification rejects tampered downloads and unexpected tarball origins', async () => {
+  const pkg = { name: packageNames[0], version: '0.1.0-beta.1', integrity: 'sha512-tested' };
+  for (const tarball of ['https://registry.npmjs.org/test.tgz', 'https://elsewhere.invalid/test.tgz']) {
+    await assert.rejects(checkRegistry({ packages: [pkg] }, { attempts: 1, fetcher: async url => url === tarball
+      ? new Response('replaced archive')
+      : Response.json({ versions: { [pkg.version]: { name: pkg.name, version: pkg.version, dist: { integrity: pkg.integrity, tarball } } } })
+    }), /integrity mismatch|Unexpected registry tarball origin/);
+  }
+});
+
+test('registry propagation retries are bounded and never conceal bad archives or access failures', async () => {
+  const pkg = { name: packageNames[0], version: '0.1.0-beta.1', integrity: 'sha512-tested' };
+  let calls = 0;
+  await assert.rejects(checkRegistry({ packages: [pkg] }, { attempts: 2, intervalMs: 0, fetcher: async () => { calls++; return new Response('', { status: 404 }); } }), /not ready/);
+  assert.equal(calls, 2);
+  for (const response of [new Response('', { status: 403 }), Response.json({ versions: { [pkg.version]: { name: pkg.name, version: pkg.version, dist: { integrity: 'sha512-replaced' } } } })]) {
+    calls = 0;
+    await assert.rejects(checkRegistry({ packages: [pkg] }, { attempts: 3, intervalMs: 0, fetcher: async () => { calls++; return response; } }));
+    assert.equal(calls, 1);
+  }
 });

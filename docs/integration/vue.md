@@ -6,7 +6,7 @@ Already have an app? Use the [backend](#serverindexts), [client integration](#cl
 
 ## 1. Create the app
 
-Use **Node 24** and **pnpm 11.7.0**. These files target the planned public npm release **0.1.0-beta.1**. Registry installation becomes available after that release is published; release preparation alone does not publish it.
+Use **Node 24** and **pnpm 11.7.0**. These files target the public npm beta **0.1.0-beta.1**, published on 2026-11-20. Install the matching versions below; no registry credentials are needed.
 
 ```sh
 mkdir my-ghostlink-vue

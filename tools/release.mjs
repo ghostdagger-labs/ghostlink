@@ -5,6 +5,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
+import { setTimeout as delay } from 'node:timers/promises';
 
 export const root = resolve(import.meta.dirname, '..');
 export const repository = 'ghostdagger-labs/ghostlink';
@@ -126,15 +127,44 @@ export function checkRegistryMetadata(actual, expected) {
   assert(!actual.deprecated, `Release is deprecated: ${expected.name}`);
 }
 
-export async function checkRegistry(release, { absent = false, fetcher = fetch } = {}) {
-  for (const pkg of release.packages) {
-    // Public, unauthenticated registry reads also prove that the release is publicly readable.
-    const response = await fetcher(`${registry}${encodeURIComponent(pkg.name)}/${encodeURIComponent(pkg.version)}`, { signal: AbortSignal.timeout(30_000), headers: { 'Cache-Control': 'no-cache' } });
-    if (absent && response.status === 404) continue;
-    assert(response.ok, `Registry lookup failed for ${pkg.name}: HTTP ${response.status}`);
-    assert(!absent, `${pkg.name}@${pkg.version} already exists; inspect partial releases before retrying`);
-    checkRegistryMetadata(await response.json(), pkg);
+export async function checkRegistry(release, { absent = false, fetcher = fetch, attempts = 31, intervalMs = 10_000 } = {}) {
+  if (absent) {
+    for (const pkg of release.packages) {
+      const response = await fetcher(`${registry}${encodeURIComponent(pkg.name)}/${encodeURIComponent(pkg.version)}`, { signal: AbortSignal.timeout(30_000), headers: { 'Cache-Control': 'no-cache' } });
+      if (response.status === 404) continue;
+      assert(response.ok, `Registry lookup failed for ${pkg.name}: HTTP ${response.status}`);
+      assert.fail(`${pkg.name}@${pkg.version} already exists; inspect partial releases before retrying`);
+    }
+    return;
   }
+  // npm processes publications asynchronously. Version endpoints can become ready
+  // before the install metadata, so check the same public URL/header as consumers.
+  let pending = release.packages;
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    const next = [];
+    for (const pkg of pending) {
+      const response = await fetcher(`${registry}${pkg.name.replace('/', '%2f')}`, { signal: AbortSignal.timeout(30_000), headers: { Accept: 'application/vnd.npm.install-v1+json', 'Cache-Control': 'no-cache' } });
+      if (response.status === 404) { next.push(pkg); continue; }
+      assert(response.ok, `Registry lookup failed for ${pkg.name}: HTTP ${response.status}`);
+      const actual = (await response.json()).versions?.[pkg.version];
+      if (!actual) { next.push(pkg); continue; }
+      checkRegistryMetadata(actual, pkg);
+      const tarballUrl = new URL(actual.dist.tarball);
+      assert.equal(tarballUrl.origin, new URL(registry).origin, 'Unexpected registry tarball origin');
+      const tarball = await fetcher(tarballUrl.href, { signal: AbortSignal.timeout(30_000), headers: { 'Cache-Control': 'no-cache' } });
+      if (tarball.status === 404) { next.push(pkg); continue; }
+      assert(tarball.ok, `Registry tarball lookup failed for ${pkg.name}: HTTP ${tarball.status}`);
+      const downloadedIntegrity = `sha512-${createHash('sha512').update(Buffer.from(await tarball.arrayBuffer())).digest('base64')}`;
+      assert.equal(downloadedIntegrity, pkg.integrity, `Downloaded registry tarball integrity mismatch: ${pkg.name}`);
+    }
+    pending = next;
+    if (!pending.length) return;
+    if (attempt + 1 < attempts) {
+      console.log(`Waiting for npm install metadata and tarballs: ${pending.map(pkg => pkg.name).join(', ')}`);
+      await delay(intervalMs);
+    }
+  }
+  assert.fail(`npm install metadata or tarballs are not ready for ${pending.map(pkg => `${pkg.name}@${pkg.version}`).join(', ')}; inspect publication status before retrying`);
 }
 
 async function main() {

@@ -22,3 +22,11 @@ Provider signatures were reviewed against the current KasWare and Kastle APIs. E
 - 102 unit tests and seven release-safety tests passed.
 - Clean npm and pnpm archive installations passed runtime, SSR, TypeScript, asset, SQLite, WASM and 48 hover-documentation contracts, with zero production dependency advisories.
 - The full browser, website and guide suites run again in the release workflow before publication. Successful local checks alone do not mark a release as published.
+
+## Publication verification
+
+Commit `936d8c97c71ed23c7679d6497dca8123210b6e98`, tagged `sdk-v0.1.0-beta.1`, passed GitHub verification: 102 unit tests, seven release-safety tests, 46 SDK browser tests, 22 website tests and 24 integration-guide tests. The Docker restart test was skipped in that run. The updated accessibility checker exposed two button-label mismatches; those were fixed before the successful run.
+
+All four public npm archives match the tested SHA-512 hashes. Anonymous npm and pnpm consumers passed with empty caches/stores, including runtime, TypeScript, asset and hover-documentation checks. Both consumer production audits reported zero advisories.
+
+npm publication processing temporarily returned 404 responses for install metadata and tarballs. The release verifier now waits for both, verifies downloaded bytes, and uses fresh consumer caches; ten release-safety tests cover the updated tooling. npm also assigned `latest` for this initial publication and rejected its removal. This release remains a beta; use the explicit `beta` tag or `0.1.0-beta.1`.

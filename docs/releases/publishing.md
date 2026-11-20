@@ -1,6 +1,6 @@
 # Public SDK releases
 
-Source: `ghostdagger-labs/ghostlink` on GitHub. Registry: `https://registry.npmjs.org/`. npm organization: `ghostdagger`. The first prepared version is **0.1.0-beta.1**; it has not been published by this setup work.
+Source: `ghostdagger-labs/ghostlink` on GitHub. Registry: `https://registry.npmjs.org/`. npm organization: `ghostdagger`. The first public version is **0.1.0-beta.1**, published on 2026-11-20. Its source is tagged `sdk-v0.1.0-beta.1` at commit `936d8c97c71ed23c7679d6497dca8123210b6e98`.
 
 | Package | Role |
 | --- | --- |
@@ -11,14 +11,14 @@ Source: `ghostdagger-labs/ghostlink` on GitHub. Registry: `https://registry.npmj
 
 All four advance together. The three dependent packages resolve the exact core release. Packages are ESM and public on npm; consumers do not need a GitHub account, token or GitHub registry configuration. The workspace root, website and example remain private package manifests and are never published.
 
-## Before the first publication
+## Release prerequisites
 
 GitHub ownership and visibility are configured as of 2026-11-20: the existing repository was transferred to `ghostdagger-labs/ghostlink`, made public, and the local `origin` updated. Gitleaks 8.30.1 found no credentials in the 12 committed revisions checked before the visibility change. The release workflow deliberately refuses other repositories, and its publishing job requires public source for npm provenance.
 
 1. Preserve the asset permission, license and provenance records in [third-party notices](../../THIRD_PARTY_NOTICES.md). On 2026-11-20 the maintainer confirmed permission to redistribute the KasWare/Kastle logos. Font and WASM licenses remain included. Ghostlink's own code is MIT.
 2. Keep [live-wallet acceptance](../testing/live-wallets.md) and [the compatibility record](../testing/compatibility-v1.json) accurate. On 2026-11-20 the maintainer deferred the remaining live-wallet/protected-API and testnet transaction checks to a later pass and retained enabled transaction APIs for this beta. These checks remain outstanding and are not a publication gate for `0.1.0-beta.1`. Do not claim transaction certification or replace live evidence with provider fixtures.
 3. Review current dependency advisories, including the website's separate dependency tree, before final release verification. Update the matching versions in the four manifests and Vue/React guide examples, refresh the lockfile, and update the changelog. Do not claim that a pre-release version or successful build satisfies the preceding prerequisites.
-4. Confirm npm organization ownership and publishing rights, enable account 2FA, and create the GitHub environment `npm-release`. No environment approval rule is assumed by this workflow; configure additional reviewers if desired.
+4. Confirm npm organization ownership, publishing rights and account 2FA. For the initial release, `viktor.albus` was verified as an owner of `ghostdagger`, 2FA was enabled, and the GitHub environment `npm-release` was created. No environment approval rule is assumed by this workflow; configure additional reviewers if desired.
 
 ## Local preparation and verification
 
@@ -49,7 +49,7 @@ pnpm check:guides --artifacts artifacts
 pnpm release:verify --version 0.1.0-beta.1
 ```
 
-The guide checker asserts that the documented npm versions match the release, then substitutes the verified local archives for dependency resolution. Application source comes from the guides. Archive consumers use local overrides; registry consumers use exact published versions with **no overrides and no npm/GitHub credentials**.
+The guide checker asserts that the documented npm versions match the release, then substitutes the verified local archives for dependency resolution. Application source comes from the guides. Archive consumers use local overrides; registry consumers use exact published versions with **no dependency overrides and no npm/GitHub credentials**, with fresh npm caches and pnpm stores. Registry verification waits for public install metadata and tarball availability, and checks the downloaded tarball hashes. npm may accept a publish before these endpoints are ready; authentication failures and integrity mismatches still fail immediately.
 
 ## Release workflow
 
@@ -59,17 +59,19 @@ For an actual release, create `sdk-vVERSION` at the reviewed commit, select that
 
 The macOS verification job runs the workspace checks, browser and website suites, npm/pnpm archive consumers, guide flows and an npm publish dry run. It uploads the tested tarballs and manifest as `sdk-release`. The Ubuntu publishing job downloads and checks those exact files against the tag's source revision; it does not rebuild them. It checks that all four versions are absent, publishes core first under `candidate`, verifies anonymous registry metadata/integrity and clean npm/pnpm consumers, and then promotes all four packages. `X.Y.Z-beta.N` promotes to `beta`, `alpha.N` to `alpha`, `rc.N` to `rc`, and stable `X.Y.Z` to `latest`.
 
+For a package’s very first publication, npm also assigns `latest`, even when `--tag=candidate` is supplied, and rejects removal of `latest` while published versions exist. Consequently `0.1.0-beta.1` resolves through both `beta` and `latest`. Use explicit beta or version specifiers, and inspect all tags after publication. Later prereleases must preserve any existing stable `latest` version.
+
 The first release requires the bootstrap below. Subsequent releases use `publish: true` after all prerequisites and npm trusted publishers are configured. Only the publishing job receives `id-token: write`; no npm write token is stored in GitHub.
 
 ## One-time npm bootstrap
 
-npm requires each package to exist before a trusted publisher can be configured. Do not create placeholder packages. For the first release, run the workflow from the reviewed `sdk-vVERSION` tag with `publish: false`, download its `sdk-release` artifact to `artifacts/` in a **clean checkout of the same tag**, then verify it:
+npm requires each package to exist before a trusted publisher can be configured. Do not create placeholder packages. For the first release, verify the reviewed commit with `publish: false`, or use the successful **SDK verification** CI run. Tag that exact commit as `sdk-vVERSION` if it is not already tagged. Download `sdk-release` (or the `artifacts/` directory inside CI’s `ghostlink-artifacts`) to `artifacts/` in a **clean checkout of the same tag**, then verify it. The archive manifest and tag must identify the same clean source revision:
 
 ```sh
 pnpm release:verify --version 0.1.0-beta.1
 ```
 
-Sign in to npm locally as an authorized `ghostdagger` publisher with 2FA. Publish those reviewed archives under `candidate`, core first:
+Use npm 11.21.3, matching the workflow. Sign in locally as an authorized `ghostdagger` publisher with 2FA. Complete npm’s browser authentication when requested; the optional five-minute publishing window does not cover every tag-management operation. Publish those reviewed archives under `candidate`, core first:
 
 ```sh
 npm login --registry=https://registry.npmjs.org/
@@ -109,6 +111,6 @@ The workflow pins npm 11.21.3 to support OIDC for both publication and tag manag
 
 Four-package publication and tag promotion are not atomic. A `candidate` package is public and installable by exact version immediately. If one publication, consumer check or promotion fails, stop and inspect all versions, integrity values and tags. Do not automatically skip existing versions, overwrite them, delete them, or rerun publication blindly. The workflow refuses an already-existing version. Use a new coordinated version for corrected artifacts; recover unchanged artifacts only after separately verifying their identity. Check all tags if promotion partially succeeded.
 
-Publish the GitHub release notes after all packages pass registry checks and promotion. Changing this setup does not publish packages, create the organization, transfer the repository, open its source, or configure npm account settings.
+Publish the GitHub release notes after all packages pass registry checks and promotion. For the initial beta, the archives came from [successful CI run 44835640164](https://github.com/ghostdagger-labs/ghostlink/actions/runs/44835640164); the same commit also passed [release-tag verification](https://github.com/ghostdagger-labs/ghostlink/actions/runs/44836603647). Public downloads matched the tested archive hashes, and fresh-cache npm and pnpm consumers passed. Trusted publisher configuration remains a prerequisite for the next automated release; configure it close enough to that release to satisfy npm’s activation window.
 
-References: [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/), [npm trust prerequisites](https://docs.npmjs.com/cli/commands/npm-trust/), [pnpm workspace packaging](https://pnpm.io/workspaces#publishing-workspace-packages).
+References: [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/), [npm trust prerequisites](https://docs.npmjs.com/cli/commands/npm-trust/), [pnpm workspace packaging](https://pnpm.io/workspaces#publishing-workspace-packages), [npm first-publication/latest behavior](https://github.com/npm/cli/issues/8490).
