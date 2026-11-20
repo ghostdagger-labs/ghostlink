@@ -5,8 +5,11 @@ import type { Network } from './protocol.js';
 import { GhostlinkError } from './types.js';
 import type { AuthSession, AuthTransport, AuthenticationListener, GhostlinkConfig, GhostlinkSnapshot, WalletAdapter, WalletAccount, TransactionRequest, TransferRequest } from './types.js';
 
+/** Framework-neutral controller. Construction is passive; providers own browser attachment. */
 export class Ghostlink {
+  /** Application metadata copied and frozen at construction. */
   readonly app: GhostlinkConfig['app'];
+  /** Configured wallet adapters. Discovery and capability checks start after attachment. */
   readonly adapters: readonly WalletAdapter[];
   private readonly auth: AuthTransport;
   private readonly closeOnAuthenticate: boolean;
@@ -28,6 +31,7 @@ export class Ghostlink {
   private uiHosts = 0;
   private review: { resolve: () => void; reject: (error: Error) => void } | null = null;
 
+  /** Validate configuration without browser I/O. Safe during SSR; use a client per request. */
   constructor(config: GhostlinkConfig) {
     this.app = Object.freeze({ ...config.app });
     const appUrl = new URL(config.app.url);
@@ -42,9 +46,11 @@ export class Ghostlink {
     // SSR and the first hydration render must observe the same initial snapshot.
     this.state = Object.freeze({ initialization: 'idle', initializationError: null, open: false, step: 'choose', busy: false, network, walletId: null, account: null, connection: 'disconnected', authentication: 'unauthenticated', session: null, challenge: null, balance: null, error: null, revocationPending: false, wallets: [], request: null });
   }
+  /** Read the current read-only snapshot. Its identity is stable until the next controller update. */
   getSnapshot = (): GhostlinkSnapshot => this.state;
+  /** Subscribe to future updates, without an initial notification. Call the returned function to unsubscribe. */
   subscribe = (listener: () => void): (() => void) => { this.listeners.add(listener); return () => this.listeners.delete(listener); };
-  /** Fresh verified logins only; restoration, connection and wallet requests do not emit. */
+  /** Observe fresh verified logins after busy clears; restoration and connection do not emit. Returns an unsubscribe function. Listener promises are not awaited; failures are logged. */
   onAuthenticated = (listener: AuthenticationListener): (() => void) => {
     if (!this.destroyed) this.authenticationListeners.add(listener);
     return () => { this.authenticationListeners.delete(listener); };
@@ -54,7 +60,7 @@ export class Ghostlink {
     this.state = Object.freeze({ ...this.state, ...change });
     for (const listener of this.listeners) listener();
   }
-  /** Acquire browser activity. Providers release their attachment, never the supplied client. */
+  /** Acquire browser activity and begin session restoration; passive on the server. Returns an idempotent release function. Final release stops activity/pending work and preserves established sessions. Providers manage this automatically. Throws CANCELLED after destroy(). */
   attach = (): (() => void) => {
     if (this.destroyed) throw new GhostlinkError('CANCELLED', 'Ghostlink has been destroyed.');
     if (typeof window === 'undefined') return () => {};
@@ -119,10 +125,13 @@ export class Ghostlink {
   }
   private onFocus = () => { this.refreshWallets(); if (!this.locked) void this.restoreSession().catch(() => {}); };
   private onOnline = () => { if (this.state.revocationPending) void this.revoke(); };
+  /** Refresh wallet availability and capability hints without requesting approval. */
   refreshWallets = () => {
     this.patch({ wallets: this.adapters.map(a => ({ id: a.id, name: a.name, kind: a.kind, mark: a.mark, icon: a.icon, installUrl: a.installUrl, available: a.isAvailable(), capabilities: { ...a.capabilities } })) });
   };
+  /** Open wallet selection or existing session details. Does not itself authenticate or restore a session. */
   open = () => { this.refreshWallets(); this.patch({ open: true, step: this.state.session ? 'connected' : 'choose', error: null }); };
+  /** Close the modal and cancel pending local work/login. An established backend session is preserved. */
   close = () => {
     const pendingAuth = this.state.authentication === 'authenticating' || !!this.state.challenge;
     this.epoch++;
@@ -130,8 +139,9 @@ export class Ghostlink {
     this.patch({ open: false, challenge: null, request: null, authentication: this.state.session ? 'authenticated' : 'unauthenticated' });
     if (pendingAuth) void this.revoke();
   };
-  /** UI packages register a review host; headless consumers use wallet approval directly. */
+  /** Advanced custom UI: register a request-review host and call its release once on unmount. Supplied modals handle this; headless requests go directly to wallet approval. */
   attachUI = () => { this.uiHosts++; return () => { this.uiHosts--; if (!this.uiHosts && this.review) this.close(); }; };
+  /** Advanced custom UI: accept the pending application review; wallet approval is still required. */
   confirmRequest = () => { this.review?.resolve(); this.review = null; };
   private async reviewRequest(title: string, message: string) {
     if (!this.uiHosts) return;
@@ -139,7 +149,9 @@ export class Ghostlink {
     await new Promise<void>((resolve, reject) => { this.review = { resolve, reject }; });
     this.patch({ step: 'connecting', request: null });
   }
+  /** Advanced custom UI: select wallet onboarding content; does not open a closed modal. */
   showWalletHelp = () => this.patch({ step: 'getwallet' });
+  /** Cancel the current review/login and return to wallet selection or established session details. */
   back = () => { const pending = !!this.state.challenge || this.state.authentication === 'authenticating'; this.epoch++; this.review?.reject(new GhostlinkError('CANCELLED', 'This request was cancelled.')); this.review = null; this.patch({ step: this.state.session ? 'connected' : 'choose', challenge: null, request: null, error: null, authentication: this.state.session ? 'authenticated' : 'unauthenticated' }); if (pending) void this.revoke(); };
   private adapter(): WalletAdapter {
     const a = this.adapters.find(a => a.id === this.state.walletId);
@@ -159,6 +171,7 @@ export class Ghostlink {
       throw error;
     } finally { this.locked = false; this.patch({ busy: false }); this.initializeIfNeeded(); }
   }
+  /** With no ID, open wallet selection. With an ID, revoke any existing session and connect that adapter. Connection alone does not authenticate; finish with authenticate() or the modal. */
   async connect(walletId?: string): Promise<void> {
     if (!walletId) { this.open(); return; }
     await this.run(async epoch => {
@@ -208,7 +221,9 @@ export class Ghostlink {
     } catch { throw new GhostlinkError('INVALID_REQUEST', 'The authentication challenge does not match this application and account.'); }
     this.patch({ challenge, step: adapter.kind === 'manual' ? 'manual' : 'sign', authentication: 'authenticating' });
   }
+  /** Create a server login challenge for the connected account. Manual adapters accept an address; no signature is requested yet. The supplied modal manages this step. */
   prepareAuthentication = async (address?: string) => this.run(epoch => this.prepare(epoch, address));
+  /** Verify a login and return its readonly session after connecting a wallet. Creates a challenge if needed; requests wallet approval or accepts a manual signature. Emits onAuthenticated after verification and closes the modal by default. */
   async authenticate(input: { address?: string; signature?: string } = {}): Promise<Readonly<AuthSession>> {
     const result = await this.run(async epoch => {
       if (!this.state.challenge) await this.prepare(epoch, input.address);
@@ -261,6 +276,7 @@ export class Ghostlink {
     }
     return result.session;
   }
+  /** Recheck the backend session without requesting wallet approval or emitting onAuthenticated. Concurrent checks share work; failures set initializationError and reject. If an approval/challenge is active, returns without checking: inspect initialization for readiness. */
   async restoreSession(): Promise<void> {
     if (this.destroyed) throw new GhostlinkError('CANCELLED', 'Ghostlink has been destroyed.');
     if (this.locked || this.state.challenge) return;
@@ -344,14 +360,18 @@ export class Ghostlink {
     if (broadcast) this.channel?.postMessage('invalidate');
     await this.revoke();
   }
+  /** Sign out locally, revoke the server session, and disconnect the wallet when possible. Can resolve with revocationPending if offline; attached clients retry. Provider cleanup does not call this. */
   async disconnect(): Promise<void> {
     const a = this.adapters.find(a => a.id === this.state.walletId);
     await this.invalidate(true);
     if (!this.locked) { try { await a?.disconnect?.(); } catch { /* Application revocation is authoritative; provider permissions may remain. */ } }
     this.patch({ walletId: null });
   }
+  /** Change the application network. A different network signs out the current session first; the same network is a no-op. Does not switch the wallet network. */
   async setNetwork(network: Network) { if (!isNetwork(network)) throw new GhostlinkError('INVALID_REQUEST', 'Unsupported network.'); if (network !== this.state.network) { await this.disconnect(); this.patch({ network }); } }
+  /** Ask the selected wallet to switch to the application network. May request wallet approval; rejects UNSUPPORTED if the adapter cannot switch. Does not authenticate. */
   async switchWalletNetwork() { const a = this.adapter(); if (!a.switchNetwork) throw new GhostlinkError('UNSUPPORTED', 'Switch networks in your wallet.'); await this.run(async epoch => { this.patch({ step: 'connecting' }); await a.switchNetwork!(this.state.network); this.check(epoch); }); }
+  /** Refresh bigint sompi balance for an authenticated live wallet. No-op when unavailable; read snapshot.balance afterward. Read failures set balance to null. */
   async refreshBalance() {
     const epoch = this.epoch; const a = this.adapters.find(a => a.id === this.state.walletId);
     if (!this.state.session || this.state.connection !== 'connected' || !a?.getBalance) return;
@@ -368,7 +388,9 @@ export class Ghostlink {
       return result;
     });
   }
+  /** Request a signature for a 1–2000 character message. Requires a verified session and live wallet; rechecks identity and requests approval. Returns the wallet signature; concurrent approvals reject BUSY. */
   signMessage = (message: string) => this.signing(async (a, epoch) => { if (!message || message.length > 2000) throw new GhostlinkError('INVALID_REQUEST', 'Messages must contain 1–2000 characters.'); await this.reviewRequest('Signature request', message); this.check(epoch); await this.checkAccount(epoch); return a.signMessage(message); });
+  /** Request approval to sign supported native transaction JSON for the current account/network. Requires an authenticated live wallet. Returns signed data and never broadcasts. */
   signTransaction = (input: TransactionRequest) => { const request = Object.freeze({ ...input }); return this.signing(async (a, epoch) => {
     if (request.network !== this.state.network || request.address !== this.state.account?.address) throw new GhostlinkError('NETWORK_MISMATCH', 'The transaction account and network must match this session.');
     if (!a.signTransaction || !a.capabilities.transactionFormats.includes(request.format)) throw new GhostlinkError('UNSUPPORTED', 'This transaction format is not supported by your wallet.');
@@ -378,6 +400,7 @@ export class Ghostlink {
     await this.checkAccount(epoch);
     return a.signTransaction(request);
   }); };
+  /** Request approval to sign and broadcast a transfer; returns its transaction ID. Requires an authenticated live wallet with transfer capability. Amounts and priority fees are bigint sompi. */
   sendTransaction = (input: TransferRequest) => { const request = Object.freeze({ ...input }); return this.signing(async (a, epoch) => {
     if (!a.sendTransaction || !a.capabilities.transfer) throw new GhostlinkError('UNSUPPORTED', 'This wallet does not support automated transfers.');
     if (typeof request.amountSompi !== 'bigint' || (request.priorityFeeSompi !== undefined && typeof request.priorityFeeSompi !== 'bigint') || request.amountSompi <= 0n || (request.priorityFeeSompi ?? 0n) < 0n) throw new GhostlinkError('INVALID_REQUEST', 'Enter a positive transfer amount and a nonnegative fee.');
@@ -386,6 +409,7 @@ export class Ghostlink {
     await this.checkAccount(epoch);
     return a.sendTransaction(request);
   }); };
+  /** Permanently retire this client and clear subscriptions/browser resources. Idempotent; preserves established backend sessions but cancels unfinished logins. Use the release function from attach() for reusable lifecycles, including React effect cleanup. */
   destroy() {
     if (this.destroyed) return;
     this.attachments = 0;
@@ -393,4 +417,5 @@ export class Ghostlink {
     this.listeners.clear(); this.authenticationListeners.clear(); this.destroyed = true;
   }
 }
+/** Create a passive, SSR-safe client. Keep it stable for the provider lifetime and separate per SSR request. Providers attach on mount; headless consumers call attach() and later call the returned release function. */
 export const createGhostlink = (config: GhostlinkConfig): Ghostlink => new Ghostlink(config);

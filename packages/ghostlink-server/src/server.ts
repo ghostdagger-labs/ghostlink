@@ -4,13 +4,32 @@ import type { Network, AuthSession } from 'ghostlink-core';
 import { validateKaspaAddress, verifyKaspaSignature } from './crypto.js';
 import type { GhostlinkStorage, BrowserRecord, ChallengeRecord } from './storage.js';
 
+/** Trusted authentication policy. Origin/network configuration must agree with the browser client. */
 export interface GhostlinkServerConfig {
-  origin: string; loginUri: string; storage: GhostlinkStorage; networks?: readonly Network[];
-  prefix?: string; allowInsecureLocalhost?: boolean;
-  challengeTtlMs?: number; sessionTtlMs?: number; idleTtlMs?: number; clockSkewMs?: number;
-  /** Injectable clock for deterministic tests. */
+  /** Exact public HTTP(S) origin, including port when present; no path or trailing slash. */
+  origin: string;
+  /** Absolute same-origin URI included in login messages; no credentials or fragment. */
+  loginUri: string;
+  /** Persistence adapter. Its creator owns shutdown; use createSqliteStorage for the supplied Node backend. */
+  storage: GhostlinkStorage;
+  /** Nonempty allowed network list. Defaults to mainnet, testnet-10, and testnet-11. */
+  networks?: readonly Network[];
+  /** Authentication route prefix without a trailing slash. Defaults to /auth/ghostlink. */
+  prefix?: string;
+  /** Permit HTTP only for localhost/loopback development. Defaults to false; public origins require HTTPS. */
+  allowInsecureLocalhost?: boolean;
+  /** Challenge lifetime in milliseconds. Defaults to 300_000 (5 minutes); must be positive and at most 300_000. */
+  challengeTtlMs?: number;
+  /** Absolute session lifetime in milliseconds. Defaults to 86_400_000 (24 hours); must be a positive safe integer. */
+  sessionTtlMs?: number;
+  /** Idle session lifetime in milliseconds. Defaults to 1_800_000 (30 minutes); successful getSession calls refresh it, capped by absolute expiry. */
+  idleTtlMs?: number;
+  /** Future-issued challenge tolerance in milliseconds. Defaults to 30_000; allowed range is 0–30_000. */
+  clockSkewMs?: number;
+  /** Clock returning Unix milliseconds. Defaults to Date.now; override for deterministic tests. */
   now?: () => number;
 }
+/** Request metadata supplied by a trusted server adapter. */
 export interface RequestContext { /** Supply only a trusted peer address; never an unvalidated forwarded header. */ ip?: string; }
 const token = () => randomBytes(32).toString('hex');
 const hash = (value: string) => createHash('sha256').update(value).digest('hex');
@@ -35,6 +54,7 @@ async function boundedJson(request: Request): Promise<Record<string, unknown>> {
   try { const value: unknown = JSON.parse(Buffer.concat(parts).toString('utf8')); if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error(); return value as Record<string, unknown>; }
   catch { throw new GhostlinkError('INVALID_REQUEST', 'Invalid JSON request.'); }
 }
+/** Create Node authentication handlers with cookie sessions, CSRF checks, and signature verification. Validates policy immediately; does not start an HTTP listener or own storage shutdown. */
 export function createGhostlinkServer(config: GhostlinkServerConfig) {
   const origin = new URL(config.origin); const uri = new URL(config.loginUri);
   if (origin.origin !== config.origin || uri.origin !== origin.origin || uri.username || uri.password || uri.hash) throw new Error('Configure an exact trusted origin and a same-origin login URI.');
@@ -117,5 +137,14 @@ export function createGhostlinkServer(config: GhostlinkServerConfig) {
       return response({ code: 'SERVER_ERROR', error: 'The authentication service could not complete this request.' }, 500);
     }
   }
-  return { handle, getSession, origin: origin.origin, prefix };
+  return {
+    /** Handle session/challenge/verify/logout Web requests under prefix. Pass trusted peer metadata for rate limits; returns HTTP failures as Responses. */
+    handle,
+    /** Read identity from request cookies, returning null if missing/expired. Refreshes idle expiry. Does not enforce application authorization, origin checks, or CSRF for your own routes. */
+    getSession,
+    /** Validated public origin used for audience and Host checks. */
+    origin: origin.origin,
+    /** Authentication route prefix; mount these routes on the same origin as the browser app. */
+    prefix,
+  };
 }

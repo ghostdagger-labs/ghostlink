@@ -2,6 +2,8 @@
 
 Native React 18.3/19 components for Ghostlink. Requires `ghostlink-core` and a configured authentication backend.
 
+The hook and component render props expose the same read-only snapshot type, including nested session, wallet, error, and capability data. Use client methods to change state. Packaged declarations preserve hover documentation for lifecycle behavior and component props.
+
 Start with the [complete React integration guide](../../docs/integration/react.md) for copyable app and backend files, login, protected requests, session restoration, and logout.
 
 ```tsx

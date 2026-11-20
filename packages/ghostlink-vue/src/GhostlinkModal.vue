@@ -3,7 +3,12 @@ import { computed, nextTick, onMounted, onUnmounted, ref, useId, watch } from 'v
 import { ArrowLeft, X, ScanLine, Check, LoaderCircle, TriangleAlert, Link2, Copy, Camera, Clock, CircleX } from '@lucide/vue';
 import { trapDialogFocus, createMessageQr, getPresentation, remainingTime, scanQrCamera, scanQrImage } from 'ghostlink-core';
 import { useGhostlink } from './context';
-defineProps<{ theme?: 'dark' | 'light'; variables?: Record<string, string> }>();
+defineProps<{
+  /** Scoped color theme. Defaults to dark. */
+  theme?: 'dark' | 'light';
+  /** Scoped --ghostlink-* CSS custom properties. Import ghostlink-core/styles.css once. */
+  variables?: Record<string, string>;
+}>();
 const { client, snapshot: s } = useGhostlink();
 const view = computed(() => getPresentation(s.value, client.app));
 const titleId = `ghostlink-${useId()}`;

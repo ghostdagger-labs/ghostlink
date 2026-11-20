@@ -2,6 +2,8 @@
 
 Native Vue 3.5+ components for Ghostlink. Requires `ghostlink-core` and a configured `ghostlink-server` backend.
 
+The composable and component slots expose the same read-only snapshot type, including nested session, wallet, error, and capability data. Neither the snapshot ref nor its nested values should be assigned; use client methods to change state. Packaged declarations preserve component/composable hover guidance, including lifecycle behavior and prop defaults.
+
 Start with the [complete Vue integration guide](../../docs/integration/vue.md) for copyable app and backend files, login, protected requests, session restoration, and logout.
 
 ```ts

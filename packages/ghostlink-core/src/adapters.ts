@@ -92,11 +92,15 @@ function injected(id: 'kasware' | 'kastle'): WalletAdapter {
     },
   };
 }
+/** Create the injected KasWare browser adapter. Provider discovery is deferred until use; authentication requires the backend. */
 export const kaswareAdapter = () => injected('kasware');
+/** Create the injected Kastle browser adapter. Supports mainnet and testnet-10; testnet-11 switching is rejected before calling the wallet. */
 export const kastleAdapter = () => injected('kastle');
+/** Opt in to manual Kaspium QR/paste login. No live connection, balance, signing, or transfer capability is exposed after login. */
 export function kaspiumAdapter(): WalletAdapter {
   const unavailable = async (): Promise<never> => { throw new GhostlinkError('UNSUPPORTED', 'Kaspium uses manual message signing; there is no live wallet connection.'); };
   return { id: 'kaspium', icon: new URL('./assets/kaspium.png', import.meta.url).href, name: 'Kaspium', kind: 'manual', mark: 'KM', installUrl: 'https://kaspium.io/', capabilities: { ...baseCaps }, isAvailable: () => true, connect: unavailable, getAccount: async () => null, signMessage: unavailable };
 }
 // Manual mobile signing remains available through explicit adapter configuration.
+/** Create the default KasWare and Kastle browser adapters. Mobile/manual adapters require explicit opt-in. */
 export const defaultAdapters = () => [kaswareAdapter(), kastleAdapter()];

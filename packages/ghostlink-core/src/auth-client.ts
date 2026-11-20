@@ -1,6 +1,12 @@
 import { GhostlinkError } from './types.js';
 import type { AuthTransport, AuthChallenge, AuthSession } from './types.js';
-export function createAuthClient(options: { baseUrl?: string; fetch?: typeof fetch } = {}): AuthTransport {
+/** Create the default same-origin cookie/CSRF transport. Providers normally configure it through createGhostlink({ auth }). Construction performs no I/O. */
+export function createAuthClient(options: {
+  /** Authentication path matching the server prefix, without a trailing slash. Defaults to /auth/ghostlink. */
+  baseUrl?: string;
+  /** Authentication fetch implementation. Defaults to globalThis.fetch; requests use same-origin credentials. */
+  fetch?: typeof fetch;
+} = {}): AuthTransport {
   const base = options.baseUrl ?? '/auth/ghostlink';
   let csrf: string | null = null;
   let bootstrap: Promise<void> | null = null;

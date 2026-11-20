@@ -2,6 +2,8 @@
 
 Framework-neutral Kaspa wallet login controller, compatibility adapters, authentication client and shared presentation assets.
 
+Snapshots are read-only in TypeScript, including session/account data, errors, wallet descriptors, and capability arrays. Change state through client methods; copy values into your own objects when you need editable application state. Configuration and custom transport records remain ordinary editable inputs. Public declarations include editor hover guidance for defaults, units, lifecycle ownership, and operation side effects.
+
 ```ts
 import { createGhostlink } from 'ghostlink-core';
 const client = createGhostlink({

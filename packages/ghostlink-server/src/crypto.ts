@@ -5,6 +5,7 @@ import type { Network } from 'ghostlink-core';
 const require = createRequire(import.meta.url);
 // Kept external to the bundle; the unmodified official WASM release is distributed alongside it.
 const kaspa = require('../vendor/kaspa/kaspa.js') as typeof Kaspa;
+/** Validate a canonical Schnorr public-key address/checksum for the network with the official SDK. Returns identity and hex public key; throws INVALID_REQUEST for unsupported or invalid addresses. */
 export function validateKaspaAddress(value: string, network: Network): { address: string; accountId: string; publicKey: string } {
   let address: Kaspa.Address | undefined; let key: Kaspa.XOnlyPublicKey | undefined;
   try {
@@ -17,6 +18,7 @@ export function validateKaspaAddress(value: string, network: Network): { address
   } catch (error) { if (error instanceof GhostlinkError) throw error; throw new GhostlinkError('INVALID_REQUEST', 'Enter a valid Schnorr public-key address for the selected network.'); }
   finally { key?.free(); address?.free(); }
 }
+/** Verify a 64-byte lowercase hex Schnorr signature against the exact message and address. Returns false on invalid input. Does not check challenge expiry, origin, replay, or application authorization; use createGhostlinkServer for login. */
 export function verifyKaspaSignature(input: { address: string; network: Network; message: string; signature: string; publicKey?: string }): boolean {
   let publicKey: Kaspa.PublicKey | undefined; let derived: Kaspa.Address | undefined;
   try {

@@ -26,6 +26,8 @@ Final release aborts pending HTTP session reads. Custom `AuthTransport.session` 
 
 ## Readiness
 
+Snapshots are read-only in TypeScript through `getSnapshot()`, both framework hooks, and UI slots/render props. This includes nested sessions, accounts, challenges, errors, wallet descriptors, and capability arrays. Use client methods for state changes; make copies for editable application data. The top-level snapshot is also frozen at runtime. Configuration and custom transport records remain editable inputs.
+
 `initialization` is independent of wallet connection and authentication:
 
 | Value | Meaning |

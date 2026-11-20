@@ -1,15 +1,24 @@
+/** Identifier of the proposed Ghostlink Kaspa login-message profile. */
 export const PROFILE = 'ghostlink-kaspa-v1' as const;
+/** Networks understood by the protocol; individual wallets may support a subset. */
 export const NETWORKS = ['mainnet', 'testnet-10', 'testnet-11'] as const;
+/** A supported protocol network. Must agree between client configuration, wallet, and backend allowlist. */
 export type Network = typeof NETWORKS[number];
+/** Network-qualified Kaspa chain identifier. */
 export type ChainId = `kaspa:${Network}`;
+/** Address prefix for a network; testnet-10 and testnet-11 both use kaspatest. */
 export const addressPrefix = (network: Network) => network === 'mainnet' ? 'kaspa' : 'kaspatest';
+/** Convert a network to its kaspa: chain identifier. */
 export const chainId = (network: Network): ChainId => `kaspa:${network}`;
+/** Narrow an unknown value to a supported protocol network. */
 export function isNetwork(value: unknown): value is Network { return NETWORKS.includes(value as Network); }
+/** Create a network-qualified account ID after basic prefix/character checks. This does not validate address checksums; the server uses validateKaspaAddress for that. */
 export function accountId(address: string, network: Network): string {
   const prefix = `${addressPrefix(network)}:`;
   if (!address.startsWith(prefix) || !/^[a-z0-9]+$/.test(address.slice(prefix.length))) throw new Error('Address does not match the selected network.');
   return `${chainId(network)}:${address.slice(prefix.length)}`;
 }
+/** Canonical signed login fields. Issued/expiry timestamps are ISO 8601 UTC; lifetime is at most five minutes. */
 export interface LoginMessageFields {
   domain: string; address: string; network: Network; uri: string; nonce: string;
   issuedAt: string; expiresAt: string;
@@ -45,14 +54,17 @@ export function parseLoginMessage(message: string, context: { origin: string; ne
   if (Date.parse(fields.expiresAt) <= now || Date.parse(fields.issuedAt) > now + 30_000) throw new Error('Login message expired or not yet valid.');
   return fields;
 }
+/** Convert a nonnegative decimal KAS string with at most eight fractional digits to bigint sompi. Rejects signs, whitespace, exponent notation, and excess precision. */
 export function parseKasAmount(value: string): bigint {
   if (!/^(0|[1-9]\d*)(\.\d{1,8})?$/.test(value)) throw new Error('Enter an amount with at most eight decimal places.');
   const [whole, fraction = ''] = value.split('.');
   return BigInt(whole!) * 100_000_000n + BigInt(fraction.padEnd(8, '0'));
 }
+/** Format bigint sompi as an exact decimal KAS string without trailing fractional zeros. Supports negative values; never uses floating-point arithmetic. */
 export function formatKas(value: bigint): string {
   const sign = value < 0n ? '-' : ''; const n = value < 0n ? -value : value;
   const fraction = (n % 100_000_000n).toString().padStart(8, '0').replace(/0+$/, '');
   return `${sign}${n / 100_000_000n}${fraction ? '.' + fraction : ''}`;
 }
+/** Shorten an address for display only. Keep the full address for requests and identity comparisons. */
 export function shortenAddress(value: string): string { return value.length > 22 ? `${value.slice(0, value.indexOf(':') + 4)}…${value.slice(-4)}` : value; }

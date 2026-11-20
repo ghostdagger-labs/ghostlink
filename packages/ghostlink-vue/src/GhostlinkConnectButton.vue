@@ -2,7 +2,14 @@
 import { computed } from 'vue';
 import { getPresentation } from 'ghostlink-core';
 import { useGhostlink } from './context';
-defineProps<{ theme?: 'dark' | 'light'; variables?: Record<string, string>; label?: string }>();
+defineProps<{
+  /** Scoped color theme. Defaults to dark. */
+  theme?: 'dark' | 'light';
+  /** Scoped --ghostlink-* CSS custom properties. Import ghostlink-core/styles.css once. */
+  variables?: Record<string, string>;
+  /** Signed-out button/accessibility label. Defaults to Connect wallet. */
+  label?: string;
+}>();
 const { client, snapshot } = useGhostlink();
 const view = computed(() => getPresentation(snapshot.value, client.app));
 </script>

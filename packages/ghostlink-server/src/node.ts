@@ -1,5 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { createGhostlinkServer } from './server.js';
+/** Adapt Ghostlink Web handlers to Node HTTP. Mount under server.prefix; validates Host, limits bodies to 16 KiB, forwards cookies, and uses the socket peer for rate limits. Reverse proxies must preserve Host. */
 export function createNodeHandler(server: ReturnType<typeof createGhostlinkServer>) {
   return async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
     res.setHeader('Cache-Control', 'no-store');

@@ -71,7 +71,10 @@ void [unsubscribe, authenticate, release, initialization];
 const request: TransactionRequest = { format: 'pskt-json', payload: '{}', network: 'testnet-11', address: 'kaspatest:fixture' };
 void [client, request, VueProvider, ReactProvider, useVue, useReact, createGhostlinkServer, createSqliteStorage];
 `);
-run(['exec', 'tsc', '--noEmit', '--strict', '--target', 'ES2022', '--module', 'NodeNext', '--moduleResolution', 'NodeNext', '--skipLibCheck', 'false', 'verify.ts'], consumer);
+writeFileSync(join(consumer, 'snapshot-contract.ts'), readFileSync(join(root, 'tests/consumer/snapshot-contract.ts')));
+run(['exec', 'tsc', '--noEmit', '--strict', '--target', 'ES2022', '--module', 'NodeNext', '--moduleResolution', 'NodeNext', '--skipLibCheck', 'false', 'verify.ts', 'snapshot-contract.ts'], consumer);
+writeFileSync(join(consumer, 'public-api-docs.mjs'), readFileSync(join(root, 'tests/consumer/public-api-docs.mjs')));
+execFileSync(process.execPath, ['public-api-docs.mjs'], { cwd: consumer, stdio: 'inherit' });
 const frontendFiles = readdirSync(join(root, 'examples/vue/dist/assets')).filter(file => file.endsWith('.js'));
 for (const file of frontendFiles) if (/node:(?:sqlite|fs|crypto)|kaspa_bg\.wasm|DatabaseSync/.test(readFileSync(join(root, 'examples/vue/dist/assets', file), 'utf8'))) throw new Error('Server dependency leaked into the browser bundle.');
 for (const name of names) {

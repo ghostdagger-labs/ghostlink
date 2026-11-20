@@ -4,6 +4,7 @@ import { dirname } from 'node:path';
 import type { AuthSession } from 'ghostlink-core';
 import type { BrowserRecord, ChallengeRecord, GhostlinkStorage, SessionRecord } from './storage.js';
 
+/** Open a Node 24 SQLite store, creating parent directories and schema as needed. Use :memory: for isolated tests; otherwise persist this file. The caller must close the store on shutdown. */
 export function createSqliteStorage(filename: string): GhostlinkStorage {
   if (filename !== ':memory:') mkdirSync(dirname(filename), { recursive: true, mode: 0o700 });
   const db = new DatabaseSync(filename);

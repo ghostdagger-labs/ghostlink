@@ -1,5 +1,6 @@
 import { formatKas, shortenAddress } from './protocol.js';
 import type { GhostlinkSnapshot, GhostlinkConfig } from './types.js';
+/** Derive modal labels and rows from a snapshot. Presentation is not authorization; gate application identity on initialization === ready. */
 export function getPresentation(s: GhostlinkSnapshot, app: GhostlinkConfig['app']) {
   const wallet = s.wallets.find(w => w.id === s.walletId);
   const titles = { choose: 'Connect a Kaspa wallet', connecting: 'Connecting', review: 'Review session', address: 'Sign in with Kaspium', sign: 'Confirm signature', manual: 'Scan to sign', verifying: 'Verifying signature', connected: 'Connected', error: 'Connection failed', getwallet: 'Get a Kaspa wallet' };
@@ -19,10 +20,12 @@ export function getPresentation(s: GhostlinkSnapshot, app: GhostlinkConfig['app'
     methods: ['Sign a login message', ...(wallet?.capabilities.transfer ? ['Request KAS transfers'] : []), ...(wallet?.capabilities.transactionFormats.length ? ['Request transaction signatures'] : [])],
   };
 }
+/** Encode the exact message as a PNG data URL. Loads the QR encoder on demand. */
 export async function createMessageQr(message: string): Promise<string> {
   const { default: QRCode } = await import('qrcode');
   return QRCode.toDataURL(message, { errorCorrectionLevel: 'M', margin: 4, scale: 6, color: { dark: '#15181C', light: '#FFFFFF' } });
 }
+/** Decode a QR image in the browser and return its text; rejects if decoding fails. Releases its temporary object URL. */
 export async function scanQrImage(file: File): Promise<string> {
   const [{ BrowserQRCodeReader }, { DecodeHintType }] = await Promise.all([import('@zxing/browser'), import('@zxing/library')]);
   const url = URL.createObjectURL(file);
@@ -38,6 +41,7 @@ export async function scanQrImage(file: File): Promise<string> {
   }
   finally { URL.revokeObjectURL(url); }
 }
+/** Start browser-camera QR scanning. Stops on the first result; returns a stop function to call on cancellation/unmount. Camera permission is requested by the browser. */
 export async function scanQrCamera(video: HTMLVideoElement, onResult: (text: string) => void): Promise<() => void> {
   const [{ BrowserQRCodeReader }, { DecodeHintType }] = await Promise.all([import('@zxing/browser'), import('@zxing/library')]);
   const controls = await new BrowserQRCodeReader(new Map([[DecodeHintType.TRY_HARDER, true]])).decodeFromVideoDevice(undefined, video, (result, _error, active) => {
@@ -45,6 +49,7 @@ export async function scanQrCamera(video: HTMLVideoElement, onResult: (text: str
   });
   return () => controls.stop();
 }
+/** Format remaining time as minutes:seconds. expiresAt is ISO 8601; now is Unix milliseconds. Missing or elapsed expiry produces 0:00. */
 export function remainingTime(expiresAt: string | undefined, now: number): string {
   const seconds = expiresAt ? Math.max(0, Math.ceil((Date.parse(expiresAt) - now) / 1000)) : 0;
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;

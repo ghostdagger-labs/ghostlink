@@ -2,7 +2,10 @@
 import { onMounted, onUnmounted, provide, watch } from 'vue';
 import { GhostlinkError, type Ghostlink } from 'ghostlink-core';
 import { GhostlinkKey } from './context';
-const props = defineProps<{ client: Ghostlink }>();
+const props = defineProps<{
+  /** Stable client for this provider lifetime. Use a new provider key to deliberately replace it. */
+  client: Ghostlink;
+}>();
 const client = props.client;
 provide(GhostlinkKey, client);
 watch(() => props.client, next => {

@@ -6,26 +6,48 @@ import { GhostlinkError, trapDialogFocus, createMessageQr, getPresentation, rema
 import type { Ghostlink, GhostlinkSnapshot } from 'ghostlink-core';
 
 const Context = createContext<Ghostlink | null>(null);
-export function GhostlinkProvider({ client, children }: { client: Ghostlink; children: ReactNode }) {
+/** Borrow a stable client, initialize on mount, and release on cleanup. SSR is passive and Strict Mode replay is supported; cleanup never destroys the client or signs out an established session. */
+export function GhostlinkProvider({ client, children }: {
+  /** Stable client for this provider lifetime. Use a new provider key to deliberately replace it. */
+  client: Ghostlink;
+  /** Descendants that consume useGhostlink or the supplied UI. */
+  children: ReactNode;
+}) {
   const initialClient = useRef(client);
   if (initialClient.current !== client) throw new GhostlinkError('INVALID_REQUEST', 'GhostlinkProvider requires a stable client. Remount the provider with a new key to replace it.');
   useEffect(() => client.attach(), [client]);
   return <Context.Provider value={client}>{children}</Context.Provider>;
 }
+/** Read the client and nested-readonly snapshot from the nearest provider. Identity is unresolved until snapshot.initialization === 'ready'. Subscription cleanup is automatic; throws outside a provider. */
 export function useGhostlink() {
   const client = useContext(Context);
   if (!client) throw new Error('Wrap this component in GhostlinkProvider.');
   const snapshot = useSyncExternalStore(client.subscribe, client.getSnapshot, client.getSnapshot);
   return { client, snapshot };
 }
-interface Appearance { theme?: 'dark' | 'light'; variables?: Record<string, string>; }
-export function GhostlinkConnectButton({ theme = 'dark', variables, label = 'Connect wallet', children }: Appearance & { label?: string; children?: (state: { snapshot: GhostlinkSnapshot; open: () => void }) => ReactNode }) {
+interface Appearance {
+  /** Scoped color theme. Defaults to dark. */
+  theme?: 'dark' | 'light';
+  /** Scoped --ghostlink-* CSS custom properties. Import ghostlink-core/styles.css once. */
+  variables?: Record<string, string>;
+}
+/** Open wallet login or account details. Disabled while initialization is idle/restoring; initialization belongs to the provider. */
+export function GhostlinkConnectButton({ theme = 'dark', variables, label = 'Connect wallet', children }: Appearance & {
+  /** Signed-out button/accessibility label. Defaults to Connect wallet. */
+  label?: string;
+  /** Optional button content renderer with a readonly snapshot and open action. */
+  children?: (state: { snapshot: GhostlinkSnapshot; open: () => void }) => ReactNode;
+}) {
   const { client, snapshot } = useGhostlink(); const view = getPresentation(snapshot, client.app);
   return <button type="button" className="gl-theme gl-connect" data-ghostlink-theme={theme} style={variables as CSSProperties} data-authenticated={!!snapshot.session} disabled={snapshot.initialization === 'idle' || snapshot.initialization === 'restoring'} onClick={client.open} aria-label={snapshot.session ? `Account ${snapshot.session.address}` : label}>
     {children ? children({ snapshot, open: client.open }) : snapshot.session ? <><span className="gl-wallet-mark" data-wallet={view.wallet?.id}>{view.wallet?.icon ? <img src={view.wallet.icon} alt="" /> : view.wallet?.mark ?? 'K'}</span>{view.address}</> : <><svg width="14" height="14" viewBox="0 0 34 20" fill="none" aria-hidden="true" focusable="false"><circle cx="11" cy="10" r="6.4" fill="currentColor" /><circle cx="23" cy="10" r="6.4" stroke="currentColor" strokeWidth="2.1" /></svg>{label}</>}
   </button>;
 }
-export function GhostlinkModal({ theme = 'dark', variables, children }: Appearance & { children?: (state: { snapshot: GhostlinkSnapshot; client: Ghostlink }) => ReactNode }) {
+/** Render one modal host per client for login, account details, and request review. Renders no dialog during SSR; releases UI/camera resources on unmount. */
+export function GhostlinkModal({ theme = 'dark', variables, children }: Appearance & {
+  /** Replace the body with custom content; the host owns accessible review controls and client actions. */
+  children?: (state: { snapshot: GhostlinkSnapshot; client: Ghostlink }) => ReactNode;
+}) {
   const { client, snapshot: s } = useGhostlink(); const view = getPresentation(s, client.app);
   const titleId = useId(); const dialog = useRef<HTMLDialogElement>(null); const video = useRef<HTMLVideoElement>(null);
   const [mounted, setMounted] = useState(false);
