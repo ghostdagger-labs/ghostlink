@@ -6,6 +6,10 @@ Mobile and hardware options are hidden from the default UI while their UX and se
 
 This is a **pre-release implementation**. Source-backed adapters and automated fixtures are included; real-wallet version certification and testnet transaction evidence are tracked in [the compatibility record](docs/testing/compatibility-v1.json). Registry publication is separate.
 
+## Integration guides
+
+Start with the complete [Vue integration guide](docs/integration/vue.md) or [React integration guide](docs/integration/react.md). Each includes copyable app files, a Node backend, local package installation, login, protected requests, session restoration, logout, and deployment notes. Read the [provider lifecycle and SSR contract](docs/integration/lifecycle.md) when adapting an existing app.
+
 ## Website
 
 The Nuxt landing page and same-origin demo live in `website/`. After installing and building, run `pnpm dev:website` and open http://127.0.0.1:3000. `docker compose up --build -d` runs the production website with persistent SQLite. See [website setup](website/README.md) and the [landing-page reconciliation roadmap](docs/roadmap/landing-page-reconciliation.md).
@@ -151,7 +155,10 @@ pnpm test
 pnpm exec playwright install chromium
 pnpm test:browser
 pnpm check:package
+pnpm check:guides
 ```
+
+`check:guides` extracts the documented Vue and React apps into temporary directories, installs the tarballs from `check:package`, typechecks and builds both apps, and runs browser flows through development proxies and production servers. CI runs the same check to catch documentation drift.
 
 `check:package` prepares local npm tarballs and verifies a clean consumer install, SSR rendering and packaged assets. No publication occurs. The React development harness is `/react.html`; the explicit Kaspium manual-signing harness is `/manual.html`; `/lifecycle.html` tests hook-only provider ownership and hydration. These harnesses are available only under the Vite dev server and are not included in the example production build.
 

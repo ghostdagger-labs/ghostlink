@@ -2,6 +2,8 @@
 
 Native Vue 3.5+ components for Ghostlink. Requires `ghostlink-core` and a configured `ghostlink-server` backend.
 
+Start with the [complete Vue integration guide](../../docs/integration/vue.md) for copyable app and backend files, login, protected requests, session restoration, and logout.
+
 ```ts
 import { createGhostlink } from 'ghostlink-core';
 import { GhostlinkPlugin } from 'ghostlink-vue';

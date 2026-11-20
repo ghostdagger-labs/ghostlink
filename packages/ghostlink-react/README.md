@@ -2,6 +2,8 @@
 
 Native React 18.3/19 components for Ghostlink. Requires `ghostlink-core` and a configured authentication backend.
 
+Start with the [complete React integration guide](../../docs/integration/react.md) for copyable app and backend files, login, protected requests, session restoration, and logout.
+
 ```tsx
 import { createGhostlink } from 'ghostlink-core';
 import { GhostlinkProvider, GhostlinkConnectButton, GhostlinkModal } from 'ghostlink-react';
