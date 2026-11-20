@@ -1,2 +1,3 @@
-import { restorationCases } from '../browser/restoration-cases';
+import { connectionFocusCase, restorationCases } from '../browser/restoration-cases';
+connectionFocusCase('/demo');
 restorationCases('/demo');

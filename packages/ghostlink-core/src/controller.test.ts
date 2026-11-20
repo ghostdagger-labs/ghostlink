@@ -19,6 +19,27 @@ function fixture() {
   return { client, adapter, auth, challenge, session, event: () => event(), login: async () => { await client.connect('test'); await client.authenticate(); } };
 }
 describe('controller security transitions', () => {
+  it('preserves the connection review when focus restoration finds no login session yet', async () => {
+    const f = fixture(); f.auth.session.mockResolvedValue(null);
+    await f.client.connect('test');
+    await f.client.restoreSession();
+    expect(f.auth.session).toHaveBeenCalledOnce();
+    expect(f.client.getSnapshot()).toMatchObject({ open: true, step: 'review', account, connection: 'connected', authentication: 'unauthenticated', session: null });
+    expect(f.adapter.signMessage).not.toHaveBeenCalled(); expect(f.auth.verify).not.toHaveBeenCalled();
+    await f.client.prepareAuthentication();
+    expect(f.client.getSnapshot().step).toBe('sign');
+    await f.client.authenticate();
+    expect(f.client.getSnapshot().authentication).toBe('authenticated');
+    expect(f.adapter.connect).toHaveBeenCalledOnce();
+  });
+  it('returns to the chooser when restoration finds that an authenticated session ended', async () => {
+    const f = fixture(); await f.login();
+    f.auth.session.mockResolvedValue(null);
+    await f.client.restoreSession();
+    expect(f.client.getSnapshot()).toMatchObject({ open: true, step: 'choose', authentication: 'unauthenticated', session: null });
+    await expect(f.client.signMessage('message')).rejects.toMatchObject({ code: 'UNSUPPORTED' });
+    expect(f.adapter.signMessage).toHaveBeenCalledOnce();
+  });
   it('authenticates only after backend verification', async () => {
     const f = fixture(); const gate = deferred<AuthSession>(); f.auth.verify.mockImplementation(() => gate.promise);
     await f.client.connect('test'); const operation = f.client.authenticate(); await vi.waitFor(() => expect(f.auth.verify).toHaveBeenCalled());

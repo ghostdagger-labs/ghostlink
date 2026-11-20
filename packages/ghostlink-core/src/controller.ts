@@ -196,7 +196,12 @@ export class Ghostlink {
       await this.finishRevocation(); this.check(epoch);
       const session = await this.auth.session(); this.check(epoch);
       if (this.locked) return;
-      if (!session) { this.patch({ session: null, authentication: 'unauthenticated', step: this.state.open ? 'choose' : this.state.step }); return; }
+      if (!session) {
+        // No login is expected before signing. Returning from wallet approval must
+        // preserve the current step; reset only when an existing session ended.
+        this.patch({ session: null, authentication: 'unauthenticated', step: this.state.session && this.state.open ? 'choose' : this.state.step });
+        return;
+      }
       if (session.network !== this.state.network) { await this.invalidate(true); return; }
       let walletId = this.state.walletId;
       if (!walletId) {
