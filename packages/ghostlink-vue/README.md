@@ -26,3 +26,5 @@ Gate identity-dependent UI on `snapshot.value.initialization === 'ready'` (or `s
 Imports, construction, provider rendering and plugin installation are passive during SSR. Create a separate client per request; discovery and restoration begin after browser mounting. Normal provider/plugin cleanup releases active resources. The creator calls `client.destroy()` only when permanently retiring an instance.
 
 Pre-release. Generic compatibility signing is verified by the backend but does not provide wallet-side domain enforcement. Real-wallet acceptance is recorded separately from automated provider fixtures in the repository documentation.
+
+Beta acceptance status: live protected-API and real testnet transaction checks are deferred. Transaction APIs remain enabled; automated fixtures do not constitute real-wallet certification. See the [compatibility record](https://github.com/ghostdagger-labs/ghostlink/blob/main/docs/testing/compatibility-v1.json).

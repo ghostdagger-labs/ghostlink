@@ -30,3 +30,5 @@ Gate identity-dependent UI on `snapshot.initialization === 'ready'`. `idle` and 
 The creator owns final destruction. Normal provider cleanup releases active resources without needing `destroy()`; call it only when permanently retiring the instance, never from a reusable React effect cleanup. Imports, construction and server rendering are passive and safe without `window`/`document`. Create a separate client per SSR request; browser initialization runs after hydration.
 
 Pre-release. The repository documents security, the proposed Kaspa authentication profile, theming and outstanding real-wallet acceptance. Generic compatibility signing does not claim wallet-side phishing resistance.
+
+Beta acceptance status: live protected-API and real testnet transaction checks are deferred. Transaction APIs remain enabled; automated fixtures do not constitute real-wallet certification. See the [compatibility record](https://github.com/ghostdagger-labs/ghostlink/blob/main/docs/testing/compatibility-v1.json).

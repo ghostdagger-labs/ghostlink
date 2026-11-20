@@ -24,3 +24,5 @@ Only standard Schnorr public-key addresses are accepted. Keys can be extracted f
 The official rusty-kaspa v2.0.1 Node WASM artifact is packaged unmodified with its ISC license and `vendor/provenance.json` checksums. Do not replace it with a similarly named unofficial npm package. New storage adapters must satisfy `GhostlinkStorage` and `assertStorageConformance` against an empty isolated test store, particularly atomic challenge consumption and session revocation.
 
 Pre-release. See the repository's security and live-wallet acceptance documentation before deployment.
+
+Beta acceptance status: live protected-API and real testnet transaction checks are deferred. Transaction APIs remain enabled; automated fixtures do not constitute real-wallet certification. See the [compatibility record](https://github.com/ghostdagger-labs/ghostlink/blob/main/docs/testing/compatibility-v1.json).

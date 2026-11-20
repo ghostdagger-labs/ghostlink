@@ -37,3 +37,5 @@ For UI-driven flows, register `const unsubscribe = client.onAuthenticated(sessio
 `signTransaction` accepts explicitly tagged native transaction JSON or PSKT JSON and never broadcasts. `sendTransaction` is a separate explicit wallet-approved transfer. Amounts are bigint sompi; use `parseKasAmount`/`formatKas` for decimal conversion. Calls throw typed `GhostlinkError` values and approvals are serialized. Kaspium manual login has no automated transaction capability.
 
 Pre-release. Ghostlink's original code is MIT licensed. Wallet assets and local fonts retain their upstream licenses and provenance; see [third-party notices](https://github.com/ghostdagger-labs/ghostlink/blob/main/THIRD_PARTY_NOTICES.md). See the repository's versioned compatibility record and security/profile documentation before deployment.
+
+Beta acceptance status: live protected-API and real testnet transaction checks are deferred. Transaction APIs remain enabled; automated fixtures do not constitute real-wallet certification. See the [compatibility record](https://github.com/ghostdagger-labs/ghostlink/blob/main/docs/testing/compatibility-v1.json).

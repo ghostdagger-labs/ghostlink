@@ -23,13 +23,13 @@
   },
   "dependencies": {
     "@ghostdagger/ghostlink-core": "workspace:*",
-    "@lucide/vue": "^1.0.0"
+    "@lucide/vue": "^1.76.0"
   },
   "peerDependencies": {
     "vue": "^3.5.0"
   },
   "devDependencies": {
-    "vue": "^3.5.0"
+    "vue": "^3.5.45"
   },
   "license": "MIT",
   "repository": {

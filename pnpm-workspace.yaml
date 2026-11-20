@@ -5,3 +5,9 @@ packages:
 
 allowBuilds:
   esbuild: true
+
+# Archiver 8 still requests readdir-glob 3 with vulnerable minimatch 10.
+# Version 4 only changes minimatch and raises the Node minimum to 20; we use 24.
+# Remove when archiver adopts readdir-glob 4 (GHSA-g3hv-75wg-m249).
+overrides:
+  'archiver@8>readdir-glob': 4.0.0

@@ -6,7 +6,12 @@
     "sourceTree": "78bb30045edd4d898c4d61c4c75ba1bc37e18748",
     "gitBlob": "4443e7b1f4ef1bf61bc2b0d88025ef541fe35984",
     "sha256": "93d08b67df7526ef7824c8b4e57030278e0745a140e3121f69e8c9e3cfb27e65",
-    "retrieved": "2026-09-16"
+    "retrieved": "2026-09-16",
+    "redistributionPermission": {
+      "status": "maintainer-confirmed",
+      "confirmedAt": "2026-11-20",
+      "scope": "Bundling the existing logo in Ghostlink SDK distributions; original licenses retained"
+    }
   },
   {
     "wallet": "kastle",
@@ -15,7 +20,12 @@
     "sourceTree": "54587246516176a859e0cb0fdea822fe19f6e4ff",
     "gitBlob": "951adcd98672a84670ec11c0256ff5d0cef6e21f",
     "sha256": "aa77635a06827d40baf8a90edc8f83d46922a1e277e6924141564c5c0071b8f8",
-    "retrieved": "2026-09-16"
+    "retrieved": "2026-09-16",
+    "redistributionPermission": {
+      "status": "maintainer-confirmed",
+      "confirmedAt": "2026-11-20",
+      "scope": "Bundling the existing logo in Ghostlink SDK distributions; original licenses retained"
+    }
   },
   {
     "wallet": "kaspium",

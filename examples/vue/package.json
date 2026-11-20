@@ -1,5 +1,23 @@
 {
-  "name": "ghostlink-example-vue", "private": true, "version": "0.1.0", "type": "module",
-  "scripts": { "dev": "node dev.mjs", "build": "vite build", "typecheck": "vue-tsc -p tsconfig.json", "start": "tsx server/index.ts" },
-  "dependencies": { "@ghostdagger/ghostlink-core": "workspace:*", "@ghostdagger/ghostlink-vue": "workspace:*", "@ghostdagger/ghostlink-react": "workspace:*", "@ghostdagger/ghostlink-server": "workspace:*", "vue": "^3.5.0", "@lucide/vue": "^1.0.0", "react": "^19.1.0", "react-dom": "^19.1.0", "sirv": "^3.0.1" }
+  "name": "ghostlink-example-vue",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node dev.mjs",
+    "build": "vite build",
+    "typecheck": "vue-tsc -p tsconfig.json",
+    "start": "tsx server/index.ts"
+  },
+  "dependencies": {
+    "@ghostdagger/ghostlink-core": "workspace:*",
+    "@ghostdagger/ghostlink-react": "workspace:*",
+    "@ghostdagger/ghostlink-server": "workspace:*",
+    "@ghostdagger/ghostlink-vue": "workspace:*",
+    "@lucide/vue": "^1.76.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "sirv": "^3.0.2",
+    "vue": "^3.5.45"
+  }
 }

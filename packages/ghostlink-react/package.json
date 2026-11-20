@@ -23,15 +23,15 @@
   },
   "dependencies": {
     "@ghostdagger/ghostlink-core": "workspace:*",
-    "lucide-react": "^1.0.0"
+    "lucide-react": "^1.76.0"
   },
   "peerDependencies": {
     "react": "^18.3.0 || ^19.0.0",
     "react-dom": "^18.3.0 || ^19.0.0"
   },
   "devDependencies": {
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   },
   "license": "MIT",
   "repository": {

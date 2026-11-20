@@ -42,6 +42,7 @@ env.npm_config_userconfig = join(consumer, '.npmrc');
 env.npm_config_globalconfig = join(consumer, 'empty-global.npmrc');
 const run = args => execFileSync(manager, manager === 'npm' && args[0] === 'exec' ? ['exec', '--', ...args.slice(1)] : args, { cwd: consumer, env, stdio: 'inherit' });
 run(['install', '--ignore-scripts', ...(process.env.GHOSTLINK_PACK_OFFLINE ? ['--offline'] : []), ...(manager === 'npm' ? ['--no-audit', '--no-fund'] : ['--config.confirmModulesPurge=false'])]);
+if (!process.env.GHOSTLINK_PACK_OFFLINE) run(['audit', manager === 'npm' ? '--omit=dev' : '--prod']);
 for (const pkg of release.packages) {
   const installed = JSON.parse(readFileSync(join(consumer, 'node_modules', pkg.name, 'package.json'), 'utf8'));
   if (installed.name !== pkg.name || installed.version !== version) throw new Error(`Unexpected installed package: ${pkg.name}`);
@@ -73,6 +74,8 @@ const fontPath = new URL(import.meta.resolve('@ghostdagger/ghostlink-core/fonts.
 assert.ok(fs.readFileSync(cssPath, 'utf8').includes('--ghostlink-font-body'));
 for (const match of fs.readFileSync(fontPath, 'utf8').matchAll(/url\\('([^']+)'\\)/g)) assert.ok(fs.statSync(new URL(match[1], fontPath)).size > 1000);
 for (const adapter of defaultAdapters()) assert.ok(fs.statSync(new URL(adapter.icon)).size > 500);
+const assetProvenance = JSON.parse(fs.readFileSync(new URL('./assets/provenance.json', cssPath), 'utf8'));
+for (const asset of assetProvenance) assert.equal(createHash('sha256').update(fs.readFileSync(new URL('./assets/' + asset.wallet + '.png', cssPath))).digest('hex'), asset.sha256, 'Wallet asset checksum mismatch: ' + asset.wallet);
 const serverPath = new URL(import.meta.resolve('@ghostdagger/ghostlink-server'));
 const provenance = JSON.parse(fs.readFileSync(new URL('../vendor/provenance.json', serverPath), 'utf8'));
 for (const [file, expected] of Object.entries(provenance.files)) assert.equal(createHash('sha256').update(fs.readFileSync(new URL('../vendor/kaspa/' + file, serverPath))).digest('hex'), expected);

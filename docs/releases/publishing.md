@@ -15,8 +15,8 @@ All four advance together. The three dependent packages resolve the exact core r
 
 GitHub ownership and visibility are configured as of 2026-11-20: the existing repository was transferred to `ghostdagger-labs/ghostlink`, made public, and the local `origin` updated. Gitleaks 8.30.1 found no credentials in the 12 committed revisions checked before the visibility change. The release workflow deliberately refuses other repositories, and its publishing job requires public source for npm provenance.
 
-1. Resolve the KasWare/Kastle logo redistribution prerequisite in [third-party notices](../../THIRD_PARTY_NOTICES.md). Preserve font and WASM licenses. Ghostlink's own code is MIT.
-2. Complete the applicable [live-wallet release checklist](../testing/live-wallets.md) and update [the compatibility record](../testing/compatibility-v1.json). Protected-API evidence and real testnet transaction evidence are outstanding in the current record. Validate advertised transaction capabilities or remove them from the initial release scope. Do not replace live evidence with provider fixtures.
+1. Preserve the asset permission, license and provenance records in [third-party notices](../../THIRD_PARTY_NOTICES.md). On 2026-11-20 the maintainer confirmed permission to redistribute the KasWare/Kastle logos. Font and WASM licenses remain included. Ghostlink's own code is MIT.
+2. Keep [live-wallet acceptance](../testing/live-wallets.md) and [the compatibility record](../testing/compatibility-v1.json) accurate. On 2026-11-20 the maintainer deferred the remaining live-wallet/protected-API and testnet transaction checks to a later pass and retained enabled transaction APIs for this beta. These checks remain outstanding and are not a publication gate for `0.1.0-beta.1`. Do not claim transaction certification or replace live evidence with provider fixtures.
 3. Review current dependency advisories, including the website's separate dependency tree, before final release verification. Update the matching versions in the four manifests and Vue/React guide examples, refresh the lockfile, and update the changelog. Do not claim that a pre-release version or successful build satisfies the preceding prerequisites.
 4. Confirm npm organization ownership and publishing rights, enable account 2FA, and create the GitHub environment `npm-release`. No environment approval rule is assumed by this workflow; configure additional reviewers if desired.
 
@@ -26,6 +26,7 @@ Use the pinned Node version in `.node-version` and pnpm in `package.json`.
 
 ```sh
 pnpm install --frozen-lockfile
+pnpm audit
 pnpm build
 pnpm typecheck
 pnpm test

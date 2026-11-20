@@ -146,5 +146,12 @@
       "releaseStatus": "live-mainnet-manual-login-confirmed; protected-api-evidence-pending; no-automated-transactions",
       "networkBinding": "Manual signing binds the explicit message chain; it does not detect or continuously monitor the mobile wallet network."
     }
-  ]
+  ],
+  "releaseDecision": {
+    "date": "2026-11-20",
+    "version": "0.1.0-beta.1",
+    "transactionsEnabled": true,
+    "remainingLiveAcceptance": "deferred by maintainer to a later pass; not a beta publication gate",
+    "coverage": "Live protected-API results and testnet transaction evidence remain unverified. Existing user-reported login evidence is unchanged."
+  }
 }

@@ -26,7 +26,9 @@ For wallet-managed transfers, explicitly enter a recipient on the same testnet u
 
 Record evidence under `docs/testing/evidence/` after redacting bearer session information, then reference it from `compatibility-v1.json`. Do not claim the transfer or signing capability is certified before this evidence exists. Kaspium manual integration advertises no automated transaction capability.
 
-## Release checklist
+## Acceptance checklist for a later pass
+
+For `0.1.0-beta.1`, on 2026-11-20 the maintainer chose to publish with transaction APIs enabled and defer remaining live-wallet/protected-API and testnet transaction acceptance. This checklist remains open. Automated tests and source review do not certify the untested wallet operations.
 
 - Exact deployed wallet versions have verified login evidence for KasWare, Kastle and Kaspium.
 - Every advertised transaction capability has real testnet evidence.

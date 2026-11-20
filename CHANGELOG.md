@@ -7,4 +7,4 @@
 - Include framework-neutral Kaspa wallet login, Vue/React UI, and Node 24 verification with SQLite sessions.
 - Add tag-selected GitHub Actions releases for `ghostdagger-labs/ghostlink`, verified archives, anonymous npm/pnpm consumer checks, and candidate-to-beta promotion.
 
-This version is prepared, not published. Live-wallet acceptance and wallet-logo redistribution prerequisites are tracked in [the publishing guide](docs/releases/publishing.md).
+This version is prepared, not published. The maintainer confirmed wallet-logo redistribution permission and deferred remaining live-wallet acceptance on 2026-11-20. Transaction APIs remain enabled with live protected-API and testnet transaction evidence still pending; see [the publishing guide](docs/releases/publishing.md).
