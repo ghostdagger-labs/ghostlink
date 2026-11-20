@@ -54,7 +54,7 @@ const preview = wallets.map(w => ({ ...w, badge: 'Extension', fg: 'var(--ink2)',
           <ArrowRight :size="16" aria-hidden="true" />
         </NuxtLink>
         <NuxtLink to="/demo" style="height:50px;padding:0 20px;border-radius:13px;border:1px solid var(--line2);background:var(--surf);color:var(--ink);font-size:15px;font-weight:700;display:flex;align-items:center" data-hover="lp-hover-7">Get Started</NuxtLink>
-        <button disabled aria-label="Package installation coming soon" style="height:50px;padding:0 18px;border-radius:13px;border:1px solid var(--line2);background:var(--surf);display:flex;align-items:center;gap:12px" data-hover="lp-hover-8">
+        <button disabled style="height:50px;padding:0 18px;border-radius:13px;border:1px solid var(--line2);background:var(--surf);display:flex;align-items:center;gap:12px" data-hover="lp-hover-8">
           <span style="font:600 13.5px 'JetBrains Mono',monospace;color:var(--ink2)">Package coming soon</span>
         </button>
       </div>
@@ -303,7 +303,7 @@ const preview = wallets.map(w => ({ ...w, badge: 'Extension', fg: 'var(--ink2)',
       <p style="margin:0;max-width:44ch;font-size:14.5px;line-height:1.55;color:var(--ink2)">Pre-release, built for wallet login, and ready to try in the working example.</p>
     </div>
     <div style="display:flex;gap:11px;flex-wrap:wrap">
-      <button disabled aria-label="Package installation coming soon" style="height:48px;padding:0 20px;border-radius:13px;background:var(--acc);color:var(--accInk);font:700 14.5px Figtree;display:flex;align-items:center;gap:11px" data-hover="lp-hover-11">
+      <button disabled style="height:48px;padding:0 20px;border-radius:13px;background:var(--acc);color:var(--accInk);font:700 14.5px Figtree;display:flex;align-items:center;gap:11px" data-hover="lp-hover-11">
         <span style="font-family:'JetBrains Mono',monospace;font-size:13.5px">Package coming soon</span>
       </button>
       <NuxtLink to="/docs" style="height:48px;padding:0 20px;border-radius:13px;border:1px solid var(--line2);color:var(--ink);font-size:14.5px;font-weight:700;display:flex;align-items:center" data-hover="lp-hover-12">Read the docs</NuxtLink>

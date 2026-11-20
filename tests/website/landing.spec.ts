@@ -30,8 +30,8 @@ test('truthful content, tabs, keyboard access, links and unavailable package', a
     await button.click(); await expect(button).toHaveAttribute('aria-pressed', 'true');
     await expect(page.getByLabel('Integration code')).toContainText(label === 'TypeScript' ? 'createGhostlink' : 'GhostlinkConnectButton');
   }
-  await expect(page.getByRole('button', { name: 'Package installation coming soon' })).toHaveCount(2);
-  for (const button of await page.getByRole('button', { name: 'Package installation coming soon' }).all()) await expect(button).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Package coming soon', exact: true })).toHaveCount(2);
+  for (const button of await page.getByRole('button', { name: 'Package coming soon', exact: true }).all()) await expect(button).toBeDisabled();
   const wallets = page.locator('#wallets');
   await expect(wallets.getByText('Supported', { exact: true })).toHaveCount(2);
   await expect(wallets.getByText('Beta', { exact: true })).toHaveCount(0);
