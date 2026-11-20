@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, useId, watch } from 'vue';
-import { ArrowLeft, X, Search, ScanLine, Check, LoaderCircle, TriangleAlert, Link2, Copy, Camera, Clock, CircleX, Wallet } from '@lucide/vue';
+import { ArrowLeft, X, ScanLine, Check, LoaderCircle, TriangleAlert, Link2, Copy, Camera, Clock, CircleX } from '@lucide/vue';
 import { trapDialogFocus, createMessageQr, getPresentation, remainingTime, scanQrCamera, scanQrImage } from 'ghostlink-core';
 import { useGhostlink } from './context';
 defineProps<{ theme?: 'dark' | 'light'; variables?: Record<string, string> }>();
@@ -8,11 +8,9 @@ const { client, snapshot: s } = useGhostlink();
 const view = computed(() => getPresentation(s.value, client.app));
 const titleId = `ghostlink-${useId()}`;
 const dialog = ref<HTMLDialogElement>(); const video = ref<HTMLVideoElement>();
-const query = ref(''); const tab = ref('All'); const address = ref(''); const signature = ref('');
+const address = ref(''); const signature = ref('');
 const qr = ref(''); const notice = ref(''); const camera = ref(false); const now = ref(Date.now());
 let tick: ReturnType<typeof setInterval>; let detach: (() => void) | undefined; let stopCamera: (() => void) | undefined;
-const tabs = computed(() => s.value.wallets.some(w => w.kind === 'manual') ? ['All', 'Installed', 'Mobile'] : ['All', 'Installed']);
-const wallets = computed(() => s.value.wallets.filter(w => (tab.value === 'All' || (tab.value === 'Installed' ? w.kind === 'injected' && w.available : w.kind === 'manual')) && w.name.toLowerCase().includes(query.value.trim().toLowerCase())));
 const expired = computed(() => !!s.value.challenge && Date.parse(s.value.challenge.expiresAt) <= now.value);
 async function act(work: () => Promise<unknown>) { notice.value = ''; try { await work(); } catch { /* Core presents the typed error. */ } }
 async function copyMessage() { try { await navigator.clipboard.writeText(s.value.challenge?.message ?? ''); notice.value = 'Message copied'; } catch { notice.value = 'Select and copy the message below.'; } }
@@ -41,15 +39,13 @@ onUnmounted(() => { clearInterval(tick); detach?.(); stop(); });
       </header>
       <slot name="content" :snapshot="s" :client="client">
         <section v-if="s.step === 'choose'" class="gl-body">
-          <label class="gl-search"><Search :size="15" aria-hidden="true" /><input v-model="query" aria-label="Search wallets" placeholder="Search Kaspa wallets" /></label>
-          <div class="gl-tabs" aria-label="Wallet categories"><button v-for="t in tabs" :key="t" type="button" class="gl-tab" :aria-pressed="tab === t" @click="tab = t">{{ t }}</button></div>
           <div class="gl-wallets">
-            <button v-for="w in wallets" :key="w.id" type="button" class="gl-wallet" :disabled="s.busy" @click="act(() => client.connect(w.id))">
+            <button v-for="w in s.wallets" :key="w.id" type="button" class="gl-wallet" :disabled="s.busy" @click="act(() => client.connect(w.id))">
               <span class="gl-wallet-mark" :data-wallet="w.id"><img v-if="w.icon" :src="w.icon" alt="" /><template v-else>{{ w.mark }}</template></span>
               <span class="gl-wallet-copy"><span class="gl-wallet-name">{{ w.name }}</span><span class="gl-wallet-note">{{ w.kind === 'manual' ? 'Mobile · manual message signing' : 'Browser wallet' }}</span></span>
               <span class="gl-badge" :data-installed="w.kind === 'injected' && w.available">{{ w.kind === 'manual' ? 'QR / paste' : w.available ? 'Installed' : 'Install' }}</span>
             </button>
-            <p v-if="!wallets.length" class="gl-copy gl-center">No matching wallets.</p>
+            <p v-if="!s.wallets.length" class="gl-copy gl-center">No wallets configured.</p>
           </div>
           <button v-if="s.wallets.some(w => w.id === 'kaspium')" type="button" class="gl-button gl-mobile-button" :disabled="s.busy" @click="act(() => client.connect('kaspium'))"><ScanLine :size="16" />Sign with a mobile wallet</button>
           <div class="gl-footer"><span>Don't have a Kaspa wallet?</span><button type="button" class="gl-link" @click="client.showWalletHelp">Get started →</button></div>

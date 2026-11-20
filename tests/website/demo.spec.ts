@@ -19,7 +19,8 @@ test('demo chooser and onboarding expose only browser wallets', async ({ page })
   await page.goto('/demo'); await page.getByRole('button', { name: 'Connect wallet', exact: true }).first().click();
   const dialog = page.getByRole('dialog');
   await expect(dialog.locator('.gl-wallet-name')).toHaveText(['KasWare', 'Kastle']);
-  await expect(dialog.locator('.gl-tab')).toHaveText(['All', 'Installed']);
+  await expect(dialog.getByRole('textbox', { name: 'Search wallets' })).toHaveCount(0);
+  await expect(dialog.getByLabel('Wallet categories')).toHaveCount(0);
   await expect(dialog.getByRole('button', { name: /mobile|hardware|Kaspium/i })).toHaveCount(0);
   await page.getByRole('button', { name: 'Get started →', exact: true }).click();
   await expect(dialog.getByRole('link')).toHaveText(['KasWare', 'Kastle']);

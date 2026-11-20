@@ -31,7 +31,8 @@ for (const width of [1280, 390]) for (const theme of ['dark', 'light']) test(`Vu
   await page.getByRole('button', { name: 'Connect wallet', exact: true }).first().click();
   const dialog = page.getByRole('dialog'); await expect(dialog).toBeVisible();
   await expect(dialog.locator('.gl-wallet-name')).toHaveText(['KasWare', 'Kastle']);
-  await expect(dialog.locator('.gl-tab')).toHaveText(['All', 'Installed']);
+  await expect(dialog.getByRole('textbox', { name: 'Search wallets' })).toHaveCount(0);
+  await expect(dialog.getByLabel('Wallet categories')).toHaveCount(0);
   await expect(dialog.getByRole('button', { name: /mobile|hardware|Kaspium/i })).toHaveCount(0);
   await expect(dialog).toHaveScreenshot(`chooser-${theme}-${width}.png`);
   const violations = (await new AxeBuilder({ page }).include('dialog').analyze()).violations; expect(violations).toEqual([]);
@@ -56,7 +57,8 @@ for (const theme of ['dark', 'light']) test(`native Vue and React ${theme} rende
   expect(reactButton.equals(vueButton), 'Both renderers should produce identical connect controls').toBe(true);
   await reactPage.getByRole('button', { name: 'Connect wallet', exact: true }).click();
   await expect(reactPage.locator('.gl-wallet-name')).toHaveText(['KasWare', 'Kastle']);
-  await expect(reactPage.locator('.gl-tab')).toHaveText(['All', 'Installed']);
+  await expect(reactPage.getByRole('textbox', { name: 'Search wallets' })).toHaveCount(0);
+  await expect(reactPage.getByLabel('Wallet categories')).toHaveCount(0);
   await expect(reactPage.getByRole('button', { name: /mobile|hardware|Kaspium/i })).toHaveCount(0);
   await reactPage.addStyleTag({ content: `body{background:${background}!important}body>:not(dialog){visibility:hidden!important}` });
   const react = await reactPage.getByRole('dialog').screenshot({ animations: 'disabled' });
@@ -72,8 +74,6 @@ for (const theme of ['dark', 'light']) test(`${theme} overrides propagate to the
   await expect(button).toHaveCSS('color', 'rgb(19, 41, 33)');
   await expect(button.locator('circle').first()).toHaveCSS('fill', 'rgb(19, 41, 33)');
   await button.click();
-  await expect(page.locator('.gl-tab[aria-pressed=true]')).toHaveCSS('background-color', 'rgb(185, 229, 215)');
-  await expect(page.locator('.gl-tab[aria-pressed=true]')).toHaveCSS('color', 'rgb(19, 41, 33)');
   await expect(page.locator('.gl-title')).toHaveCSS('font-family', 'Figtree, sans-serif');
   await expect(page.locator('dialog .gl-link')).toHaveCSS('color', theme === 'dark' ? 'rgb(127, 200, 169)' : 'rgb(47, 125, 91)');
   await page.getByRole('dialog').evaluate(el => Promise.all(el.getAnimations().map(animation => animation.finished)));
@@ -93,8 +93,6 @@ for (const theme of ['dark', 'light']) test(`${theme} tokens follow the brand wh
   await expect(button).toHaveCSS('color', theme === 'dark' ? 'rgb(12, 13, 17)' : 'rgb(255, 255, 255)');
   await expect(button.locator('svg')).toHaveAttribute('aria-hidden', 'true');
   await button.click();
-  await expect(page.locator('.gl-tab[aria-pressed=true]')).toHaveCSS('background-color', theme === 'dark' ? 'rgb(243, 244, 247)' : 'rgb(19, 21, 26)');
-  await expect(page.locator('.gl-tab[aria-pressed=true]')).toHaveCSS('color', theme === 'dark' ? 'rgb(12, 13, 17)' : 'rgb(255, 255, 255)');
   for (const [source, token] of [['bg','bg'],['surf','surface'],['surf2','surface-2'],['ink','text'],['ink2','text-secondary'],['ink3','text-muted'],['acc','accent'],['line','line'],['line2','line-strong'],['danger','danger'],['dangerSoft','danger-soft'],['dangerLine','danger-line'],['ok','success'],['chip','chip']]) {
     const value = palette.match(new RegExp(`--${source}:([^;]+);`))?.[1]; expect(value).toBeTruthy();
     expect(await page.getByRole('dialog').evaluate((el, token) => getComputedStyle(el).getPropertyValue(token).trim(), `--ghostlink-${token}`)).toBe(value);
@@ -110,17 +108,17 @@ for (const theme of ['dark', 'light']) test(`${theme} tokens follow the brand wh
   await test.info().attach(`wallet-hover-${theme}`, { body: await wallet.screenshot(), contentType: 'image/png' });
   await page.getByRole('button', { name: 'Close', exact: true }).focus();
   await page.keyboard.press('Tab');
-  const search = page.getByRole('textbox', { name: 'Search wallets' });
-  await expect(search).toBeFocused();
-  await expect(search).toHaveCSS('outline-style', 'none');
+  await expect(wallet).toBeFocused();
   const focusColor = theme === 'dark' ? 'rgb(141, 148, 157)' : 'rgb(102, 109, 118)';
-  await expect(page.locator('.gl-search')).toHaveCSS('outline-color', focusColor);
-  await expect(page.locator('.gl-search')).toHaveCSS('outline-width', '2px');
-  await test.info().attach(`search-focus-${theme}`, { body: await page.getByRole('dialog').screenshot(), contentType: 'image/png' });
+  await expect(wallet).toHaveCSS('outline-color', focusColor);
+  await expect(wallet).toHaveCSS('outline-width', '2px');
+  await test.info().attach(`wallet-focus-${theme}`, { body: await page.getByRole('dialog').screenshot(), contentType: 'image/png' });
   await page.keyboard.press('Tab');
-  await expect(page.getByRole('button', { name: 'All', exact: true })).toBeFocused();
-  await expect(page.getByRole('button', { name: 'All', exact: true })).toHaveCSS('outline-color', focusColor);
-  await expect(page.getByRole('button', { name: 'All', exact: true })).toHaveCSS('outline-width', '2px');
+  await expect(page.locator('.gl-wallet').nth(1)).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('button', { name: 'Get started →' })).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('button', { name: 'Close', exact: true })).toBeFocused();
 });
 
 for (const width of [1280, 390]) for (const theme of ['dark', 'light']) test(`authenticated ${theme} button at ${width}px retains the supplied address-control layout`, async ({ page }) => {

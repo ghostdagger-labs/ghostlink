@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useId, useRef, useState, useSyncExternalStore } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, X, Search, ScanLine, Check, LoaderCircle, TriangleAlert, Link2, Copy, Camera, Clock, CircleX } from 'lucide-react';
+import { ArrowLeft, X, ScanLine, Check, LoaderCircle, TriangleAlert, Link2, Copy, Camera, Clock, CircleX } from 'lucide-react';
 import { trapDialogFocus, createMessageQr, getPresentation, remainingTime, scanQrCamera, scanQrImage } from 'ghostlink-core';
 import type { Ghostlink, GhostlinkSnapshot } from 'ghostlink-core';
 
@@ -24,12 +24,10 @@ export function GhostlinkConnectButton({ theme = 'dark', variables, label = 'Con
 export function GhostlinkModal({ theme = 'dark', variables, children }: Appearance & { children?: (state: { snapshot: GhostlinkSnapshot; client: Ghostlink }) => ReactNode }) {
   const { client, snapshot: s } = useGhostlink(); const view = getPresentation(s, client.app);
   const titleId = useId(); const dialog = useRef<HTMLDialogElement>(null); const video = useRef<HTMLVideoElement>(null);
-  const [mounted, setMounted] = useState(false); const [query, setQuery] = useState(''); const [tab, setTab] = useState('All');
+  const [mounted, setMounted] = useState(false);
   const [address, setAddress] = useState(''); const [signature, setSignature] = useState(''); const [qr, setQr] = useState('');
   const [notice, setNotice] = useState(''); const [camera, setCamera] = useState(false); const [now, setNow] = useState(Date.now());
   const stopCamera = useRef<(() => void) | undefined>(undefined);
-  const tabs = s.wallets.some(w => w.kind === 'manual') ? ['All', 'Installed', 'Mobile'] : ['All', 'Installed'];
-  const wallets = s.wallets.filter(w => (tab === 'All' || (tab === 'Installed' ? w.kind === 'injected' && w.available : w.kind === 'manual')) && w.name.toLowerCase().includes(query.trim().toLowerCase()));
   const expired = !!s.challenge && Date.parse(s.challenge.expiresAt) <= now;
   async function act(work: () => Promise<unknown>) { setNotice(''); try { await work(); } catch { /* Core presents typed failures. */ } }
   function stop() { stopCamera.current?.(); stopCamera.current = undefined; setCamera(false); }
@@ -51,11 +49,9 @@ export function GhostlinkModal({ theme = 'dark', variables, children }: Appearan
   const mark = <span className="gl-wallet-mark" data-wallet={view.wallet?.id}>{view.wallet?.icon ? <img src={view.wallet.icon} alt="" /> : view.wallet?.mark ?? 'K'}</span>;
   let content: ReactNode = null;
   if (s.step === 'choose') content = <section className="gl-body">
-    <label className="gl-search"><Search size={15} aria-hidden="true" /><input value={query} onChange={e => setQuery(e.target.value)} aria-label="Search wallets" placeholder="Search Kaspa wallets" /></label>
-    <div className="gl-tabs" aria-label="Wallet categories">{tabs.map(t => <button key={t} type="button" className="gl-tab" aria-pressed={tab === t} onClick={() => setTab(t)}>{t}</button>)}</div>
-    <div className="gl-wallets">{wallets.map(w => <button key={w.id} type="button" className="gl-wallet" disabled={s.busy} onClick={() => void act(() => client.connect(w.id))}>
+    <div className="gl-wallets">{s.wallets.map(w => <button key={w.id} type="button" className="gl-wallet" disabled={s.busy} onClick={() => void act(() => client.connect(w.id))}>
       <span className="gl-wallet-mark" data-wallet={w.id}>{w.icon ? <img src={w.icon} alt="" /> : w.mark}</span><span className="gl-wallet-copy"><span className="gl-wallet-name">{w.name}</span><span className="gl-wallet-note">{w.kind === 'manual' ? 'Mobile · manual message signing' : 'Browser wallet'}</span></span><span className="gl-badge" data-installed={w.kind === 'injected' && w.available}>{w.kind === 'manual' ? 'QR / paste' : w.available ? 'Installed' : 'Install'}</span>
-    </button>)}{!wallets.length && <p className="gl-copy gl-center">No matching wallets.</p>}</div>
+    </button>)}{!s.wallets.length && <p className="gl-copy gl-center">No wallets configured.</p>}</div>
     {s.wallets.some(w => w.id === 'kaspium') && <button type="button" className="gl-button gl-mobile-button" disabled={s.busy} onClick={() => void act(() => client.connect('kaspium'))}><ScanLine size={16} />Sign with a mobile wallet</button>}
     <div className="gl-footer"><span>Don't have a Kaspa wallet?</span><button type="button" className="gl-link" onClick={client.showWalletHelp}>Get started →</button></div>
   </section>;
