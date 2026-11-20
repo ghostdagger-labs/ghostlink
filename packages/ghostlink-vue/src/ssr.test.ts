@@ -1,7 +1,7 @@
 import { expect, it, vi } from 'vitest';
 import { createSSRApp, defineComponent, h } from 'vue';
 import { renderToString } from 'vue/server-renderer';
-import { createGhostlink, kaswareAdapter, type Network } from 'ghostlink-core';
+import { createGhostlink, kaswareAdapter, type Network } from '@ghostdagger/ghostlink-core';
 import { GhostlinkPlugin, useGhostlink } from './context';
 import GhostlinkProvider from './GhostlinkProvider.vue';
 

@@ -4,7 +4,7 @@ Kaspa wallet login for TypeScript applications, with native Vue and React UI and
 
 Mobile and hardware options are hidden from the default UI while their UX and security are evaluated. See the [deferred integration findings](docs/roadmap/wallet-integrations.md) for Kaspire, Ledger and KSPR. Kaspium manual signing remains an [explicit SDK opt-in](docs/integration/kaspium.md).
 
-This is a **pre-release implementation**. Source-backed adapters and automated fixtures are included; real-wallet version certification and testnet transaction evidence are tracked in [the compatibility record](docs/testing/compatibility-v1.json). Registry publication is separate.
+This is a **pre-release implementation**. The first public npm version, `0.1.0-beta.1`, is prepared under `@ghostdagger` but has not been published. Source-backed adapters and automated fixtures are included; real-wallet version certification and testnet transaction evidence are tracked in [the compatibility record](docs/testing/compatibility-v1.json). See [release setup and publishing](docs/releases/publishing.md) for GitHub Actions, npm ownership and remaining release prerequisites.
 
 ## Integration guides
 
@@ -30,14 +30,14 @@ To serve the production build locally with the same Node process, use `pnpm --fi
 
 ## Minimal Vue setup
 
-Install `ghostlink-core` and `ghostlink-vue` from the prepared tarballs, alongside Vue 3.5+. Set up the server below first.
+After the first npm release, install `@ghostdagger/ghostlink-core` and `@ghostdagger/ghostlink-vue` at the same version, alongside Vue 3.5+. Before publication, use the local archive checks described below. Set up the server below first.
 
 ```ts
 import { createApp } from 'vue';
-import { createGhostlink } from 'ghostlink-core';
-import { GhostlinkPlugin } from 'ghostlink-vue';
-import 'ghostlink-core/styles.css';
-import 'ghostlink-core/fonts.css';
+import { createGhostlink } from '@ghostdagger/ghostlink-core';
+import { GhostlinkPlugin } from '@ghostdagger/ghostlink-vue';
+import '@ghostdagger/ghostlink-core/styles.css';
+import '@ghostdagger/ghostlink-core/fonts.css';
 import App from './App.vue';
 
 const client = createGhostlink({
@@ -51,7 +51,7 @@ createApp(App).use(GhostlinkPlugin, client).mount('#app');
 
 ```vue
 <script setup lang="ts">
-import { GhostlinkConnectButton, GhostlinkModal } from 'ghostlink-vue';
+import { GhostlinkConnectButton, GhostlinkModal } from '@ghostdagger/ghostlink-vue';
 </script>
 <template>
   <GhostlinkConnectButton />
@@ -65,10 +65,10 @@ import { GhostlinkConnectButton, GhostlinkModal } from 'ghostlink-vue';
 
 ```tsx
 import { useState } from 'react';
-import { createGhostlink } from 'ghostlink-core';
-import { GhostlinkProvider, GhostlinkConnectButton, GhostlinkModal } from 'ghostlink-react';
-import 'ghostlink-core/styles.css';
-import 'ghostlink-core/fonts.css';
+import { createGhostlink } from '@ghostdagger/ghostlink-core';
+import { GhostlinkProvider, GhostlinkConnectButton, GhostlinkModal } from '@ghostdagger/ghostlink-react';
+import '@ghostdagger/ghostlink-core/styles.css';
+import '@ghostdagger/ghostlink-core/fonts.css';
 
 export function WalletLogin() {
   const [client] = useState(() => createGhostlink({ app: { name: 'Your dApp', url: 'https://app.example' } }));
@@ -87,7 +87,7 @@ Keep a stable client per provider lifetime and a separate client per SSR request
 
 ```ts
 import { createServer } from 'node:http';
-import { createGhostlinkServer, createSqliteStorage, createNodeHandler } from 'ghostlink-server';
+import { createGhostlinkServer, createSqliteStorage, createNodeHandler } from '@ghostdagger/ghostlink-server';
 
 const storage = createSqliteStorage('./data/ghostlink.sqlite');
 const auth = createGhostlinkServer({
@@ -152,14 +152,18 @@ Use `parseKasAmount()` and `formatKas()` for exact decimal conversion. Capabilit
 pnpm build
 pnpm typecheck
 pnpm test
+pnpm test:release
 pnpm exec playwright install chromium
 pnpm test:browser
-pnpm check:package
+pnpm check:package --manager both
 pnpm check:guides
+pnpm release:dry-run
 ```
 
 `check:guides` extracts the documented Vue and React apps into temporary directories, installs the tarballs from `check:package`, typechecks and builds both apps, and runs browser flows through development proxies and production servers. CI runs the same check to catch documentation drift.
 
-`check:package` prepares local npm tarballs and verifies a clean consumer install, SSR rendering and packaged assets. No publication occurs. The React development harness is `/react.html`; the explicit Kaspium manual-signing harness is `/manual.html`; `/lifecycle.html` tests hook-only provider ownership and hydration. These harnesses are available only under the Vite dev server and are not included in the example production build.
+`check:package` prepares local npm tarballs with a release manifest and verifies clean npm/pnpm consumer installs, SSR rendering and packaged assets. `--artifacts artifacts` tests existing archives without repacking; `release:dry-run` checks npm publication without sending packages. The [publishing guide](docs/releases/publishing.md) covers the first-publish bootstrap and later OIDC releases. The React development harness is `/react.html`; the explicit Kaspium manual-signing harness is `/manual.html`; `/lifecycle.html` tests hook-only provider ownership and hydration. These harnesses are available only under the Vite dev server and are not included in the example production build.
+
+Ghostlink's original code is [MIT licensed](LICENSE). Bundled fonts, wallet logos and Kaspa WASM retain their own terms; see [third-party notices](THIRD_PARTY_NOTICES.md).
 
 Further reading: [corrected specification](docs/design/ghostlink%20spec.md), [security model](docs/security/model.md), [authentication profile](docs/protocol/kaspa-authentication-profile-v1.md), [wallet adapters](docs/integration/wallet-adapters.md), [Kaspium walkthrough](docs/integration/kaspium.md), [theming](docs/integration/theming.md), [live acceptance procedure](docs/testing/live-wallets.md), [visual fidelity](docs/testing/visual-fidelity.md). The original design prototype is preserved under `docs/design/Ghostlink UI/`.

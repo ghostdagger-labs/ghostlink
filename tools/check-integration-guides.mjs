@@ -1,10 +1,16 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
+import { parseArgs } from 'node:util';
+import { readPackages, verifyArchives } from './release.mjs';
 
 const root = resolve(import.meta.dirname, '..');
+const { values } = parseArgs({ options: { artifacts: { type: 'string', default: 'artifacts' } } });
+const artifacts = resolve(root, values.artifacts);
+const version = readPackages()[0].version;
+const release = verifyArchives(JSON.parse(readFileSync(join(artifacts, 'release.json'), 'utf8')), artifacts, version);
 const destination = mkdtempSync(join(tmpdir(), 'ghostlink-integration-guides-'));
 const run = (args, cwd, env = process.env) => execFileSync('pnpm', args, { cwd, env, stdio: 'inherit' });
 let sharedServer;
@@ -30,13 +36,18 @@ for (const framework of ['vue', 'react']) {
     mkdirSync(dirname(join(app, path)), { recursive: true });
     writeFileSync(join(app, path), content);
   }
-  mkdirSync(join(app, 'vendor'));
-  for (const name of ['ghostlink-core', `ghostlink-${framework}`, 'ghostlink-server']) {
-    const archive = `${name}-0.1.0.tgz`;
-    assert(existsSync(join(root, 'artifacts', archive)), `Run pnpm build and pnpm check:package first: missing ${archive}`);
-    copyFileSync(join(root, 'artifacts', archive), join(app, 'vendor', archive));
+  const manifest = JSON.parse(files.get('package.json'));
+  const overrides = {};
+  for (const name of ['@ghostdagger/ghostlink-core', `@ghostdagger/ghostlink-${framework}`, '@ghostdagger/ghostlink-server']) {
+    assert.equal(manifest.dependencies[name], version, `Update the ${framework} guide to the current release version`);
+    const pkg = release.packages.find(pkg => pkg.name === name);
+    assert(pkg, `Missing release package: ${name}`);
+    overrides[name] = manifest.dependencies[name] = `file:${join(artifacts, pkg.filename)}`;
   }
-  console.log(`Checking the exact ${framework} guide files in ${app}`);
+  assert(!/\boverrides:/.test(files.get('pnpm-workspace.yaml')), 'Public guides must not need local dependency overrides');
+  writeFileSync(join(app, 'package.json'), JSON.stringify(manifest, null, 2));
+  writeFileSync(join(app, 'pnpm-workspace.yaml'), `${files.get('pnpm-workspace.yaml')}\noverrides:\n${Object.entries(overrides).map(([name, file]) => `  ${JSON.stringify(name)}: ${JSON.stringify(file)}`).join('\n')}\n`);
+  console.log(`Checking the ${framework} guide with verified archives in ${app}`);
   run(['install', ...(process.env.GHOSTLINK_PACK_OFFLINE ? ['--offline'] : [])], app);
   run(['build'], app);
 }

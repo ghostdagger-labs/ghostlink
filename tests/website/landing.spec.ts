@@ -41,7 +41,7 @@ test('truthful content, tabs, keyboard access, links and unavailable package', a
   await expect(page.getByRole('link', { name: 'Wallets', exact: true })).toHaveCSS('color', 'rgb(243, 244, 247)');
   await page.getByRole('link', { name: 'Wallets', exact: true }).click(); await expect(page).toHaveURL(/#wallets$/);
   await page.getByRole('link', { name: 'How it works', exact: true }).click(); await expect(page).toHaveURL(/#how$/);
-  for (const link of await page.locator('a[href]').all()) expect(await link.getAttribute('href')).toMatch(/^(\/|#|https:\/\/github.com\/viktor-albus\/ghostlink$)/);
+  for (const link of await page.locator('a[href]').all()) expect(await link.getAttribute('href')).toMatch(/^(\/|#|https:\/\/github.com\/ghostdagger-labs\/ghostlink$)/);
   await page.getByRole('link', { name: 'Read the docs', exact: true }).first().click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Documentation coming soon.');
   await page.goBack(); await expect(page.getByRole('heading', { level: 1 })).toHaveText('Kaspa wallet login for your dApp.');

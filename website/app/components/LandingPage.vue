@@ -80,7 +80,7 @@ const preview = wallets.map(w => ({ ...w, badge: 'Extension', fg: 'var(--ink2)',
       </div>
       <div style="margin-top:12px;display:flex;align-items:center;gap:11px;padding:13px 15px;border:1px solid var(--line);border-radius:14px;background:var(--surf)">
         <span style="width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none"></span>
-        <span style="flex:1;min-width:0;font-size:12.5px;color:var(--ink2);line-height:1.4">Configure ghostlink-server and your UI provider first. These examples use the existing public APIs.</span>
+        <span style="flex:1;min-width:0;font-size:12.5px;color:var(--ink2);line-height:1.4">Configure @ghostdagger/ghostlink-server and your UI provider first. These examples use the existing public APIs.</span>
       </div>
     </div>
   </div>

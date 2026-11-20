@@ -10,12 +10,12 @@ export default defineNuxtConfig({
   nitro: {
     preset: 'node-server',
     // Preserve the verifier's relative vendor require and WASM alongside its package.
-    rollupConfig: { external: ['ghostlink-server'] },
+    rollupConfig: { external: ['@ghostdagger/ghostlink-server'] },
     esbuild: { options: { target: 'node24' } },
     hooks: {
       async compiled(nitro) {
         if (nitro.options.dev) return;
-        const runtime = join(nitro.options.output.serverDir, 'node_modules/ghostlink-server');
+        const runtime = join(nitro.options.output.serverDir, 'node_modules/@ghostdagger/ghostlink-server');
         await mkdir(join(runtime, 'dist'), { recursive: true });
         // A separate Node bundle preserves import.meta.url for the relative WASM loader.
         await build({
@@ -25,7 +25,7 @@ export default defineNuxtConfig({
           banner: { js: 'import { createRequire as __createRequire } from "node:module"; const require = __createRequire(import.meta.url);' },
         });
         await cp(fileURLToPath(new URL('../packages/ghostlink-server/vendor', import.meta.url)), join(runtime, 'vendor'), { recursive: true });
-        await writeFile(join(runtime, 'package.json'), JSON.stringify({ name: 'ghostlink-server', type: 'module', main: './dist/index.js' }));
+        await writeFile(join(runtime, 'package.json'), JSON.stringify({ name: '@ghostdagger/ghostlink-server', type: 'module', main: './dist/index.js' }));
       },
     },
   },

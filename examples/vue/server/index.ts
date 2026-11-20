@@ -1,6 +1,6 @@
 import { createServer } from 'node:http';
 import sirv from 'sirv';
-import { createGhostlinkServer, createNodeHandler, createSqliteStorage } from 'ghostlink-server';
+import { createGhostlinkServer, createNodeHandler, createSqliteStorage } from '@ghostdagger/ghostlink-server';
 const port = Number(process.env.PORT ?? 5174);
 const origin = process.env.GHOSTLINK_ORIGIN ?? 'http://127.0.0.1:5174';
 const storage = createSqliteStorage(process.env.GHOSTLINK_DATABASE ?? '.data/ghostlink.sqlite');

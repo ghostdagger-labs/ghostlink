@@ -8,7 +8,7 @@ Completion update, November 19, 2026: fresh verified authentication closes the m
 
 ## Scope and package boundaries
 
-Ghostlink is a strict TypeScript SDK on Node 24, built in a pnpm workspace. `ghostlink-core` owns framework-neutral state, adapters, authentication transport, presentation functions and scoped CSS. `ghostlink-vue` and `ghostlink-react` provide native components and lifecycle bindings. `ghostlink-server` owns official Kaspa verification, Web HTTP handlers, a Node adapter, sessions and durable SQLite storage. The Vue/Vite showcase and its Node backend live in `examples/vue`. Packages ship ESM, declarations, separate styles, local fonts and their required runtime assets. Server-only code must stay outside browser bundles; public imports must be SSR safe.
+Ghostlink is a strict TypeScript SDK on Node 24, built in a pnpm workspace. `@ghostdagger/ghostlink-core` owns framework-neutral state, adapters, authentication transport, presentation functions and scoped CSS. `@ghostdagger/ghostlink-vue` and `@ghostdagger/ghostlink-react` provide native components and lifecycle bindings. `@ghostdagger/ghostlink-server` owns official Kaspa verification, Web HTTP handlers, a Node adapter, sessions and durable SQLite storage. The Vue/Vite showcase and its Node backend live in `examples/vue`. Packages ship ESM, declarations, separate styles, local fonts and their required runtime assets. Server-only code must stay outside browser bundles; public imports must be SSR safe.
 
 Other frameworks, edge runtimes, a marketing website, npm publication and production WalletConnect pairing remain deferred. Prepared npm tarballs are local artifacts, not a claim of publication.
 

@@ -5,7 +5,7 @@ As of November 19, 2026, this flow is **hidden from the default UI** because it 
 To opt in explicitly:
 
 ```ts
-import { createGhostlink, defaultAdapters, kaspiumAdapter } from 'ghostlink-core';
+import { createGhostlink, defaultAdapters, kaspiumAdapter } from '@ghostdagger/ghostlink-core';
 const client = createGhostlink({
   app: { name: 'Your dApp', url: 'https://app.example' },
   adapters: [...defaultAdapters(), kaspiumAdapter()],

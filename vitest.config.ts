@@ -6,7 +6,7 @@ const vueRequire = createRequire(new URL('./packages/ghostlink-vue/package.json'
 export default defineConfig({
   plugins: [vue()],
   resolve: { alias: [
-    { find: /^ghostlink-core$/, replacement: new URL('./packages/ghostlink-core/src/index.ts', import.meta.url).pathname },
+    { find: /^@ghostdagger\/ghostlink-core$/, replacement: new URL('./packages/ghostlink-core/src/index.ts', import.meta.url).pathname },
     // plugin-vue deduplicates Vue at the workspace root; use the package's actual peer.
     { find: /^vue$/, replacement: vueRequire.resolve('vue') },
     { find: /^vue\/server-renderer$/, replacement: vueRequire.resolve('vue/server-renderer') },

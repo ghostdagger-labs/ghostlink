@@ -1,6 +1,6 @@
-import { createGhostlink, type AuthSession, type GhostlinkConfig, type GhostlinkSnapshot } from 'ghostlink-core';
-import { GhostlinkConnectButton as VueButton, GhostlinkModal as VueModal, useGhostlink as useVue } from 'ghostlink-vue';
-import { GhostlinkConnectButton as ReactButton, GhostlinkModal as ReactModal, useGhostlink as useReact } from 'ghostlink-react';
+import { createGhostlink, type AuthSession, type GhostlinkConfig, type GhostlinkSnapshot } from '@ghostdagger/ghostlink-core';
+import { GhostlinkConnectButton as VueButton, GhostlinkModal as VueModal, useGhostlink as useVue } from '@ghostdagger/ghostlink-vue';
+import { GhostlinkConnectButton as ReactButton, GhostlinkModal as ReactModal, useGhostlink as useReact } from '@ghostdagger/ghostlink-react';
 import type { ComponentProps } from 'react';
 
 // Compile against installed tarballs, not workspace source aliases. No runtime execution.

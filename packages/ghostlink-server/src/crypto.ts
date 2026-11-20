@@ -1,7 +1,7 @@
 import { createRequire } from 'node:module';
 import type * as Kaspa from '../vendor/kaspa/kaspa.js';
-import { addressPrefix, accountId, GhostlinkError } from 'ghostlink-core';
-import type { Network } from 'ghostlink-core';
+import { addressPrefix, accountId, GhostlinkError } from '@ghostdagger/ghostlink-core';
+import type { Network } from '@ghostdagger/ghostlink-core';
 const require = createRequire(import.meta.url);
 // Kept external to the bundle; the unmodified official WASM release is distributed alongside it.
 const kaspa = require('../vendor/kaspa/kaspa.js') as typeof Kaspa;

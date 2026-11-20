@@ -1,4 +1,4 @@
-import type { AuthChallenge, AuthSession } from 'ghostlink-core';
+import type { AuthChallenge, AuthSession } from '@ghostdagger/ghostlink-core';
 export interface BrowserRecord { hash: string; csrf: string; expiresAt: number; }
 export interface ChallengeRecord extends AuthChallenge { browserHash: string; issuedAt: number; }
 export interface SessionRecord { hash: string; browserHash: string; session: AuthSession; lastSeen: number; receipt: { profile: string; message: string; signature: string; publicKey?: string }; }

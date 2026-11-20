@@ -59,10 +59,10 @@ const checks = [
   ['vue-modal', 'VueModal', [/one modal/i, /dark/, /--ghostlink-/]],
 ];
 let source = `
-import { createGhostlink, createAuthClient, type GhostlinkConfig, type GhostlinkSnapshot } from 'ghostlink-core';
-import { createGhostlinkServer, createNodeHandler, createSqliteStorage, type GhostlinkServerConfig, type GhostlinkStorage } from 'ghostlink-server';
-import { GhostlinkProvider as ReactProvider, GhostlinkConnectButton as ReactButton, GhostlinkModal as ReactModal, useGhostlink as useReact } from 'ghostlink-react';
-import { GhostlinkPlugin, GhostlinkProvider as VueProvider, GhostlinkConnectButton as VueButton, GhostlinkModal as VueModal, useGhostlink as useVue } from 'ghostlink-vue';
+import { createGhostlink, createAuthClient, type GhostlinkConfig, type GhostlinkSnapshot } from '@ghostdagger/ghostlink-core';
+import { createGhostlinkServer, createNodeHandler, createSqliteStorage, type GhostlinkServerConfig, type GhostlinkStorage } from '@ghostdagger/ghostlink-server';
+import { GhostlinkProvider as ReactProvider, GhostlinkConnectButton as ReactButton, GhostlinkModal as ReactModal, useGhostlink as useReact } from '@ghostdagger/ghostlink-react';
+import { GhostlinkPlugin, GhostlinkProvider as VueProvider, GhostlinkConnectButton as VueButton, GhostlinkModal as VueModal, useGhostlink as useVue } from '@ghostdagger/ghostlink-vue';
 import type { ComponentProps } from 'react';
 declare const client: ReturnType<typeof createGhostlink>;
 declare const snapshot: GhostlinkSnapshot;

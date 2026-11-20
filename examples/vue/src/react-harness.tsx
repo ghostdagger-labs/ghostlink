@@ -1,9 +1,9 @@
 import { createRoot } from 'react-dom/client';
 import { StrictMode, useEffect, useState } from 'react';
-import { createGhostlink } from 'ghostlink-core';
-import { GhostlinkProvider, GhostlinkConnectButton, GhostlinkModal } from 'ghostlink-react';
-import 'ghostlink-core/styles.css';
-import 'ghostlink-core/fonts.css';
+import { createGhostlink } from '@ghostdagger/ghostlink-core';
+import { GhostlinkProvider, GhostlinkConnectButton, GhostlinkModal } from '@ghostdagger/ghostlink-react';
+import '@ghostdagger/ghostlink-core/styles.css';
+import '@ghostdagger/ghostlink-core/fonts.css';
 const client = createGhostlink({ app: { name: 'Ghostlink Example', url: location.origin }, network: 'testnet-10', closeOnAuthenticate: !new URLSearchParams(location.search).has('keep-open') });
 function Harness() {
   const [completions, setCompletions] = useState(0);

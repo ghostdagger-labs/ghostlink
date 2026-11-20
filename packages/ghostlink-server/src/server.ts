@@ -1,6 +1,6 @@
 import { randomBytes, createHash, timingSafeEqual } from 'node:crypto';
-import { PROFILE, NETWORKS, serializeLoginMessage, isNetwork, chainId, GhostlinkError } from 'ghostlink-core';
-import type { Network, AuthSession } from 'ghostlink-core';
+import { PROFILE, NETWORKS, serializeLoginMessage, isNetwork, chainId, GhostlinkError } from '@ghostdagger/ghostlink-core';
+import type { Network, AuthSession } from '@ghostdagger/ghostlink-core';
 import { validateKaspaAddress, verifyKaspaSignature } from './crypto.js';
 import type { GhostlinkStorage, BrowserRecord, ChallengeRecord } from './storage.js';
 

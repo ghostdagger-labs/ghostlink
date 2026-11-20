@@ -2,7 +2,7 @@
 import {
   GhostlinkConnectButton, GhostlinkModal,
   useGhostlink,
-} from 'ghostlink-vue';
+} from '@ghostdagger/ghostlink-vue';
 
 // Inside your configured GhostlinkProvider.
 const { snapshot } = useGhostlink();

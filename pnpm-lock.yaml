@@ -53,21 +53,21 @@ importers:
 
   examples/vue:
     dependencies:
+      '@ghostdagger/ghostlink-core':
+        specifier: workspace:*
+        version: link:../../packages/ghostlink-core
+      '@ghostdagger/ghostlink-react':
+        specifier: workspace:*
+        version: link:../../packages/ghostlink-react
+      '@ghostdagger/ghostlink-server':
+        specifier: workspace:*
+        version: link:../../packages/ghostlink-server
+      '@ghostdagger/ghostlink-vue':
+        specifier: workspace:*
+        version: link:../../packages/ghostlink-vue
       '@lucide/vue':
         specifier: ^1.0.0
         version: 1.46.0(vue@3.5.42(typescript@5.9.3))
-      ghostlink-core:
-        specifier: workspace:*
-        version: link:../../packages/ghostlink-core
-      ghostlink-react:
-        specifier: workspace:*
-        version: link:../../packages/ghostlink-react
-      ghostlink-server:
-        specifier: workspace:*
-        version: link:../../packages/ghostlink-server
-      ghostlink-vue:
-        specifier: workspace:*
-        version: link:../../packages/ghostlink-vue
       react:
         specifier: ^19.1.0
         version: 19.3.0
@@ -105,8 +105,8 @@ importers:
 
   packages/ghostlink-react:
     dependencies:
-      ghostlink-core:
-        specifier: workspace:^
+      '@ghostdagger/ghostlink-core':
+        specifier: workspace:*
         version: link:../ghostlink-core
       lucide-react:
         specifier: ^1.0.0
@@ -121,18 +121,18 @@ importers:
 
   packages/ghostlink-server:
     dependencies:
-      ghostlink-core:
-        specifier: workspace:^
+      '@ghostdagger/ghostlink-core':
+        specifier: workspace:*
         version: link:../ghostlink-core
 
   packages/ghostlink-vue:
     dependencies:
+      '@ghostdagger/ghostlink-core':
+        specifier: workspace:*
+        version: link:../ghostlink-core
       '@lucide/vue':
         specifier: ^1.0.0
         version: 1.46.0(vue@3.5.42(typescript@5.9.3))
-      ghostlink-core:
-        specifier: workspace:^
-        version: link:../ghostlink-core
     devDependencies:
       vue:
         specifier: ^3.5.0
@@ -149,21 +149,21 @@ importers:
       '@fontsource/sora':
         specifier: ^5.2.0
         version: 5.3.0
+      '@ghostdagger/ghostlink-core':
+        specifier: workspace:*
+        version: link:../packages/ghostlink-core
+      '@ghostdagger/ghostlink-react':
+        specifier: workspace:*
+        version: link:../packages/ghostlink-react
+      '@ghostdagger/ghostlink-server':
+        specifier: workspace:*
+        version: link:../packages/ghostlink-server
+      '@ghostdagger/ghostlink-vue':
+        specifier: workspace:*
+        version: link:../packages/ghostlink-vue
       '@lucide/vue':
         specifier: ^1.0.0
         version: 1.46.0(vue@3.5.42(typescript@5.9.3))
-      ghostlink-core:
-        specifier: workspace:*
-        version: link:../packages/ghostlink-core
-      ghostlink-react:
-        specifier: workspace:*
-        version: link:../packages/ghostlink-react
-      ghostlink-server:
-        specifier: workspace:*
-        version: link:../packages/ghostlink-server
-      ghostlink-vue:
-        specifier: workspace:*
-        version: link:../packages/ghostlink-vue
       nuxt:
         specifier: ^4.4.2
         version: 4.5.2(@babel/plugin-syntax-jsx@7.29.7(@babel/core@7.29.7))(@babel/plugin-syntax-typescript@7.29.7(@babel/core@7.29.7))(@oxc-project/types@0.149.0)(@types/node@24.13.4)(@vue/compiler-sfc@3.5.42)(cac@6.7.14)(db0@0.3.4)(esbuild@0.27.7)(ioredis@5.11.1)(lightningcss@1.33.0)(magicast@0.5.5)(rolldown@1.2.8)(rollup-plugin-visualizer@7.1.1(rolldown@1.2.8)(rollup@4.63.3))(rollup@4.63.3)(srvx@0.11.22)(terser@5.51.2)(tsx@4.23.13)(typescript@5.9.3)(vite@7.3.6(@types/node@24.13.4)(jiti@2.7.0)(lightningcss@1.33.0)(terser@5.51.2)(tsx@4.23.13))(vue-tsc@3.3.11(typescript@5.9.3))

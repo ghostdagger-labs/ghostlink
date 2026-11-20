@@ -1,4 +1,4 @@
-import { createGhostlinkServer, createNodeHandler, createSqliteStorage } from 'ghostlink-server';
+import { createGhostlinkServer, createNodeHandler, createSqliteStorage } from '@ghostdagger/ghostlink-server';
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 let service: ReturnType<typeof createService> | undefined;

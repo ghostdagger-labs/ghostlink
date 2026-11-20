@@ -1,4 +1,4 @@
-import { createGhostlink } from 'ghostlink-core';
+import { createGhostlink } from '@ghostdagger/ghostlink-core';
 
 const client = createGhostlink({
   app: { name: 'My dApp', url: 'https://app.example' },

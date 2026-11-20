@@ -1,7 +1,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync, chmodSync } from 'node:fs';
 import { dirname } from 'node:path';
-import type { AuthSession } from 'ghostlink-core';
+import type { AuthSession } from '@ghostdagger/ghostlink-core';
 import type { BrowserRecord, ChallengeRecord, GhostlinkStorage, SessionRecord } from './storage.js';
 
 /** Open a Node 24 SQLite store, creating parent directories and schema as needed. Use :memory: for isolated tests; otherwise persist this file. The caller must close the store on shutdown. */

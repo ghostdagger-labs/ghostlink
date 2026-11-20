@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watchEffect } from 'vue';
 import { Sun, Moon, ArrowUpRight, ShieldCheck, Palette } from '@lucide/vue';
-import { GhostlinkConnectButton, GhostlinkModal, useGhostlink } from 'ghostlink-vue';
-import { formatKas, parseKasAmount } from 'ghostlink-core';
-import type { Network, TransactionFormat } from 'ghostlink-core';
+import { GhostlinkConnectButton, GhostlinkModal, useGhostlink } from '@ghostdagger/ghostlink-vue';
+import { formatKas, parseKasAmount } from '@ghostdagger/ghostlink-core';
+import type { Network, TransactionFormat } from '@ghostdagger/ghostlink-core';
 const { client, snapshot: s } = useGhostlink();
 const theme = ref<'dark' | 'light'>('dark'); const branded = ref(false);
 watchEffect(() => {

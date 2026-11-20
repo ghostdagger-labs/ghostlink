@@ -1,11 +1,11 @@
-# ghostlink-core
+# @ghostdagger/ghostlink-core
 
 Framework-neutral Kaspa wallet login controller, compatibility adapters, authentication client and shared presentation assets.
 
 Snapshots are read-only in TypeScript, including session/account data, errors, wallet descriptors, and capability arrays. Change state through client methods; copy values into your own objects when you need editable application state. Configuration and custom transport records remain ordinary editable inputs. Public declarations include editor hover guidance for defaults, units, lifecycle ownership, and operation side effects.
 
 ```ts
-import { createGhostlink } from 'ghostlink-core';
+import { createGhostlink } from '@ghostdagger/ghostlink-core';
 const client = createGhostlink({
   app: { name: 'Your dApp', url: 'https://app.example' },
   network: 'testnet-11',
@@ -20,9 +20,9 @@ const session = await client.authenticate(); // Verified readonly session.
 // Only when permanently retiring this instance: client.destroy();
 ```
 
-Use `ghostlink-server` to verify login and maintain the session. A connected provider alone is never authentication. Default adapters are the KasWare and Kastle browser wallets. Mobile and hardware options are hidden by default. Kaspium manual QR/paste signing remains available by explicitly passing `adapters: [...defaultAdapters(), kaspiumAdapter()]` (both functions are exported by this package). Capabilities are checked at runtime; they are not proof of wallet identity or real-wallet certification. Generic message signing does not provide wallet-side phishing resistance.
+Use `@ghostdagger/ghostlink-server` to verify login and maintain the session. A connected provider alone is never authentication. Default adapters are the KasWare and Kastle browser wallets. Mobile and hardware options are hidden by default. Kaspium manual QR/paste signing remains available by explicitly passing `adapters: [...defaultAdapters(), kaspiumAdapter()]` (both functions are exported by this package). Capabilities are checked at runtime; they are not proof of wallet identity or real-wallet certification. Generic message signing does not provide wallet-side phishing resistance.
 
-UI packages import `ghostlink-core/styles.css` and optional local `ghostlink-core/fonts.css`. Override scoped `--ghostlink-*` variables for branding. `createGhostlink` and imports are SSR safe. The client owns no keys and contains no server/WASM verifier code.
+UI packages import `@ghostdagger/ghostlink-core/styles.css` and optional local `@ghostdagger/ghostlink-core/fonts.css`. Override scoped `--ghostlink-*` variables for branding. `createGhostlink` and imports are SSR safe. The client owns no keys and contains no server/WASM verifier code.
 
 Construction is passive: no wallet discovery, timers, listeners or session requests. `attach()` acquires browser activity and begins session restoration; its returned release function is idempotent. Attachments share one active lifecycle. The final release stops browser/wallet listeners and timers, cancels pending work, and closes the UI without signing out an established backend session. A later attachment rechecks the session. `attach()` is passive on the server. `destroy()` is terminal; a destroyed client cannot be attached again. Explicit headless operations remain available, but background monitoring requires an attachment.
 
@@ -36,4 +36,4 @@ For UI-driven flows, register `const unsubscribe = client.onAuthenticated(sessio
 
 `signTransaction` accepts explicitly tagged native transaction JSON or PSKT JSON and never broadcasts. `sendTransaction` is a separate explicit wallet-approved transfer. Amounts are bigint sompi; use `parseKasAmount`/`formatKas` for decimal conversion. Calls throw typed `GhostlinkError` values and approvals are serialized. Kaspium manual login has no automated transaction capability.
 
-Pre-release. See the repository's versioned compatibility record and security/profile documentation before deployment. Wallet assets and local fonts include their upstream licenses and provenance.
+Pre-release. Ghostlink's original code is MIT licensed. Wallet assets and local fonts retain their upstream licenses and provenance; see [third-party notices](https://github.com/ghostdagger-labs/ghostlink/blob/main/THIRD_PARTY_NOTICES.md). See the repository's versioned compatibility record and security/profile documentation before deployment.

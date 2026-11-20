@@ -2,8 +2,8 @@ import { createContext, useContext, useEffect, useId, useRef, useState, useSyncE
 import type { CSSProperties, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { ArrowLeft, X, ScanLine, Check, LoaderCircle, TriangleAlert, Link2, Copy, Camera, Clock, CircleX } from 'lucide-react';
-import { GhostlinkError, trapDialogFocus, createMessageQr, getPresentation, remainingTime, scanQrCamera, scanQrImage } from 'ghostlink-core';
-import type { Ghostlink, GhostlinkSnapshot } from 'ghostlink-core';
+import { GhostlinkError, trapDialogFocus, createMessageQr, getPresentation, remainingTime, scanQrCamera, scanQrImage } from '@ghostdagger/ghostlink-core';
+import type { Ghostlink, GhostlinkSnapshot } from '@ghostdagger/ghostlink-core';
 
 const Context = createContext<Ghostlink | null>(null);
 /** Borrow a stable client, initialize on mount, and release on cleanup. SSR is passive and Strict Mode replay is supported; cleanup never destroys the client or signs out an established session. */
@@ -28,7 +28,7 @@ export function useGhostlink() {
 interface Appearance {
   /** Scoped color theme. Defaults to dark. */
   theme?: 'dark' | 'light';
-  /** Scoped --ghostlink-* CSS custom properties. Import ghostlink-core/styles.css once. */
+  /** Scoped --ghostlink-* CSS custom properties. Import @ghostdagger/ghostlink-core/styles.css once. */
   variables?: Record<string, string>;
 }
 /** Open wallet login or account details. Disabled while initialization is idle/restoring; initialization belongs to the provider. */

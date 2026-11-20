@@ -1,7 +1,7 @@
 import {
   GhostlinkConnectButton, GhostlinkModal,
   useGhostlink,
-} from 'ghostlink-react';
+} from '@ghostdagger/ghostlink-react';
 
 // Render inside your configured GhostlinkProvider.
 export function WalletLogin() {

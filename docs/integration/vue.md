@@ -4,21 +4,17 @@ Build a small Vue + TypeScript app with wallet login, a protected Node endpoint,
 
 Already have an app? Use the [backend](#serverindexts), [client integration](#client-integration), and [lifecycle notes](#lifecycle-and-ssr) with your existing build setup. The backend and browser must agree on the public origin and network.
 
-## 1. Prepare the packages
+## 1. Create the app
 
-Use **Node 24** and **pnpm 11.7.0**. Ghostlink is pre-release; these instructions use local tarballs instead of assuming registry publication. Starting in the Ghostlink repository root:
+Use **Node 24** and **pnpm 11.7.0**. These files target the planned public npm release **0.1.0-beta.1**. Registry installation becomes available after that release is published; release preparation alone does not publish it.
 
 ```sh
-pnpm install --frozen-lockfile
-pnpm build
-pnpm check:package
-mkdir -p ../my-ghostlink-vue/vendor
-cp artifacts/ghostlink-core-0.1.0.tgz artifacts/ghostlink-vue-0.1.0.tgz artifacts/ghostlink-server-0.1.0.tgz ../my-ghostlink-vue/vendor/
-cd ../my-ghostlink-vue
+mkdir my-ghostlink-vue
+cd my-ghostlink-vue
 mkdir -p src server
 ```
 
-Save all the following files in this new app directory. The `pnpm-workspace.yaml` overrides are required: they keep transitive Ghostlink dependencies on your local tarballs too. No repository source imports or workspace links are needed.
+Save the following files, then run `pnpm install`. Public `@ghostdagger` packages use npm's default registry and require no GitHub token or custom registry configuration. Pin the matching core, server and UI versions together. Maintainers can test these guides before publication with `pnpm check:package` followed by `pnpm check:guides`; the checker substitutes the verified local archives only for dependency resolution.
 
 ## 2. Configure the app
 
@@ -42,9 +38,9 @@ Save all the following files in this new app directory. The `pnpm-workspace.yaml
     "start": "node server/index.ts"
   },
   "dependencies": {
-    "ghostlink-core": "file:vendor/ghostlink-core-0.1.0.tgz",
-    "ghostlink-vue": "file:vendor/ghostlink-vue-0.1.0.tgz",
-    "ghostlink-server": "file:vendor/ghostlink-server-0.1.0.tgz",
+    "@ghostdagger/ghostlink-core": "0.1.0-beta.1",
+    "@ghostdagger/ghostlink-vue": "0.1.0-beta.1",
+    "@ghostdagger/ghostlink-server": "0.1.0-beta.1",
     "sirv": "^3.0.1",
     "vue": "^3.5.0"
   },
@@ -63,12 +59,6 @@ Save all the following files in this new app directory. The `pnpm-workspace.yaml
 <!-- guide-file: pnpm-workspace.yaml -->
 ```yaml
 packages: []
-
-# Resolve transitive Ghostlink dependencies to the same local packages.
-overrides:
-  ghostlink-core: file:./vendor/ghostlink-core-0.1.0.tgz
-  ghostlink-vue: file:./vendor/ghostlink-vue-0.1.0.tgz
-  ghostlink-server: file:./vendor/ghostlink-server-0.1.0.tgz
 
 allowBuilds:
   esbuild: true
@@ -160,7 +150,7 @@ dist/
 
 ## 3. Add the backend
 
-This server handles Ghostlink's challenge, verification, session, and logout routes under `/auth/ghostlink`. It also owns `/api/private` and serves the built frontend in production. The SQLite file is created automatically. Keep `ghostlink-server` imports in server files only.
+This server handles Ghostlink's challenge, verification, session, and logout routes under `/auth/ghostlink`. It also owns `/api/private` and serves the built frontend in production. The SQLite file is created automatically. Keep `@ghostdagger/ghostlink-server` imports in server files only.
 
 The source runs directly with [Node 24's TypeScript support](https://nodejs.org/docs/latest-v24.x/api/typescript.html#type-stripping); `pnpm typecheck` checks types separately. Run commands from the app root so the `dist` and `.data` paths resolve correctly.
 
@@ -172,7 +162,7 @@ import { createServer } from 'node:http';
 import type { ServerResponse } from 'node:http';
 import { existsSync } from 'node:fs';
 import sirv from 'sirv';
-import { createGhostlinkServer, createNodeHandler, createSqliteStorage } from 'ghostlink-server';
+import { createGhostlinkServer, createNodeHandler, createSqliteStorage } from '@ghostdagger/ghostlink-server';
 
 const port = Number(process.env.PORT ?? 5174);
 const origin = process.env.GHOSTLINK_ORIGIN ?? 'http://127.0.0.1:5173';
@@ -260,10 +250,10 @@ The plugin owns initialization and cleanup for the mounted app. Components only 
 <!-- guide-file: src/main.ts -->
 ```ts
 import { createApp } from 'vue';
-import { createGhostlink } from 'ghostlink-core';
-import { GhostlinkPlugin } from 'ghostlink-vue';
-import 'ghostlink-core/styles.css';
-import 'ghostlink-core/fonts.css'; // Optional bundled fonts.
+import { createGhostlink } from '@ghostdagger/ghostlink-core';
+import { GhostlinkPlugin } from '@ghostdagger/ghostlink-vue';
+import '@ghostdagger/ghostlink-core/styles.css';
+import '@ghostdagger/ghostlink-core/fonts.css'; // Optional bundled fonts.
 import App from './App.vue';
 
 const client = createGhostlink({
@@ -293,7 +283,7 @@ if (import.meta.hot) {
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue';
-import { GhostlinkConnectButton, GhostlinkModal, useGhostlink } from 'ghostlink-vue';
+import { GhostlinkConnectButton, GhostlinkModal, useGhostlink } from '@ghostdagger/ghostlink-vue';
 import ProtectedProfile from './ProtectedProfile.vue';
 
 const { client, snapshot } = useGhostlink();
@@ -367,7 +357,7 @@ export async function loadPrivateProfile(signal: AbortSignal): Promise<PrivatePr
 ```vue
 <script setup lang="ts">
 import { onMounted, onScopeDispose, ref } from 'vue';
-import { useGhostlink } from 'ghostlink-vue';
+import { useGhostlink } from '@ghostdagger/ghostlink-vue';
 import { loadPrivateProfile } from './private-api';
 import type { PrivateProfile } from './private-api';
 
@@ -467,7 +457,7 @@ For a fresh-login-only continuation, such as navigation after login, subscribe t
 
 | Symptom | Check |
 | --- | --- |
-| Package install tries to fetch an unpublished Ghostlink version | Copy all three tarballs and the `pnpm-workspace.yaml` overrides. |
+| Package install tries to fetch an unpublished Ghostlink version | Confirm the selected matching version is published to npm; before publication use the repository guide checker with local archives. |
 | Session checks fail or return HTML | Start the backend; keep both proxy routes and the `/auth/ghostlink` base URL; do not use a static-only preview as an auth server. |
 | Origin/Host or CSRF rejection | Match scheme, host, and port exactly; keep `changeOrigin: false`; open `127.0.0.1`, not `localhost`. |
 | Wallet reports network mismatch | Set Testnet 10 in both the wallet and client; keep it in the backend allowlist. |

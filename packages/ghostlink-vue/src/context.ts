@@ -1,6 +1,6 @@
 import { computed, inject, onScopeDispose, shallowRef } from 'vue';
 import type { App, InjectionKey, Plugin } from 'vue';
-import type { Ghostlink } from 'ghostlink-core';
+import type { Ghostlink } from '@ghostdagger/ghostlink-core';
 export const GhostlinkKey: InjectionKey<Ghostlink> = Symbol('Ghostlink');
 /** Install once with app.use(GhostlinkPlugin, client). Borrows a stable client, initializes on root mount, and releases on unmount without destroying it or signing out. Passive during SSR; create a client per request. */
 export const GhostlinkPlugin: Plugin<[Ghostlink]> = {

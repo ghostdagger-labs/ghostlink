@@ -12,7 +12,7 @@
     <span style="margin-left:auto;display:flex;gap:16px;flex-wrap:wrap">
       <NuxtLink to="/docs" style="font-size:12.5px;color:var(--ink3)" data-hover="lp-hover-13">Docs</NuxtLink>
       <NuxtLink to="/demo" style="font-size:12.5px;color:var(--ink3)" data-hover="lp-hover-14">Demo</NuxtLink>
-      <a href="https://github.com/viktor-albus/ghostlink" style="font-size:12.5px;color:var(--ink3)" data-hover="lp-hover-15">Source code</a>
+      <a href="https://github.com/ghostdagger-labs/ghostlink" style="font-size:12.5px;color:var(--ink3)" data-hover="lp-hover-15">Source code</a>
     </span>
   </div>
 </footer>

@@ -1,6 +1,6 @@
 # Branding and native components
 
-The native Vue and React renderers use the same controller, presentation functions and scoped CSS. Import `ghostlink-core/styles.css` once. For exact default typography also import `ghostlink-core/fonts.css`; all fonts are local WOFF2 files, with no runtime font-service requests.
+The native Vue and React renderers use the same controller, presentation functions and scoped CSS. Import `@ghostdagger/ghostlink-core/styles.css` once. For exact default typography also import `@ghostdagger/ghostlink-core/fonts.css`; all fonts are local WOFF2 files, with no runtime font-service requests.
 
 Use `theme="dark"` (default) or `theme="light"` on both `GhostlinkConnectButton` and `GhostlinkModal`. Pass a `variables` map to both because the modal is teleported/portaled to `document.body`.
 

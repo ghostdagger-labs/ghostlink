@@ -1,9 +1,9 @@
-# ghostlink-server
+# @ghostdagger/ghostlink-server
 
 Node 24 authentication verification, Web handlers, Node HTTP adapter and durable SQLite sessions for Ghostlink.
 
 ```ts
-import { createGhostlinkServer, createSqliteStorage, createNodeHandler } from 'ghostlink-server';
+import { createGhostlinkServer, createSqliteStorage, createNodeHandler } from '@ghostdagger/ghostlink-server';
 const storage = createSqliteStorage('./data/auth.sqlite');
 const auth = createGhostlinkServer({
   origin: 'https://app.example', loginUri: 'https://app.example/login',

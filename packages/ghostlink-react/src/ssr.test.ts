@@ -1,7 +1,7 @@
 import { expect, it, vi } from 'vitest';
 import { createElement, StrictMode } from 'react';
 import { renderToString } from 'react-dom/server';
-import { createGhostlink, kaswareAdapter, type Network } from 'ghostlink-core';
+import { createGhostlink, kaswareAdapter, type Network } from '@ghostdagger/ghostlink-core';
 import { GhostlinkProvider, useGhostlink } from './index';
 
 it('renders request-local idle state without activating a React provider', () => {

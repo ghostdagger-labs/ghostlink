@@ -16,7 +16,11 @@
     "check:guides": "node tools/check-integration-guides.mjs",
     "dev:website": "pnpm --filter ghostlink-website dev",
     "build:website": "pnpm -r --filter \"./packages/*\" build && pnpm --filter ghostlink-website build",
-    "test:website": "playwright test --config playwright.website.config.ts"
+    "test:website": "playwright test --config playwright.website.config.ts",
+    "test:release": "node --test tests/release/*.test.mjs",
+    "release:prepare": "node tools/release.mjs",
+    "release:verify": "node tools/release.mjs --mode verify",
+    "release:dry-run": "node tools/release.mjs --mode dry-run"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.2",

@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { getPresentation } from 'ghostlink-core';
+import { getPresentation } from '@ghostdagger/ghostlink-core';
 import { useGhostlink } from './context';
 defineProps<{
   /** Scoped color theme. Defaults to dark. */
   theme?: 'dark' | 'light';
-  /** Scoped --ghostlink-* CSS custom properties. Import ghostlink-core/styles.css once. */
+  /** Scoped --ghostlink-* CSS custom properties. Import @ghostdagger/ghostlink-core/styles.css once. */
   variables?: Record<string, string>;
   /** Signed-out button/accessibility label. Defaults to Connect wallet. */
   label?: string;

@@ -2,9 +2,9 @@
 import { StrictMode } from 'react';
 import { createRoot, hydrateRoot } from 'react-dom/client';
 import { createApp, createSSRApp, defineComponent, h } from 'vue';
-import { createGhostlink, type AuthSession, type AuthTransport, type GhostlinkSnapshot, type WalletAdapter } from 'ghostlink-core';
-import { GhostlinkProvider as ReactProvider, useGhostlink as useReactGhostlink } from 'ghostlink-react';
-import { GhostlinkPlugin, GhostlinkProvider as VueProvider, useGhostlink as useVueGhostlink } from 'ghostlink-vue';
+import { createGhostlink, type AuthSession, type AuthTransport, type GhostlinkSnapshot, type WalletAdapter } from '@ghostdagger/ghostlink-core';
+import { GhostlinkProvider as ReactProvider, useGhostlink as useReactGhostlink } from '@ghostdagger/ghostlink-react';
+import { GhostlinkPlugin, GhostlinkProvider as VueProvider, useGhostlink as useVueGhostlink } from '@ghostdagger/ghostlink-vue';
 
 type Mode = 'react' | 'vue' | 'vue-plugin';
 const container = document.getElementById('app')!;

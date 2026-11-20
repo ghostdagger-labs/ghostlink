@@ -1,16 +1,16 @@
-# ghostlink-react
+# @ghostdagger/ghostlink-react
 
-Native React 18.3/19 components for Ghostlink. Requires `ghostlink-core` and a configured authentication backend.
+Native React 18.3/19 components for Ghostlink. Requires `@ghostdagger/ghostlink-core` and a configured authentication backend.
 
 The hook and component render props expose the same read-only snapshot type, including nested session, wallet, error, and capability data. Use client methods to change state. Packaged declarations preserve hover documentation for lifecycle behavior and component props.
 
-Start with the [complete React integration guide](../../docs/integration/react.md) for copyable app and backend files, login, protected requests, session restoration, and logout.
+Start with the [complete React integration guide](https://github.com/ghostdagger-labs/ghostlink/blob/main/docs/integration/react.md) for copyable app and backend files, login, protected requests, session restoration, and logout.
 
 ```tsx
-import { createGhostlink } from 'ghostlink-core';
-import { GhostlinkProvider, GhostlinkConnectButton, GhostlinkModal } from 'ghostlink-react';
-import 'ghostlink-core/styles.css';
-import 'ghostlink-core/fonts.css';
+import { createGhostlink } from '@ghostdagger/ghostlink-core';
+import { GhostlinkProvider, GhostlinkConnectButton, GhostlinkModal } from '@ghostdagger/ghostlink-react';
+import '@ghostdagger/ghostlink-core/styles.css';
+import '@ghostdagger/ghostlink-core/fonts.css';
 import { useState } from 'react';
 export function Login() {
   const [client] = useState(() => createGhostlink({ app: { name: 'Your dApp', url: 'https://app.example' } }));

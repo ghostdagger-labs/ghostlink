@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, provide, watch } from 'vue';
-import { GhostlinkError, type Ghostlink } from 'ghostlink-core';
+import { GhostlinkError, type Ghostlink } from '@ghostdagger/ghostlink-core';
 import { GhostlinkKey } from './context';
 const props = defineProps<{
   /** Stable client for this provider lifetime. Use a new provider key to deliberately replace it. */

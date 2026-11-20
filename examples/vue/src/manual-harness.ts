@@ -1,8 +1,8 @@
 import { createApp } from 'vue';
-import { createGhostlink, defaultAdapters, kaspiumAdapter } from 'ghostlink-core';
-import { GhostlinkPlugin } from 'ghostlink-vue';
-import 'ghostlink-core/styles.css';
-import 'ghostlink-core/fonts.css';
+import { createGhostlink, defaultAdapters, kaspiumAdapter } from '@ghostdagger/ghostlink-core';
+import { GhostlinkPlugin } from '@ghostdagger/ghostlink-vue';
+import '@ghostdagger/ghostlink-core/styles.css';
+import '@ghostdagger/ghostlink-core/fonts.css';
 import './standalone.css';
 import './style.css';
 import App from './App.vue';

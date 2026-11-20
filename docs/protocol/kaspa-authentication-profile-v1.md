@@ -37,7 +37,7 @@ The domain includes a nondefault port. URI is a canonical absolute HTTP(S) URL w
 
 ## Cryptography
 
-Use the official [rusty-kaspa v2.0.1 SDK](https://github.com/kaspanet/rusty-kaspa/releases/tag/v2.0.1), including its personal-message hash and Schnorr verifier. Do not sign a raw SHA digest or a Bitcoin/Ethereum-prefixed message. `ghostlink-server` packages the unmodified Node WASM artifact, license, and checksum manifest in `vendor/`. Archive SHA-256: `7eaffac9cd920ef2fdf540c6e10f2a2b7761170ebc62ec57dfa0f71c64567a71`.
+Use the official [rusty-kaspa v2.0.1 SDK](https://github.com/kaspanet/rusty-kaspa/releases/tag/v2.0.1), including its personal-message hash and Schnorr verifier. Do not sign a raw SHA digest or a Bitcoin/Ethereum-prefixed message. `@ghostdagger/ghostlink-server` packages the unmodified Node WASM artifact, license, and checksum manifest in `vendor/`. Archive SHA-256: `7eaffac9cd920ef2fdf540c6e10f2a2b7761170ebc62ec57dfa0f71c64567a71`.
 
 Return signatures as 64-byte Schnorr values encoded in 128 lower-case hex characters. Client compatibility boundaries accept upper-case hex and optional `0x` and normalize before HTTP submission. The HTTP verifier accepts only the canonical encoding. An optional key is x-only (32 bytes) or compressed (33 bytes); derive its native address and compare to the challenged account. For manual signing, `XOnlyPublicKey.fromAddress` obtains the verification key without key export. A cryptographically valid signature from a different key is invalid for this login.
 

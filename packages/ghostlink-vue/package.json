@@ -1,6 +1,6 @@
 {
-  "name": "ghostlink-vue",
-  "version": "0.1.0",
+  "name": "@ghostdagger/ghostlink-vue",
+  "version": "0.1.0-beta.1",
   "type": "module",
   "description": "Native Vue components for Ghostlink",
   "main": "./dist/index.js",
@@ -13,7 +13,8 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "sideEffects": false,
   "scripts": {
@@ -21,7 +22,7 @@
     "typecheck": "vue-tsc -p tsconfig.json"
   },
   "dependencies": {
-    "ghostlink-core": "workspace:^",
+    "@ghostdagger/ghostlink-core": "workspace:*",
     "@lucide/vue": "^1.0.0"
   },
   "peerDependencies": {
@@ -29,5 +30,20 @@
   },
   "devDependencies": {
     "vue": "^3.5.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ghostdagger-labs/ghostlink.git",
+    "directory": "packages/ghostlink-vue"
+  },
+  "homepage": "https://github.com/ghostdagger-labs/ghostlink#readme",
+  "bugs": {
+    "url": "https://github.com/ghostdagger-labs/ghostlink/issues"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public",
+    "tag": "candidate"
   }
 }

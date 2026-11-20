@@ -1,0 +1,105 @@
+name: Verify and publish public SDK packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Package version in the selected ref (for example 0.1.0-beta.1); publishing requires sdk-vVERSION'
+        required: true
+        type: string
+      publish:
+        description: 'Publish verified archives to npm and promote after registry checks'
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sdk-packages
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    if: github.repository == 'ghostdagger-labs/ghostlink'
+    runs-on: macos-15
+    timeout-minutes: 45
+    env:
+      SDK_VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - name: Require an exact release tag for publication
+        if: inputs.publish
+        run: |
+          test "$GITHUB_REF_TYPE" = tag
+          test "$GITHUB_REF_NAME" = "sdk-v$SDK_VERSION"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .node-version
+      - run: npm install --global pnpm@11.7.0 npm@11.21.3
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm test:release
+      - run: pnpm exec playwright install chromium
+      - run: pnpm test:browser
+      - run: pnpm test:website
+      - run: node tools/release.mjs --version "$SDK_VERSION"
+      - name: Test the exact archives with npm and pnpm
+        run: pnpm check:package --artifacts artifacts --manager both
+      - run: pnpm check:guides --artifacts artifacts
+      - run: node tools/release.mjs --mode dry-run --version "$SDK_VERSION"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: sdk-release
+          path: |
+            artifacts/*.tgz
+            artifacts/release.json
+            artifacts/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: failure()
+        with:
+          name: sdk-test-results
+          path: test-results/
+
+  publish:
+    if: inputs.publish
+    needs: verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: npm-release
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      SDK_VERSION: ${{ inputs.version }}
+      REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - name: Require public source for npm provenance
+        run: test "$REPOSITORY_PRIVATE" = false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .node-version
+          registry-url: https://registry.npmjs.org
+      # npm 11.21+ supports OIDC authentication for both publication and dist-tags.
+      - run: npm install --global pnpm@11.7.0 npm@11.21.3
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: sdk-release
+          path: artifacts
+      - run: node tools/release.mjs --mode verify --version "$SDK_VERSION"
+      - name: Publish tested archives under candidate using npm trusted publishing
+        run: node tools/release.mjs --mode publish --version "$SDK_VERSION"
+      - name: Verify anonymous npm and pnpm registry consumers
+        run: node tools/check-packages.mjs --artifacts artifacts --registry-version "$SDK_VERSION" --manager both
+      - name: Promote all packages only after registry checks pass
+        run: node tools/release.mjs --mode promote --version "$SDK_VERSION"

@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { createGhostlinkServer } from './server';
 import { createSqliteStorage } from './sqlite';
 import { account, keyAccount, sign } from '../../../tests/fixtures/keys';
-import type { AuthChallenge } from 'ghostlink-core';
+import type { AuthChallenge } from '@ghostdagger/ghostlink-core';
 
 const cleanup: (() => void)[] = [];
 afterEach(() => { cleanup.splice(0).forEach(close => close()); });

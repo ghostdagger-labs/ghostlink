@@ -17,9 +17,9 @@ export default defineConfig({
     },
   }],
   resolve: { alias: [
-    { find: /^ghostlink-core$/, replacement: new URL('../../packages/ghostlink-core/src/index.ts', import.meta.url).pathname },
-    { find: /^ghostlink-vue$/, replacement: new URL('../../packages/ghostlink-vue/src/index.ts', import.meta.url).pathname },
-    { find: /^ghostlink-react$/, replacement: new URL('../../packages/ghostlink-react/src/index.tsx', import.meta.url).pathname },
+    { find: /^@ghostdagger\/ghostlink-core$/, replacement: new URL('../../packages/ghostlink-core/src/index.ts', import.meta.url).pathname },
+    { find: /^@ghostdagger\/ghostlink-vue$/, replacement: new URL('../../packages/ghostlink-vue/src/index.ts', import.meta.url).pathname },
+    { find: /^@ghostdagger\/ghostlink-react$/, replacement: new URL('../../packages/ghostlink-react/src/index.tsx', import.meta.url).pathname },
   ] },
   server: { host: '127.0.0.1', port: 5173, strictPort: true, proxy: { '/auth': { target: 'http://127.0.0.1:5174', changeOrigin: false }, '/api': { target: 'http://127.0.0.1:5174', changeOrigin: false } } },
 });

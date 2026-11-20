@@ -15,10 +15,11 @@ jobs:
       - run: pnpm build
       - run: pnpm typecheck
       - run: pnpm test
+      - run: pnpm test:release
       - run: pnpm exec playwright install chromium
       - run: pnpm test:browser
       - run: pnpm test:website
-      - run: pnpm check:package
+      - run: pnpm check:package --manager both
       - run: pnpm check:guides
       - uses: actions/upload-artifact@v4
         if: always()

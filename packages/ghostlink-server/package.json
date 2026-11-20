@@ -1,10 +1,46 @@
 {
-  "name": "ghostlink-server", "version": "0.1.0", "type": "module",
+  "name": "@ghostdagger/ghostlink-server",
+  "version": "0.1.0-beta.1",
+  "type": "module",
   "description": "Server verification and revocable sessions for Ghostlink",
-  "main": "./dist/index.js", "types": "./dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
-  "files": ["dist", "vendor", "README.md"], "sideEffects": false,
-  "engines": { "node": ">=24 <25" },
-  "scripts": { "build": "tsup src/index.ts --format esm --dts --clean", "typecheck": "tsc -p tsconfig.json" },
-  "dependencies": { "ghostlink-core": "workspace:^" }
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "vendor",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@ghostdagger/ghostlink-core": "workspace:*"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ghostdagger-labs/ghostlink.git",
+    "directory": "packages/ghostlink-server"
+  },
+  "homepage": "https://github.com/ghostdagger-labs/ghostlink#readme",
+  "bugs": {
+    "url": "https://github.com/ghostdagger-labs/ghostlink/issues"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public",
+    "tag": "candidate"
+  }
 }
