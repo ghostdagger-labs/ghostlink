@@ -93,9 +93,9 @@ npm dist-tag add @ghostdagger/ghostlink-vue@0.1.0-beta.1 beta --registry=https:/
 
 Confirm all four `beta` tags with `npm dist-tag ls PACKAGE --registry=https://registry.npmjs.org/`. The locally published bootstrap has no GitHub OIDC provenance; later workflow publications include it. Keep bootstrap credentials on the publisher's machine and never place them in source, chat or release artifacts.
 
-## Configure npm trusted publishing
+## npm trusted publishing
 
-For **each of the four packages**, add a GitHub Actions trusted publisher in its npm settings:
+GitHub Actions trusted publishers were saved and verified in npm settings for **all four packages** on 2026-11-20 (America/Denver), with the label `Ghostlink SDK releases` and these settings:
 
 | Setting | Value |
 | --- | --- |
@@ -105,12 +105,21 @@ For **each of the four packages**, add a GitHub Actions trusted publisher in its
 | Environment | `npm-release` |
 | Allowed actions | Allow direct `npm publish` **and** `npm dist-tag` |
 
-The workflow pins npm 11.21.3 to support OIDC for both publication and tag management. Current npm trusted publisher configurations must complete a successful publish within two days of creation; configure them near the next release, or recreate an expired configuration. The bootstrap version already exists and must not be republished merely to exercise OIDC. After a successful trusted publication, restrict token-based publishing according to the organization's policy.
+The workflow pins npm 11.21.3 to support OIDC for both publication and tag management. npm also grants `npm stage publish` automatically. Each connection is **Pending validation** until its first successful trusted publication. npm displayed these activation deadlines:
+
+| Package settings | First successful publication before (UTC) |
+| --- | --- |
+| [Core](https://www.npmjs.com/package/@ghostdagger/ghostlink-core/access) | 2026-11-23 00:06 |
+| [Server](https://www.npmjs.com/package/@ghostdagger/ghostlink-server/access) | 2026-11-23 00:09 |
+| [React](https://www.npmjs.com/package/@ghostdagger/ghostlink-react/access) | 2026-11-23 00:13 |
+| [Vue](https://www.npmjs.com/package/@ghostdagger/ghostlink-vue/access) | 2026-11-23 00:14 |
+
+Plan to complete the next coordinated release before the earliest deadline: **2026-11-22 at 17:06 MST (America/Denver)**. Configurations expire if not validated within two days of creation; recreate any expired connection near the next release using the settings above. Saving the connections does not validate the workflow, and no new version was published during this setup. The bootstrap version already exists and must not be republished merely to exercise OIDC. After a successful trusted publication, restrict token-based publishing according to the organization's policy.
 
 ## Partial releases and recovery
 
 Four-package publication and tag promotion are not atomic. A `candidate` package is public and installable by exact version immediately. If one publication, consumer check or promotion fails, stop and inspect all versions, integrity values and tags. Do not automatically skip existing versions, overwrite them, delete them, or rerun publication blindly. The workflow refuses an already-existing version. Use a new coordinated version for corrected artifacts; recover unchanged artifacts only after separately verifying their identity. Check all tags if promotion partially succeeded.
 
-Publish the GitHub release notes after all packages pass registry checks and promotion. For the initial beta, the archives came from [successful CI run 44835640164](https://github.com/ghostdagger-labs/ghostlink/actions/runs/44835640164); the same commit also passed [release-tag verification](https://github.com/ghostdagger-labs/ghostlink/actions/runs/44836603647). Public downloads matched the tested archive hashes, and fresh-cache npm and pnpm consumers passed. Trusted publisher configuration remains a prerequisite for the next automated release; configure it close enough to that release to satisfy npm’s activation window.
+Publish the GitHub release notes after all packages pass registry checks and promotion. For the initial beta, the archives came from [successful CI run 44835640164](https://github.com/ghostdagger-labs/ghostlink/actions/runs/44835640164); the same commit also passed [release-tag verification](https://github.com/ghostdagger-labs/ghostlink/actions/runs/44836603647). Public downloads matched the tested archive hashes, and fresh-cache npm and pnpm consumers passed. The next automated release must satisfy the trusted publisher activation deadlines recorded above, or use freshly recreated connections.
 
 References: [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/), [npm trust prerequisites](https://docs.npmjs.com/cli/commands/npm-trust/), [pnpm workspace packaging](https://pnpm.io/workspaces#publishing-workspace-packages), [npm first-publication/latest behavior](https://github.com/npm/cli/issues/8490).
