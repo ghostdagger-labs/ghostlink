@@ -7,7 +7,7 @@
     "node": ">=24 <25"
   },
   "scripts": {
-    "build": "pnpm -r --filter './packages/*' build && pnpm --filter ghostlink-example-vue build && pnpm --filter ghostlink-website build",
+    "build": "pnpm build:website && pnpm --filter ghostlink-example-vue build",
     "typecheck": "pnpm -r typecheck",
     "test": "vitest run",
     "test:browser": "playwright test",
@@ -15,7 +15,7 @@
     "check:package": "node tools/check-packages.mjs",
     "check:guides": "node tools/check-integration-guides.mjs",
     "dev:website": "pnpm --filter ghostlink-website dev",
-    "build:website": "pnpm -r --filter \"./packages/*\" build && pnpm --filter ghostlink-website build",
+    "build:website": "pnpm --filter ghostlink-website build",
     "test:website": "playwright test --config playwright.website.config.ts",
     "test:release": "node --test tests/release/*.test.mjs",
     "release:prepare": "node tools/release.mjs",

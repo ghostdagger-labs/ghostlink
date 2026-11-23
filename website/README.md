@@ -24,6 +24,23 @@ pnpm check:package
 
 The displayed snippets are loaded as raw source and independently typechecked. Vue/React snippets assume a configured provider and verification backend. Landing-page visits do not create wallet controllers or discover wallets. Controllers belong to `/demo` and are destroyed when the component unmounts.
 
+## Vercel builds
+
+Use these project settings:
+
+- Framework Preset: **Nuxt**.
+- Root Directory: **website**. Enable **Include source files outside of the Root Directory in the Build Step** so the workspace packages and build tools are available.
+- Node.js Version: **24.x**. Set `ENABLE_EXPERIMENTAL_COREPACK=1` so Vercel uses pnpm **11.7.0**, as pinned in the root `package.json` ([Vercel Corepack setup](https://vercel.com/docs/builds/configure-a-build#corepack)).
+- Install Command: `pnpm install --frozen-lockfile`.
+- Build Command: `pnpm run build`.
+- Output Directory: leave the framework default; Nitro generates `website/.vercel/output` from the repository root.
+
+The website build first builds its workspace dependencies in dependency order. Their exports point at generated `dist/` files, which are not committed. Running `nuxt build` directly on a fresh checkout skips those builds and can fail to resolve `@ghostdagger/ghostlink-core`. Keep using the package build script rather than externalizing the client SDK. Nitro detects Vercel automatically; local and Docker builds retain the Node server output.
+
+To check the Vercel build locally, run `NITRO_PRESET=vercel pnpm build:website` from the repository root. This generates build artifacts without deploying them.
+
+**Authentication requires separate storage work before it can run on Vercel Functions.** The current `/auth/ghostlink/*`, `/api/private`, and `/api/health` handlers use a local SQLite file. [Vercel Functions have a read-only filesystem and instance-local temporary storage](https://vercel.com/docs/functions/runtimes#file-system-support), so moving that file to `/tmp` does not provide shared, durable sessions or challenges. Use a shared storage adapter or host the authentication backend on the persistent Node/Docker deployment below. Set `GHOSTLINK_ORIGIN` to the exact public origin when configuring that backend. A successful website build does not make the existing SQLite authentication backend compatible with Vercel.
+
 ## Production / Docker
 
 ```sh
