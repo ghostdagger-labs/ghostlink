@@ -1,6 +1,6 @@
 # Ghostlink website
 
-Nuxt 4 / Vue / TypeScript landing page, package and integration guide hub, and the existing Vue example at `/demo`. The default experience presents KasWare and Kastle browser wallets only; mobile/hardware options and prospective wallet cards are hidden. The [deferred integration findings](../docs/roadmap/wallet-integrations.md) record the UX policy and future candidates. The Node server uses the unchanged `@ghostdagger/ghostlink-server` API and SQLite. The original design files are preserved; the [claim audit and roadmap](../docs/roadmap/landing-page-reconciliation.md) explain copy corrections.
+Nuxt 4 / Vue / TypeScript landing page, package and integration guide hub, and the existing Vue example at `/demo`. The default experience presents KasWare and Kastle browser wallets only; mobile/hardware options and prospective wallet cards are hidden. The [deferred integration findings](../docs/roadmap/wallet-integrations.md) record the UX policy and future candidates. The Node server uses `@ghostdagger/ghostlink-server` with Neon/Postgres on Vercel and SQLite by default for local development. Both use real signature verification, server-side sessions, and the protected API. The original design files are preserved; the [claim audit and roadmap](../docs/roadmap/landing-page-reconciliation.md) explain copy corrections.
 
 ## Local development
 
@@ -39,7 +39,28 @@ The website build first builds its workspace dependencies in dependency order. T
 
 To check the Vercel build locally, run `NITRO_PRESET=vercel pnpm build:website` from the repository root. This generates build artifacts without deploying them.
 
-**Authentication requires separate storage work before it can run on Vercel Functions.** The current `/auth/ghostlink/*`, `/api/private`, and `/api/health` handlers use a local SQLite file. [Vercel Functions have a read-only filesystem and instance-local temporary storage](https://vercel.com/docs/functions/runtimes#file-system-support), so moving that file to `/tmp` does not provide shared, durable sessions or challenges. Use a shared storage adapter or host the authentication backend on the persistent Node/Docker deployment below. Set `GHOSTLINK_ORIGIN` to the exact public origin when configuring that backend. A successful website build does not make the existing SQLite authentication backend compatible with Vercel.
+### Neon authentication
+
+The existing `ghostlink` Vercel project serves this website, including `/demo`, `/auth/ghostlink/*`, and `/api/private`. It does not need a separate backend service. Set these **server-only** environment variables in that project:
+
+- `DATABASE_URL`: a Neon primary endpoint connection string. The website uses the Neon `Pool` driver with interactive transactions, not the HTTP `neon()` query helper.
+- `GHOSTLINK_ORIGIN`: the exact public origin, for example `https://www.ghostlinksdk.com`, without a path or trailing slash. Sign in through that origin; deployment aliases with different hosts are deliberately rejected.
+- `GHOSTLINK_DATABASE_SCHEMA`: `ghostlink` (the default), or another dedicated schema name.
+
+Choose a Vercel function region near the Neon primary. Keep production and preview credentials in separate Vercel environments and separate Neon branches/databases. A preview needs its own stable origin and migrated schema; do not expose production session storage to arbitrary preview code. Missing `DATABASE_URL` on Vercel makes authentication unavailable instead of falling back to an instance-local SQLite file.
+
+The deployed `ghostlink` project uses `https://www.ghostlinksdk.com` (`ghostlinksdk.com` redirects to `www`) in Vercel `iad1`, with the Neon `ghostlink` project in AWS US East 1. Its `production` branch uses the `ghostlink_runtime` role. The `codex/deploy-neon-website` Vercel preview uses the separate `website-preview` database branch and `ghostlink_preview_runtime` role, which does not exist in production. These preview variables are scoped to that Git branch; other previews need their own configuration. No database credentials are stored in the repository.
+
+Run the explicit migration once before deploying, from this checkout after `pnpm build:website`:
+
+```sh
+# Store credentials in ignored website/.env.local; never commit them.
+pnpm --filter ghostlink-website db:migrate
+```
+
+The script reads `MIGRATION_DATABASE_URL` when present, otherwise `DATABASE_URL`, and uses `GHOSTLINK_DATABASE_SCHEMA`. Use an owner connection for migrations and a runtime role with schema `USAGE` plus table `SELECT`, `INSERT`, `UPDATE`, and `DELETE`. Keep migration credentials out of the runtime environment. See the [Postgres adapter guide](../docs/integration/postgres.md) for roles, transactions, and migration details. Builds and requests never run migrations.
+
+The server reuses a bounded connection pool and attaches it to Vercel's connection lifecycle. Challenges, session hashes, browser bindings, revocation, and rate limits live in Postgres. The browser receives HttpOnly session cookies; browser storage holds wallet/network preferences only. Logout revokes the server session, including copied cookies. The SDK's authentication API is unchanged.
 
 ## Production / Docker
 
@@ -60,3 +81,5 @@ The site links all four public npm packages and pins install commands to `0.1.0-
 The four reviewed screenshot baselines cover dark/light desktop (1280px) and mobile (390px). Additional accessibility/overflow checks run at 360px and 768px. `artifacts/website/` contains full-page screenshots from the most recent run. Intentional content and contrast differences from the prototype are recorded in the reconciliation document. Fonts are self-hosted; their upstream OFL notices are retained in `public/licenses/`.
 
 To check an already-running container, set `WEBSITE_TEST_ORIGIN` before running `pnpm test:website`. The opt-in restart test additionally requires `GHOSTLINK_TEST_CONTAINER` naming the **dedicated test container**, which it will restart. It signs in using a public fixture key and verifies the same authenticated session afterward. Never point this check at a shared or production container.
+
+For the Neon driver integration, build the website and run `GHOSTLINK_TEST_DATABASE_URL=postgresql://... pnpm test:website:neon` against an isolated test database. The runner creates and removes a temporary schema and bridges the driver's WebSocket transport to local Postgres. It covers real fixture-key signatures for both wallets, restoration, protected API access, cookie revocation, CSRF/origin checks, and network-change races. To smoke-test a deployed website, use `WEBSITE_TEST_ORIGIN=https://your-exact-domain.example pnpm test:website:neon`; this creates and revokes fixture-wallet sessions without touching real wallets.

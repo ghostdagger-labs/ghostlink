@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { archiveName, checkFiles, checkMetadata, checkPublishContext, checkRegistry, checkRegistryMetadata, packageNames, readPackages, releaseChannel, repository, verifyArchives } from '../../tools/release.mjs';
+import { archiveName, checkDistTags, checkFiles, checkMetadata, checkPublishContext, checkRegistry, checkRegistryMetadata, packageNames, readPackages, releaseChannel, repository, verifyArchives } from '../../tools/release.mjs';
 
 test('release channels require canonical versions and cannot inject command arguments', () => {
   assert.equal(releaseChannel('0.1.0-beta.1'), 'beta');
@@ -112,6 +112,51 @@ test('registry propagation retries are bounded and never conceal bad archives or
   for (const response of [new Response('', { status: 403 }), Response.json({ versions: { [pkg.version]: { name: pkg.name, version: pkg.version, dist: { integrity: 'sha512-replaced' } } } })]) {
     calls = 0;
     await assert.rejects(checkRegistry({ packages: [pkg] }, { attempts: 3, intervalMs: 0, fetcher: async () => { calls++; return response; } }));
+    assert.equal(calls, 1);
+  }
+});
+
+test('tag verification waits for every package to reach the release channel without depending on npm CLI output', async () => {
+  const version = '0.1.0-beta.2';
+  const release = { version, packages: packageNames.map(name => ({ name, version })) };
+  const calls = new Map();
+  await checkDistTags(release, { attempts: 3, intervalMs: 0, fetcher: async (url, options) => {
+    assert.equal(options.headers['Cache-Control'], 'no-cache');
+    const count = (calls.get(url) ?? 0) + 1;
+    calls.set(url, count);
+    const first = `https://registry.npmjs.org/-/package/${packageNames[0].replace('/', '%2f')}/dist-tags`;
+    if (url === first && count === 1) return new Response('', { status: 404 });
+    return Response.json({ latest: '0.1.0-beta.1', candidate: version, beta: count === 1 ? '0.1.0-beta.1' : version });
+  } });
+  assert.equal(calls.size, 4);
+  assert([...calls.values()].every(count => count === 2));
+});
+
+test('tag verification uses the requested channel and bounds stale-tag retries', async () => {
+  for (const version of ['0.1.0-alpha.1', '0.1.0-rc.1', '1.0.0']) {
+    const release = { version, packages: [{ name: packageNames[0], version }] };
+    await checkDistTags(release, { fetcher: async () => Response.json({ [releaseChannel(version)]: version }) });
+  }
+  const version = '0.1.0-beta.2';
+  const release = { version, packages: [{ name: packageNames[0], version }] };
+  let calls = 0;
+  await assert.rejects(checkDistTags(release, { attempts: 2, intervalMs: 0, fetcher: async () => {
+    calls++;
+    return Response.json({ candidate: version, beta: '0.1.0-beta.1' });
+  } }), /tags do not match/);
+  assert.equal(calls, 2);
+});
+
+test('tag verification fails immediately on access, network, and malformed-response errors', async () => {
+  const version = '0.1.0-beta.2';
+  const release = { version, packages: [{ name: packageNames[0], version }] };
+  for (const result of [new Response('', { status: 401 }), new Response('', { status: 403 }), new Response('', { status: 500 }), new Response('beta: 0.1.0-beta.2'), new Error('offline')]) {
+    let calls = 0;
+    await assert.rejects(checkDistTags(release, { attempts: 3, intervalMs: 0, fetcher: async () => {
+      calls++;
+      if (result instanceof Error) throw result;
+      return result;
+    } }));
     assert.equal(calls, 1);
   }
 });

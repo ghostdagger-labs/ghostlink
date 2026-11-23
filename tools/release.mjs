@@ -167,6 +167,31 @@ export async function checkRegistry(release, { absent = false, fetcher = fetch, 
   assert.fail(`npm install metadata or tarballs are not ready for ${pending.map(pkg => `${pkg.name}@${pkg.version}`).join(', ')}; inspect publication status before retrying`);
 }
 
+export async function checkDistTags(release, { fetcher = fetch, attempts = 31, intervalMs = 10_000 } = {}) {
+  const channel = releaseChannel(release.version);
+  let pending = release.packages;
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    const next = [];
+    for (const pkg of pending) {
+      // npm 11.21.3 prints plain text for `dist-tag ls` even with --json.
+      // Read the public registry's JSON directly and allow tag propagation.
+      const response = await fetcher(`${registry}-/package/${pkg.name.replace('/', '%2f')}/dist-tags`, {
+        signal: AbortSignal.timeout(30_000), headers: { 'Cache-Control': 'no-cache' },
+      });
+      if (response.status === 404) { next.push(pkg); continue; }
+      assert(response.ok, `Registry tag lookup failed for ${pkg.name}: HTTP ${response.status}`);
+      if ((await response.json())[channel] !== pkg.version) next.push(pkg);
+    }
+    pending = next;
+    if (!pending.length) return;
+    if (attempt + 1 < attempts) {
+      console.log(`Waiting for npm ${channel} tags: ${pending.map(pkg => pkg.name).join(', ')}`);
+      await delay(intervalMs);
+    }
+  }
+  assert.fail(`npm ${channel} tags do not match ${release.version} for ${pending.map(pkg => pkg.name).join(', ')}; inspect promotion status before retrying`);
+}
+
 async function main() {
   const { values } = parseArgs({ options: { mode: { type: 'string', default: 'prepare' }, version: { type: 'string' }, out: { type: 'string', default: 'artifacts' } } });
   const version = values.version ?? readPackages()[0].version;
@@ -185,10 +210,7 @@ async function main() {
   if (['registry', 'promote'].includes(values.mode)) await checkRegistry(release);
   if (values.mode === 'promote') {
     for (const pkg of release.packages) execFileSync('npm', ['dist-tag', 'add', `${pkg.name}@${version}`, channel, `--registry=${registry}`], { cwd: root, stdio: 'inherit' });
-    for (const pkg of release.packages) {
-      const tags = JSON.parse(run('npm', ['dist-tag', 'ls', pkg.name, '--json', `--registry=${registry}`]));
-      assert.equal(tags[channel], version, `Promotion verification failed: ${pkg.name}`);
-    }
+    await checkDistTags(release);
   }
   console.log(`Release ${values.mode}: ${version} (${channel}), ${release.packages.length} packages${release.dirty ? '; local checkout has uncommitted changes' : ''}.`);
 }

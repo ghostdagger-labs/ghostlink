@@ -1,6 +1,6 @@
 {
   "name": "@ghostdagger/ghostlink-core",
-  "version": "0.1.0-beta.1",
+  "version": "0.1.0-beta.2",
   "type": "module",
   "description": "Framework-neutral Kaspa wallet authentication and connection SDK",
   "main": "./dist/index.js",

@@ -21,6 +21,7 @@
     "dev:vercel": "pnpm --filter ghostlink-example-vercel-neon dev",
     "build:website": "pnpm --filter ghostlink-website build",
     "test:website": "playwright test --config playwright.website.config.ts",
+    "test:website:neon": "playwright test --config playwright.website-neon.config.ts",
     "test:release": "node --test tests/release/*.test.mjs",
     "release:prepare": "node tools/release.mjs",
     "release:verify": "node tools/release.mjs --mode verify",

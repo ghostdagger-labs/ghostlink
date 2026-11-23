@@ -63,7 +63,9 @@ export function restorationCases(route: '/' | '/demo') {
       expect(logoutRequests).toEqual([]);
 
       // A confirmed provider event must still revoke authentication after recovery.
+      const logout = page.waitForResponse(response => response.url().endsWith('/auth/ghostlink/logout'));
       await page.evaluate(() => (window as any).__emitWallet('accountsChanged'));
+      expect((await logout).status()).toBe(200);
       await expect(page.getByRole('heading', { name: 'Ready when you are' })).toBeVisible();
       expect((await page.request.get('/api/private')).status()).toBe(401);
       expect(logoutRequests).toHaveLength(1);
