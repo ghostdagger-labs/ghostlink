@@ -44,12 +44,12 @@ To check the Vercel build locally, run `NITRO_PRESET=vercel pnpm build:website` 
 The existing `ghostlink` Vercel project serves this website, including `/demo`, `/auth/ghostlink/*`, and `/api/private`. It does not need a separate backend service. Set these **server-only** environment variables in that project:
 
 - `DATABASE_URL`: a Neon primary endpoint connection string. The website uses the Neon `Pool` driver with interactive transactions, not the HTTP `neon()` query helper.
-- `GHOSTLINK_ORIGIN`: the exact public origin, for example `https://ghostlink-tau.vercel.app`, without a path or trailing slash. Sign in through that origin; deployment aliases with different hosts are deliberately rejected.
+- `GHOSTLINK_ORIGIN`: the exact public origin, for example `https://www.ghostlinksdk.com`, without a path or trailing slash. Sign in through that origin; deployment aliases with different hosts are deliberately rejected.
 - `GHOSTLINK_DATABASE_SCHEMA`: `ghostlink` (the default), or another dedicated schema name.
 
 Choose a Vercel function region near the Neon primary. Keep production and preview credentials in separate Vercel environments and separate Neon branches/databases. A preview needs its own stable origin and migrated schema; do not expose production session storage to arbitrary preview code. Missing `DATABASE_URL` on Vercel makes authentication unavailable instead of falling back to an instance-local SQLite file.
 
-The deployed `ghostlink` project uses `https://ghostlink-tau.vercel.app` in Vercel `iad1`, with the Neon `ghostlink` project in AWS US East 1. Its `production` branch uses the `ghostlink_runtime` role. The `codex/deploy-neon-website` Vercel preview uses the separate `website-preview` database branch and `ghostlink_preview_runtime` role, which does not exist in production. These preview variables are scoped to that Git branch; other previews need their own configuration. No database credentials are stored in the repository.
+The deployed `ghostlink` project uses `https://www.ghostlinksdk.com` (`ghostlinksdk.com` redirects to `www`) in Vercel `iad1`, with the Neon `ghostlink` project in AWS US East 1. Its `production` branch uses the `ghostlink_runtime` role. The `codex/deploy-neon-website` Vercel preview uses the separate `website-preview` database branch and `ghostlink_preview_runtime` role, which does not exist in production. These preview variables are scoped to that Git branch; other previews need their own configuration. No database credentials are stored in the repository.
 
 Run the explicit migration once before deploying, from this checkout after `pnpm build:website`:
 
