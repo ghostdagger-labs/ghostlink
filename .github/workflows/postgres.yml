@@ -1,4 +1,4 @@
-name: Postgres and Vercel example
+name: Postgres and Vercel examples
 on:
   push:
   pull_request:
@@ -39,8 +39,13 @@ jobs:
       - run: pnpm test:postgres
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:vercel
+      - run: pnpm build:website
+      - run: pnpm --filter ghostlink-website typecheck
+      - run: pnpm test:website:neon
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: postgres-${{ matrix.postgres }}-test-results
-          path: test-results/vercel/
+          path: |
+            test-results/vercel/
+            test-results/website-neon/

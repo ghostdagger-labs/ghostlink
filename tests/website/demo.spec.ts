@@ -5,11 +5,14 @@ for (const wallet of ['KasWare', 'Kastle'] as const) test(`${wallet}: Nuxt login
   await injectWallet(page, wallet === 'KasWare' ? 'kasware' : 'kastle', 'normal', wallet === 'KasWare' ? 'testnet-11' : 'testnet-10');
   await page.goto('/demo');
   await page.getByLabel('Network', { exact: true }).selectOption(wallet === 'KasWare' ? 'testnet-11' : 'testnet-10');
+  await expect(page.getByRole('button', { name: 'Connect wallet', exact: true }).first()).toBeEnabled();
   await login(page, wallet, '/demo');
   await page.getByRole('button', { name: 'Test protected API' }).click();
   await expect(page.locator('.example-result')).toContainText('Your protected backend request succeeded.');
   await page.reload(); await expect(page.getByRole('heading', { name: 'Ownership verified' })).toBeVisible();
+  const logout = page.waitForResponse(response => response.url().endsWith('/auth/ghostlink/logout'));
   await page.getByRole('button', { name: 'Sign out', exact: true }).first().click();
+  expect((await logout).status()).toBe(200);
   await expect(page.getByRole('heading', { name: 'Ready when you are' })).toBeVisible();
   expect((await page.request.get('/api/private')).status()).toBe(401);
 });

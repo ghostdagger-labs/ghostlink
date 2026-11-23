@@ -6,6 +6,7 @@
     "dev": "nuxt dev --host 127.0.0.1 --port 3000",
     "build": "pnpm --filter \"ghostlink-website^...\" build && nuxt build",
     "start": "node .output/server/index.mjs",
+    "db:migrate": "node --env-file-if-exists=.env --env-file-if-exists=.env.local --import tsx scripts/migrate.ts",
     "typecheck": "nuxt prepare && nuxt typecheck && vue-tsc --noEmit -p tsconfig.snippets.json"
   },
   "dependencies": {
@@ -17,12 +18,15 @@
     "@ghostdagger/ghostlink-server": "workspace:*",
     "@ghostdagger/ghostlink-vue": "workspace:*",
     "@lucide/vue": "^1.76.0",
+    "@neondatabase/serverless": "^1.2.1",
+    "@vercel/functions": "^3.11.3",
     "nuxt": "^4.6.4",
     "react": "^19.3.1",
     "vue": "^3.5.45"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",
+    "tsx": "^4.23.15",
     "typescript": "^5.9.3",
     "vite": "^8.3.8",
     "vue-tsc": "^3.3.14"
