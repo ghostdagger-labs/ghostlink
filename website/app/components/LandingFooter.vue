@@ -1,13 +1,13 @@
 <template>
 <footer>
   <div style="max-width:1200px;margin:0 auto;padding:34px 24px;display:flex;align-items:center;gap:18px;flex-wrap:wrap">
-    <span style="display:flex;align-items:center;gap:9px">
+    <NuxtLink to="/" class="landing-brand landing-brand-footer" aria-label="Ghostlink home">
       <svg aria-hidden="true" focusable="false" width="26" height="16" viewBox="0 0 34 20" fill="none" style="flex:none">
-        <circle cx="11" cy="10" r="6.4" fill="var(--ink3)"></circle>
-        <circle cx="23" cy="10" r="6.4" fill="none" stroke="var(--ink3)" stroke-width="2.1"></circle>
+        <circle cx="11" cy="10" r="6.4" fill="currentColor"></circle>
+        <circle cx="23" cy="10" r="6.4" fill="none" stroke="currentColor" stroke-width="2.1"></circle>
       </svg>
       <span style="font-family:Sora,sans-serif;font-weight:600;font-size:14px;color:var(--ink3)">Ghostlink</span>
-    </span>
+    </NuxtLink>
     <span style="font-size:12.5px;color:var(--ink3)">Kaspa wallet login · Public beta · MIT licensed code</span>
     <span style="margin-left:auto;display:flex;gap:16px;flex-wrap:wrap">
       <a href="/#packages" style="font-size:12.5px;color:var(--ink3)">npm packages</a>

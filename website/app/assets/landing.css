@@ -25,6 +25,9 @@
 *{box-sizing:border-box}
 .landing a{color:var(--acc);text-decoration:none}
 .landing a:hover{color:var(--ink)}
+.landing .landing-brand{display:flex;align-items:center;gap:9px;transition:color .2s ease}
+.landing .landing-brand-footer{color:var(--ink3)}
+.landing .landing-brand:is(:hover,:focus-visible){color:var(--ink)}
 .landing button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
 ::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:var(--line2);border-radius:8px}::-webkit-scrollbar-track{background:transparent}
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
@@ -63,7 +66,7 @@ html,body,#__nuxt{margin:0;min-height:100%;background:#0C0D11}
  .landing main>section>div{padding-left:18px!important;padding-right:18px!important}
  .landing [style*="minmax(230px"]{grid-template-columns:minmax(0,1fr)!important}
 }
-@media(prefers-reduced-motion:reduce){.landing *{animation:none!important;scroll-behavior:auto!important}}
+@media(prefers-reduced-motion:reduce){.landing *{animation:none!important;scroll-behavior:auto!important}.landing .landing-brand{transition:none}}
 
 .landing [style*="animation:slide"]:hover,.landing [style*="animation:slide"]:focus-within{animation-play-state:paused}
 

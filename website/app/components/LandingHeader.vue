@@ -7,13 +7,13 @@ const isLight = computed(() => !isDark.value);
 <template>
 <header style="position:sticky;top:0;z-index:40;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg) 84%,transparent);backdrop-filter:blur(14px)">
   <div style="max-width:1200px;margin:0 auto;padding:10px 24px;min-height:62px;display:flex;align-items:center;gap:20px;flex-wrap:wrap">
-    <span style="display:flex;align-items:center;gap:9px">
+    <NuxtLink to="/" class="landing-brand" aria-label="Ghostlink home">
       <svg aria-hidden="true" focusable="false" width="30" height="18" viewBox="0 0 34 20" fill="none" style="flex:none">
-        <circle cx="11" cy="10" r="6.4" fill="var(--acc)"></circle>
-        <circle cx="23" cy="10" r="6.4" fill="none" stroke="var(--acc)" stroke-width="2.1"></circle>
+        <circle cx="11" cy="10" r="6.4" fill="currentColor"></circle>
+        <circle cx="23" cy="10" r="6.4" fill="none" stroke="currentColor" stroke-width="2.1"></circle>
       </svg>
       <span style="font-family:Sora,sans-serif;font-weight:600;font-size:17px;letter-spacing:-.5px;color:var(--ink)">Ghostlink</span>
-    </span>
+    </NuxtLink>
     <nav style="display:flex;gap:16px;flex-wrap:wrap">
       <a href="/#how" style="font-size:13.5px;font-weight:600;color:var(--ink2)" data-hover="lp-hover-0">How it works</a>
       <a href="/#wallets" style="font-size:13.5px;font-weight:600;color:var(--ink2)" data-hover="lp-hover-1">Wallets</a>
