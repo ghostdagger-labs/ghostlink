@@ -2,12 +2,12 @@
 
 Source: `ghostdagger-labs/ghostlink` on GitHub. Registry: `https://registry.npmjs.org/`. npm organization: `ghostdagger`. The first public version is **0.1.0-beta.1**, published on 2026-11-20. Its source is tagged `sdk-v0.1.0-beta.1` at commit `936d8c97c71ed23c7679d6497dca8123210b6e98`.
 
-The current release target is **0.1.0-beta.2**, adding Postgres/Neon storage, dedicated server/storage entry points and the Vercel example. All four packages advance together. This release uses GitHub Actions trusted publishing and promotes `candidate` to `beta` after anonymous npm/pnpm consumer checks; `latest` remains `0.1.0-beta.1`.
+The current public beta is **0.1.0-beta.2**, published on 2026-11-22 (America/Denver), adding Postgres/Neon storage, dedicated server/storage entry points and the Vercel example. Its source is tagged `sdk-v0.1.0-beta.2` at commit `cb62f0b7205072e85a3b69cdcf1da2e6bd4d35e5`. All four packages were published through GitHub Actions trusted publishing and passed anonymous npm/pnpm consumer checks. Both `candidate` and `beta` point to `0.1.0-beta.2`; `latest` remains `0.1.0-beta.1`.
 
 | Package | Role |
 | --- | --- |
 | `@ghostdagger/ghostlink-core` | Framework-neutral client, adapters, styles and assets |
-| `@ghostdagger/ghostlink-server` | Node 24 verification, handlers and SQLite sessions |
+| `@ghostdagger/ghostlink-server` | Node 24 verification, handlers and SQLite/Postgres sessions |
 | `@ghostdagger/ghostlink-react` | React 18.3/19 UI |
 | `@ghostdagger/ghostlink-vue` | Vue 3.5 UI |
 
@@ -107,21 +107,29 @@ GitHub Actions trusted publishers use the label `Ghostlink SDK releases` and the
 | Environment | `npm-release` |
 | Allowed actions | Allow direct `npm publish` **and** `npm dist-tag` |
 
-The workflow pins npm 11.21.3 to support OIDC for both publication and tag management. npm also grants `npm stage publish` automatically. Each connection is **Pending validation** until its first successful trusted publication. The original connections created on 2026-11-20 expired without publication; they must be recreated for beta.2. Their original deadlines were:
+The workflow pins npm 11.21.3 to support OIDC for both publication and tag management. npm also grants `npm stage publish` automatically. The original connections created on 2026-11-20 expired without publication. All four were recreated on 2026-11-22 and **validated by the successful beta.2 publications**. npm's public metadata identifies GitHub as the trusted publisher for every package; each provenance statement identifies the release tag, workflow, source commit and tested archive digest.
 
-| Package settings | First successful publication before (UTC) |
+| Package settings | Validated version |
 | --- | --- |
-| [Core](https://www.npmjs.com/package/@ghostdagger/ghostlink-core/access) | 2026-11-23 00:06 |
-| [Server](https://www.npmjs.com/package/@ghostdagger/ghostlink-server/access) | 2026-11-23 00:09 |
-| [React](https://www.npmjs.com/package/@ghostdagger/ghostlink-react/access) | 2026-11-23 00:13 |
-| [Vue](https://www.npmjs.com/package/@ghostdagger/ghostlink-vue/access) | 2026-11-23 00:14 |
+| [Core](https://www.npmjs.com/package/@ghostdagger/ghostlink-core/access) | `0.1.0-beta.2` |
+| [Server](https://www.npmjs.com/package/@ghostdagger/ghostlink-server/access) | `0.1.0-beta.2` |
+| [React](https://www.npmjs.com/package/@ghostdagger/ghostlink-react/access) | `0.1.0-beta.2` |
+| [Vue](https://www.npmjs.com/package/@ghostdagger/ghostlink-vue/access) | `0.1.0-beta.2` |
 
-Configurations expire if not validated within two days of creation; recreate any expired connection near the next release using the settings above and check its new deadline in npm. Saving the connections does not validate the workflow. The bootstrap version already exists and must not be republished merely to exercise OIDC. After a successful trusted publication, restrict token-based publishing according to the organization's policy.
+New configurations expire if not validated within two days of creation; recreate any expired connection near the next release using the settings above and check its new deadline in npm. Saving a connection alone does not validate the workflow. Existing versions must not be republished merely to exercise OIDC. After a successful trusted publication, restrict token-based publishing according to the organization's policy.
 
 ## Partial releases and recovery
 
 Four-package publication and tag promotion are not atomic. A `candidate` package is public and installable by exact version immediately. If one publication, consumer check or promotion fails, stop and inspect all versions, integrity values and tags. Do not automatically skip existing versions, overwrite them, delete them, or rerun publication blindly. The workflow refuses an already-existing version. Use a new coordinated version for corrected artifacts; recover unchanged artifacts only after separately verifying their identity. Check all tags if promotion partially succeeded.
 
-Publish the GitHub release notes after all packages pass registry checks and promotion. For the initial beta, the archives came from [successful CI run 44835640164](https://github.com/ghostdagger-labs/ghostlink/actions/runs/44835640164); the same commit also passed [release-tag verification](https://github.com/ghostdagger-labs/ghostlink/actions/runs/44836603647). Public downloads matched the tested archive hashes, and fresh-cache npm and pnpm consumers passed. The beta.2 automated release requires freshly recreated trusted publisher connections.
+Publish the GitHub release notes after all packages pass registry checks and promotion. For the initial beta, the archives came from [successful CI run 44835640164](https://github.com/ghostdagger-labs/ghostlink/actions/runs/44835640164); the same commit also passed [release-tag verification](https://github.com/ghostdagger-labs/ghostlink/actions/runs/44836603647). Public downloads matched the tested archive hashes, and fresh-cache npm and pnpm consumers passed.
+
+### Beta.2 publication record
+
+The release commit passed [SDK verification](https://github.com/ghostdagger-labs/ghostlink/actions/runs/45120222099) and [Postgres 16/18 verification](https://github.com/ghostdagger-labs/ghostlink/actions/runs/45120222061). [Publishing run 45121038747](https://github.com/ghostdagger-labs/ghostlink/actions/runs/45121038747) repeated the gates, published all four tested archives with OIDC provenance, passed anonymous npm/pnpm registry consumers, and successfully wrote every `beta` tag.
+
+That run is marked failed because its final tag read-back attempted to parse `npm dist-tag ls --json` as JSON; npm 11.21.3 prints plain text for that command. Independent anonymous registry reads confirmed all four `beta`/`candidate` tags at beta.2 and `latest` at beta.1. Downloaded tarballs matched the CI manifest, and all four provenance statements matched the release commit and archive digests. No packages were republished and the release tag was not moved.
+
+The corrected promotion checker reads npm's public JSON tag endpoint with bounded propagation retries. Thirteen release-safety tests pass, including stale-tag, access-error and malformed-response cases; the corrected checker also passed against the live beta.2 tags. The [GitHub prerelease](https://github.com/ghostdagger-labs/ghostlink/releases/tag/sdk-v0.1.0-beta.2) contains the four original archives, `release.json` and `SHA256SUMS`.
 
 References: [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/), [npm trust prerequisites](https://docs.npmjs.com/cli/commands/npm-trust/), [pnpm workspace packaging](https://pnpm.io/workspaces#publishing-workspace-packages), [npm first-publication/latest behavior](https://github.com/npm/cli/issues/8490).

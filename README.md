@@ -4,7 +4,7 @@ Kaspa wallet login for TypeScript applications, with native Vue and React UI and
 
 Mobile and hardware options are hidden from the default UI while their UX and security are evaluated. See the [deferred integration findings](docs/roadmap/wallet-integrations.md) for Kaspire, Ledger and KSPR. Kaspium manual signing remains an [explicit SDK opt-in](docs/integration/kaspium.md).
 
-This source targets **beta release `0.1.0-beta.2`** under `@ghostdagger`. Install matching versions using `@beta` or the exact version. npm's `latest` tag remains on the initial `0.1.0-beta.1`; use `@beta` or `@0.1.0-beta.2` for the Postgres update. Source-backed adapters and automated fixtures are included; real-wallet version certification and testnet transaction evidence are tracked in [the compatibility record](docs/testing/compatibility-v1.json). See [release setup and publishing](docs/releases/publishing.md) for GitHub Actions, npm ownership and remaining release prerequisites.
+The current public **beta release is `0.1.0-beta.2`** under `@ghostdagger`. Install matching versions using `@beta` or the exact version. npm's `latest` tag remains on the initial `0.1.0-beta.1`; use `@beta` or `@0.1.0-beta.2` for the Postgres update. Source-backed adapters and automated fixtures are included; real-wallet version certification and testnet transaction evidence are tracked in [the compatibility record](docs/testing/compatibility-v1.json). See [release setup and publishing](docs/releases/publishing.md) for GitHub Actions, npm ownership and remaining release prerequisites.
 
 ## Integration guides
 
