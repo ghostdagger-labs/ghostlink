@@ -2,6 +2,8 @@
 
 Build a small React + TypeScript app with wallet login, a protected Node endpoint, automatic session restoration, and logout. This is a complete browser-rendered Vite app: every file below can be copied as written. It uses the public packages, including their CSS, and a persistent SQLite backend.
 
+For Vercel functions and managed storage, use the source-workspace [Vercel + Neon example](../../examples/vercel-neon/README.md) and [Postgres adapter guide](postgres.md). The Postgres adapter is newer than the published beta used below.
+
 Already have an app? Use the [backend](#serverindexts), [client integration](#client-integration), and [lifecycle notes](#lifecycle-and-ssr) with your existing build setup. The backend and browser must agree on the public origin and network.
 
 ## 1. Create the app

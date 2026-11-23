@@ -2,6 +2,8 @@
 
 Build a small Vue + TypeScript app with wallet login, a protected Node endpoint, automatic session restoration, and logout. This is a complete browser-rendered Vite app: every file below can be copied as written. It uses the public packages, including their CSS, and a persistent SQLite backend.
 
+For managed serverless storage, see the [Postgres/Neon adapter guide](postgres.md). The backend adapter is framework-independent; the complete [Vercel + Neon example](../../examples/vercel-neon/README.md) uses Next.js. These source-workspace additions are newer than the published beta used below.
+
 Already have an app? Use the [backend](#serverindexts), [client integration](#client-integration), and [lifecycle notes](#lifecycle-and-ssr) with your existing build setup. The backend and browser must agree on the public origin and network.
 
 ## 1. Create the app

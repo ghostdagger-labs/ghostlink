@@ -17,4 +17,10 @@ describe('SQLite storage contract', () => {
     try { const results = await Promise.all(Array.from({ length: 20 }, (_, i) => (i % 2 ? a : b).consumeRateLimit('same', 1, 1000, 5))); expect(results.filter(Boolean)).toHaveLength(5); }
     finally { a.close?.(); b.close?.(); rmSync(directory, { recursive: true }); }
   });
+  it('passes the shared contract across independent file connections', async () => {
+    const directory = mkdtempSync(join(tmpdir(), 'ghostlink-contract-test-')); const path = join(directory, 'state.sqlite');
+    const a = createSqliteStorage(path), b = createSqliteStorage(path);
+    try { await assertStorageConformance(a, b); }
+    finally { a.close?.(); b.close?.(); rmSync(directory, { recursive: true }); }
+  });
 });

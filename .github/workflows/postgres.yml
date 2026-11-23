@@ -1,0 +1,46 @@
+name: Postgres and Vercel example
+on:
+  push:
+  pull_request:
+  workflow_call:
+jobs:
+  postgres:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        postgres: ['16', '18']
+    services:
+      postgres:
+        image: postgres:${{ matrix.postgres }}-alpine
+        env:
+          POSTGRES_USER: ghostlink
+          POSTGRES_PASSWORD: ghostlink-test
+          POSTGRES_DB: ghostlink_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ghostlink -d ghostlink_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      GHOSTLINK_TEST_DATABASE_URL: postgresql://ghostlink:ghostlink-test@127.0.0.1:5432/ghostlink_test
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - run: npm install -g pnpm@11.7.0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build:vercel
+      - run: pnpm --filter ghostlink-example-vercel-neon typecheck
+      - run: pnpm test:postgres
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:vercel
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: postgres-${{ matrix.postgres }}-test-results
+          path: test-results/vercel/

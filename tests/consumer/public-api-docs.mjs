@@ -42,6 +42,8 @@ const checks = [
   ['idle-ttl', 'policy.idleTtlMs', [/milliseconds/i, /1_800_000/]],
   ['local-http', 'policy.allowInsecureLocalhost', [/false/, /loopback/i]],
   ['storage', 'createSqliteStorage', [/Node 24/, /close/i]],
+  ['postgres-storage', 'createPostgresStorage', [/Neon/, /pool.end/, /primary/i]],
+  ['postgres-migration', 'migratePostgresStorage', [/deployment/i, /concurrently/i, /pool.end/]],
   ['storage-shutdown', 'storage.close', [/shutdown/i]],
   ['node-handler', 'createNodeHandler', [/Host/, /socket peer/i]],
   ['react-provider', 'ReactProvider', [/stable client/i, /Strict Mode/i]],
@@ -61,6 +63,7 @@ const checks = [
 let source = `
 import { createGhostlink, createAuthClient, type GhostlinkConfig, type GhostlinkSnapshot } from '@ghostdagger/ghostlink-core';
 import { createGhostlinkServer, createNodeHandler, createSqliteStorage, type GhostlinkServerConfig, type GhostlinkStorage } from '@ghostdagger/ghostlink-server';
+import { createPostgresStorage, migratePostgresStorage } from '@ghostdagger/ghostlink-server/postgres';
 import { GhostlinkProvider as ReactProvider, GhostlinkConnectButton as ReactButton, GhostlinkModal as ReactModal, useGhostlink as useReact } from '@ghostdagger/ghostlink-react';
 import { GhostlinkPlugin, GhostlinkProvider as VueProvider, GhostlinkConnectButton as VueButton, GhostlinkModal as VueModal, useGhostlink as useVue } from '@ghostdagger/ghostlink-vue';
 import type { ComponentProps } from 'react';

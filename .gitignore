@@ -16,3 +16,4 @@ coverage/
 .nuxt/
 .output/
 .vercel/
+.next/

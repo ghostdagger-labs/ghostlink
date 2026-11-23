@@ -10,6 +10,8 @@ The first public **beta release**, `0.1.0-beta.1`, is available on npm under `@g
 
 Start with the complete [Vue integration guide](docs/integration/vue.md) or [React integration guide](docs/integration/react.md). Each includes copyable app files, a Node backend, local package installation, login, protected requests, session restoration, logout, and deployment notes. Read the [provider lifecycle and SSR contract](docs/integration/lifecycle.md) when adapting an existing app.
 
+For serverless deployments, use the [Postgres/Neon storage guide](docs/integration/postgres.md) and [complete Vercel + Neon example](examples/vercel-neon/README.md). The source checkout includes a Postgres adapter with the same revocation and single-use challenge guarantees as SQLite, without requiring a persistent function filesystem. This adapter is newer than the published `0.1.0-beta.1` release.
+
 ## Website
 
 The Nuxt landing page and same-origin demo live in `website/`. After installing and building, run `pnpm dev:website` and open http://127.0.0.1:3000. `docker compose up --build -d` runs the production website with persistent SQLite. See [website setup](website/README.md) and the [landing-page reconciliation roadmap](docs/roadmap/landing-page-reconciliation.md).

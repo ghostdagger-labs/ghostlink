@@ -1,0 +1,4 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["tests/postgres", "tests/vercel", "vitest.postgres.config.ts", "playwright.vercel.config.ts"]
+}

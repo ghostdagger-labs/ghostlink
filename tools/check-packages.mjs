@@ -27,7 +27,7 @@ const example = JSON.parse(readFileSync(join(root, 'examples/vue/package.json'),
 const workspace = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 for (const name of ['vue', 'react', 'react-dom']) dependencies[name] = installedVersion(join(root, 'examples/vue'), name, example.dependencies[name]);
 const devDependencies = {};
-for (const name of ['typescript', '@types/react', '@types/react-dom', '@types/node']) devDependencies[name] = installedVersion(root, name, workspace.devDependencies[name]);
+for (const name of ['typescript', '@types/react', '@types/react-dom', '@types/node', 'pg', '@types/pg', '@neondatabase/serverless']) devDependencies[name] = installedVersion(root, name, workspace.devDependencies[name]);
 
 for (const manager of values.manager === 'both' ? ['npm', 'pnpm'] : [values.manager]) {
 const consumer = mkdtempSync(join(tmpdir(), `ghostlink-${manager}-consumer-`));
@@ -91,11 +91,39 @@ assert.equal((await server.handle(new Request('https://app.example/auth/ghostlin
 console.log('Clean consumer: Vue/React SSR, CSS, fonts, wallet assets, Node SQLite and official WASM verification passed.');
 `);
 execFileSync(process.execPath, ['verify.mjs'], { cwd: consumer, stdio: 'inherit' });
+writeFileSync(join(consumer, 'verify-storage-entrypoints.mjs'), `
+import assert from 'node:assert/strict';
+import { registerHooks } from 'node:module';
+const hooks = registerHooks({ resolve(specifier, context, nextResolve) {
+  assert.notEqual(specifier, 'node:sqlite', 'Remote storage entry points must not load SQLite');
+  return nextResolve(specifier, context);
+} });
+const server = await import('@ghostdagger/ghostlink-server/server');
+const postgres = await import('@ghostdagger/ghostlink-server/postgres');
+assert.equal(typeof server.createGhostlinkServer, 'function');
+assert.equal(typeof postgres.createPostgresStorage, 'function');
+assert.equal(typeof postgres.migratePostgresStorage, 'function');
+hooks.deregister();
+const sqlite = await import('@ghostdagger/ghostlink-server/sqlite');
+const root = await import('@ghostdagger/ghostlink-server');
+assert.equal(sqlite.createSqliteStorage, root.createSqliteStorage);
+assert.equal(postgres.createPostgresStorage, root.createPostgresStorage);
+console.log('Installed storage entry points preserve SQLite compatibility and remote-only imports.');
+`);
+execFileSync(process.execPath, ['verify-storage-entrypoints.mjs'], { cwd: consumer, stdio: 'inherit' });
 writeFileSync(join(consumer, 'verify.ts'), `
 import { createGhostlink, type AuthSession, type AuthenticationListener, type InitializationState, type TransactionRequest } from '@ghostdagger/ghostlink-core';
 import { GhostlinkProvider as VueProvider, useGhostlink as useVue } from '@ghostdagger/ghostlink-vue';
 import { GhostlinkProvider as ReactProvider, useGhostlink as useReact } from '@ghostdagger/ghostlink-react';
 import { createGhostlinkServer, createSqliteStorage } from '@ghostdagger/ghostlink-server';
+import { createPostgresStorage, migratePostgresStorage } from '@ghostdagger/ghostlink-server/postgres';
+import { createGhostlinkServer as remoteServer } from '@ghostdagger/ghostlink-server/server';
+import { createSqliteStorage as sqliteSubpath } from '@ghostdagger/ghostlink-server/sqlite';
+declare const pgPool: import('pg').Pool;
+declare const neonPool: import('@neondatabase/serverless').Pool;
+createPostgresStorage(pgPool);
+createPostgresStorage(neonPool, { schema: 'typed_app' });
+void [migratePostgresStorage(pgPool), migratePostgresStorage(neonPool), remoteServer, sqliteSubpath];
 const client = createGhostlink({ app: { name: 'Typed consumer', url: 'https://app.example' }, closeOnAuthenticate: false });
 const onAuthenticated: AuthenticationListener = async session => { const address: string = session.address; void address; };
 const unsubscribe: () => void = client.onAuthenticated(onAuthenticated);

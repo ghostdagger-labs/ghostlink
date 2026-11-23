@@ -21,7 +21,11 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  postgres:
+    uses: ./.github/workflows/postgres.yml
+
   verify:
+    needs: postgres
     if: github.repository == 'ghostdagger-labs/ghostlink'
     runs-on: macos-15
     timeout-minutes: 45

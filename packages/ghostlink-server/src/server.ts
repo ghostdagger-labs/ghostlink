@@ -10,7 +10,7 @@ export interface GhostlinkServerConfig {
   origin: string;
   /** Absolute same-origin URI included in login messages; no credentials or fragment. */
   loginUri: string;
-  /** Persistence adapter. Its creator owns shutdown; use createSqliteStorage for the supplied Node backend. */
+  /** Persistence adapter. Use createSqliteStorage or createPostgresStorage; its creator owns database/pool shutdown. */
   storage: GhostlinkStorage;
   /** Nonempty allowed network list. Defaults to mainnet, testnet-10, and testnet-11. */
   networks?: readonly Network[];

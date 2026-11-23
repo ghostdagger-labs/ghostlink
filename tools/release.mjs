@@ -55,7 +55,7 @@ export function checkFiles(name, files) {
   }
   const required = ['package.json', 'README.md', 'LICENSE', 'dist/index.js', 'dist/index.d.ts'];
   if (name.endsWith('/ghostlink-core')) required.push('dist/styles.css', 'dist/fonts.css', 'dist/assets/provenance.json', 'dist/assets/KasWare-LICENSE', 'dist/assets/Kastle-LICENSE', 'dist/assets/Kaspium-LICENSE', ...['figtree', 'sora', 'jetbrains-mono'].map(font => `dist/assets/fonts/${font}-LICENSE`));
-  if (name.endsWith('/ghostlink-server')) required.push('vendor/provenance.json', 'vendor/kaspa/LICENSE', 'vendor/kaspa/kaspa.js', 'vendor/kaspa/kaspa_bg.wasm');
+  if (name.endsWith('/ghostlink-server')) required.push('vendor/provenance.json', 'vendor/kaspa/LICENSE', 'vendor/kaspa/kaspa.js', 'vendor/kaspa/kaspa_bg.wasm', ...['server', 'postgres', 'sqlite'].flatMap(entry => [`dist/${entry}.js`, `dist/${entry}.d.ts`]));
   for (const file of required) assert(files.includes(`package/${file}`), `Missing packaged file: ${file}`);
 }
 

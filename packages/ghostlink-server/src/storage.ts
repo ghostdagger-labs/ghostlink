@@ -2,7 +2,7 @@ import type { AuthChallenge, AuthSession } from '@ghostdagger/ghostlink-core';
 export interface BrowserRecord { hash: string; csrf: string; expiresAt: number; }
 export interface ChallengeRecord extends AuthChallenge { browserHash: string; issuedAt: number; }
 export interface SessionRecord { hash: string; browserHash: string; session: AuthSession; lastSeen: number; receipt: { profile: string; message: string; signature: string; publicKey?: string }; }
-/** All times are Unix milliseconds. commitLogin MUST atomically consume the challenge and create the session. */
+/** All times are Unix milliseconds. commitLogin MUST atomically consume the challenge and create the session. Operations must coordinate across independent server instances; subsequent reads must observe completed revocations. Fail closed on storage errors. */
 export interface GhostlinkStorage {
   /** Look up an unexpired browser record by its hashed cookie token. */
   getBrowser(hash: string, now: number): Promise<BrowserRecord | null>;
