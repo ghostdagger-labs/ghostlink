@@ -49,6 +49,8 @@ The existing `ghostlink` Vercel project serves this website, including `/demo`, 
 
 Choose a Vercel function region near the Neon primary. Keep production and preview credentials in separate Vercel environments and separate Neon branches/databases. A preview needs its own stable origin and migrated schema; do not expose production session storage to arbitrary preview code. Missing `DATABASE_URL` on Vercel makes authentication unavailable instead of falling back to an instance-local SQLite file.
 
+The deployed `ghostlink` project uses `https://ghostlink-tau.vercel.app` in Vercel `iad1`, with the Neon `ghostlink` project in AWS US East 1. Its `production` branch uses the `ghostlink_runtime` role. The `codex/deploy-neon-website` Vercel preview uses the separate `website-preview` database branch and `ghostlink_preview_runtime` role, which does not exist in production. These preview variables are scoped to that Git branch; other previews need their own configuration. No database credentials are stored in the repository.
+
 Run the explicit migration once before deploying, from this checkout after `pnpm build:website`:
 
 ```sh
@@ -58,7 +60,7 @@ pnpm --filter ghostlink-website db:migrate
 
 The script reads `MIGRATION_DATABASE_URL` when present, otherwise `DATABASE_URL`, and uses `GHOSTLINK_DATABASE_SCHEMA`. Use an owner connection for migrations and a runtime role with schema `USAGE` plus table `SELECT`, `INSERT`, `UPDATE`, and `DELETE`. Keep migration credentials out of the runtime environment. See the [Postgres adapter guide](../docs/integration/postgres.md) for roles, transactions, and migration details. Builds and requests never run migrations.
 
-The server reuses a bounded connection pool and attaches it to Vercel's connection lifecycle. Challenges, session hashes, browser bindings, revocation, and rate limits live in Postgres. The browser receives HttpOnly session cookies; localStorage only holds wallet/network preferences. Logout revokes the server session, including copied cookies. The SDK's authentication API is unchanged.
+The server reuses a bounded connection pool and attaches it to Vercel's connection lifecycle. Challenges, session hashes, browser bindings, revocation, and rate limits live in Postgres. The browser receives HttpOnly session cookies; browser storage holds wallet/network preferences only. Logout revokes the server session, including copied cookies. The SDK's authentication API is unchanged.
 
 ## Production / Docker
 

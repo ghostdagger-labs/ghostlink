@@ -19,13 +19,15 @@ for (const wallet of ['KasWare', 'Kastle'] as const) test(`${wallet}: real websi
   await expectSignedIn(page);
   await page.getByRole('button', { name: 'Test protected API' }).click();
   await expect(page.locator('.example-result')).toContainText('Your protected backend request succeeded.');
-  const cookies = (await context.cookies()).filter(cookie => /^(?:__Host-)?ghostlink-/.test(cookie.name));
+  const allCookies = await context.cookies(page.url());
+  const cookies = allCookies.filter(cookie => /^(?:__Host-)?ghostlink-/.test(cookie.name));
   expect(cookies.length).toBe(2);
   expect(cookies.every(cookie => cookie.httpOnly && cookie.sameSite === 'Lax')).toBe(true);
   if (new URL(page.url()).protocol === 'https:') {
     expect(cookies.every(cookie => cookie.secure && cookie.name.startsWith('__Host-') && cookie.path === '/')).toBe(true);
   }
-  const copiedCookie = cookies.map(cookie => `${cookie.name}=${cookie.value}`).join('; ');
+  // Keep hosting-provider access cookies when testing a protected preview.
+  const copiedCookie = allCookies.map(cookie => `${cookie.name}=${cookie.value}`).join('; ');
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Ownership verified' })).toBeVisible();
   const authorized = await page.request.get('/api/private');
