@@ -1,3 +1,7 @@
+---
+description: "Build a complete React login application with a stable provider, Node backend, and protected requests."
+updated: '2026-11-23'
+---
 # Integrate Ghostlink with React
 
 Build a small React + TypeScript app with wallet login, a protected Node endpoint, automatic session restoration, and logout. This is a complete browser-rendered Vite app: every file below can be copied as written. It uses the public packages, including their CSS, and a persistent SQLite backend.

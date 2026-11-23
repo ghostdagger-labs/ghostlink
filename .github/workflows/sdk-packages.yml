@@ -48,6 +48,7 @@ jobs:
       - run: pnpm audit
       - run: pnpm build
       - run: pnpm typecheck
+      - run: pnpm check:docs
       - run: pnpm test
       - run: pnpm test:release
       - run: pnpm exec playwright install chromium

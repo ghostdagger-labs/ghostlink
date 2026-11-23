@@ -17,6 +17,7 @@
     "dev": "pnpm --filter ghostlink-example-vue dev",
     "check:package": "node tools/check-packages.mjs",
     "check:guides": "node tools/check-integration-guides.mjs",
+    "check:docs": "pnpm --filter ghostlink-website check:docs",
     "dev:website": "pnpm --filter ghostlink-website dev",
     "dev:vercel": "pnpm --filter ghostlink-example-vercel-neon dev",
     "build:website": "pnpm --filter ghostlink-website build",

@@ -1,6 +1,14 @@
 # Ghostlink website
 
-Nuxt 4 / Vue / TypeScript landing page, package and integration guide hub, and the existing Vue example at `/demo`. The default experience presents KasWare and Kastle browser wallets only; mobile/hardware options and prospective wallet cards are hidden. The [deferred integration findings](../docs/roadmap/wallet-integrations.md) record the UX policy and future candidates. The Node server uses `@ghostdagger/ghostlink-server` with Neon/Postgres on Vercel and SQLite by default for local development. Both use real signature verification, server-side sessions, and the protected API. The original design files are preserved; the [claim audit and roadmap](../docs/roadmap/landing-page-reconciliation.md) explain copy corrections.
+Nuxt 4 / Vue / TypeScript landing page, Markdown documentation reader, and the existing Vue example at `/demo`. The default experience presents KasWare and Kastle browser wallets only; mobile/hardware options and prospective wallet cards are hidden. The [deferred integration findings](../docs/roadmap/wallet-integrations.md) record the UX policy and future candidates. The Node server uses `@ghostdagger/ghostlink-server` with Neon/Postgres on Vercel and SQLite by default for local development. Both use real signature verification, server-side sessions, and the protected API. The original design files are preserved; the [claim audit and roadmap](../docs/roadmap/landing-page-reconciliation.md) explain copy corrections.
+
+## Documentation reader
+
+`/docs` serves the Introduction and `/docs/<slug>` serves each registered article. The reader compiles canonical repository Markdown with remark/GFM, sanitization, and Shiki at build time. Routes are prerendered; page content loads individually and the full-text search index loads on demand. Exact Markdown is available at `/docs/index.md` and `/docs/<slug>.md`.
+
+The [authoring and release-update workflow](../docs/website-authoring.md) explains the typed manifest, metadata, examples, publication boundaries, and `pnpm check:docs`. The [documentation reconciliation](../docs/roadmap/documentation-page-reconciliation.md) records corrections to the supplied design. Docs requests do not initialize wallet controllers or authentication storage.
+
+Browser coverage checks the reader at 360, 390, 768, 1280, and 1460 pixels in both themes, including axe scans, reviewed screenshots, search, navigation, exact sources, keyboard behavior, clipboard failures, and reading without JavaScript.
 
 ## Local development
 

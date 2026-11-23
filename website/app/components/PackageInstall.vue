@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { guideUrl, releaseVersion, repositoryUrl } from '../data/release';
+import { guideUrl, releaseVersion } from '../data/release';
 import { installCommands } from 'virtual:ghostlink-code';
 const { ready } = useLandingTheme();
 const selected = ref<'Vue' | 'React' | 'TypeScript'>('Vue');
 const choices = {
   Vue: { guide: guideUrl('vue'), label: 'Follow the Vue guide', requirement: 'For Vue 3.5+ apps.' },
   React: { guide: guideUrl('react'), label: 'Follow the React guide', requirement: 'For React 18.3 or 19 apps.' },
-  TypeScript: { guide: `${repositoryUrl}#client-operations`, label: 'Explore the controller API', requirement: 'For your own UI or a headless integration.' },
+  TypeScript: { guide: guideUrl('core-api'), label: 'Explore the controller API', requirement: 'For your own UI or a headless integration.' },
 };
 const choice = computed(() => choices[selected.value]);
 </script>

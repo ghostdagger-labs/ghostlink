@@ -54,7 +54,7 @@ test('published packages, working examples, keyboard access and guide links', as
   await page.getByRole('link', { name: 'How it works', exact: true }).click(); await expect(page).toHaveURL(/#how$/);
   for (const link of await page.locator('a[href]').all()) expect(await link.getAttribute('href')).toMatch(/^(\/|#|https:\/\/(github\.com\/ghostdagger-labs\/ghostlink(?:[\/#]|$)|www\.npmjs\.com\/package\/@ghostdagger\/ghostlink-))/);
   await page.getByRole('link', { name: 'Read the docs', exact: true }).first().click();
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('From npm install to wallet login.');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Introduction');
   await page.goBack(); await expect(page.getByRole('heading', { level: 1 })).toHaveText('Kaspa wallet login for your dApp.');
   await page.goto('/'); await page.keyboard.press('Tab'); await expect(page.getByRole('link', { name: 'Skip to content' })).toBeFocused();
   expect(errors).toEqual([]);
@@ -64,8 +64,8 @@ test('Get started opens guides, demo remains reachable and styles do not leak on
   await page.goto('/');
   await page.getByRole('link', { name: 'Get started', exact: true }).click();
   await expect(page).toHaveURL(/\/docs$/);
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('From npm install to wallet login.');
-  await page.getByRole('link', { name: 'Demo', exact: true }).first().click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Introduction');
+  await page.getByRole('link', { name: 'Open the demo', exact: true }).last().click();
   await expect(page).toHaveURL(/\/demo$/);
   await expect(page.getByRole('heading', { name: 'Ready when you are' })).toBeVisible();
   await page.getByRole('button', { name: 'Use light theme' }).click();
@@ -80,21 +80,4 @@ test('public HTML is server rendered and no verifier ships to browsers', async (
   expect(html).toContain('class="highlighted-code"');
   expect(html).not.toContain('support.js'); expect(html).not.toContain('kaspa_bg.wasm');
   expect((await request.get('/docs')).status()).toBe(200);
-});
-
-for (const width of [360, 1280]) test(`docs ${width}: install commands, guides and accessible layout`, async ({ page }) => {
-  await page.setViewportSize({ width, height: 1000 });
-  await page.goto('/docs');
-  if (width === 1280) await page.getByRole('button', { name: 'Use light theme' }).click();
-  await page.evaluate(() => document.fonts.ready);
-  await expect(page).toHaveTitle('Get started with Ghostlink — Packages and integration guides');
-  await expect(page.getByRole('link', { name: 'Build with Vue' })).toHaveAttribute('href', 'https://github.com/ghostdagger-labs/ghostlink/blob/main/docs/integration/vue.md');
-  await expect(page.getByRole('link', { name: 'Build with React' })).toHaveAttribute('href', 'https://github.com/ghostdagger-labs/ghostlink/blob/main/docs/integration/react.md');
-  await expect(page.getByRole('link', { name: 'Use Postgres or Neon' })).toHaveAttribute('href', 'https://github.com/ghostdagger-labs/ghostlink/blob/main/docs/integration/postgres.md');
-  await page.getByRole('button', { name: 'React', exact: true }).click();
-  await expect(page.getByLabel('Frontend install command')).toContainText('@ghostdagger/ghostlink-react@0.1.0-beta.2');
-  await expect(page.getByRole('link', { name: 'Follow the React guide' })).toHaveAttribute('href', 'https://github.com/ghostdagger-labs/ghostlink/blob/main/docs/integration/react.md');
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
-  await page.screenshot({ path: `artifacts/website/docs-${width}.png`, fullPage: true, animations: 'disabled' });
 });

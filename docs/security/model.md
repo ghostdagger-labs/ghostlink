@@ -1,3 +1,7 @@
+---
+description: "Understand challenge verification, cookie sessions, revocation, storage guarantees, and application responsibilities."
+updated: '2026-11-23'
+---
 # Security model and deployment
 
 Ghostlink verifies control of a supported Kaspa account and establishes a revocable application session. A connection approval alone never authenticates. Signature verification binds the intended application, browser, account and network and prevents replay. **Generic message signing is not phishing-resistant**: an attacker can relay a legitimate challenge to a victim and persuade them to sign it. Wallet-side trusted-domain enforcement is a separate, preferred protection. Do not describe existing compatibility adapters as fully CAIP-122 compliant.

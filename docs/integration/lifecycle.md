@@ -1,3 +1,7 @@
+---
+description: "Manage provider ownership, initialization, retries, SSR, and cleanup without losing established sessions."
+updated: '2026-11-23'
+---
 # Provider lifecycle and session readiness
 
 Put `GhostlinkProvider` or the Vue app plugin near the application root. It owns initialization and active browser resources. Hooks, custom triggers, and the supplied connect button all observe the same lifecycle; rendering a button is never required to restore a session.

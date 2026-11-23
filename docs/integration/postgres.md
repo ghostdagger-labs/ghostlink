@@ -1,3 +1,7 @@
+---
+description: "Share durable authentication state across Node instances with explicit migrations and a writable-primary connection pool."
+updated: '2026-11-23'
+---
 # Postgres and Neon storage
 
 Ghostlink supports SQLite on persistent Node servers and Postgres on serverless or multi-instance servers. Both implement the same `GhostlinkStorage` contract. The Postgres adapter works with `pg.Pool` and `@neondatabase/serverless.Pool`; it has no runtime driver dependency. Use Node 24. Edge runtimes are not supported by Ghostlink's current Kaspa verifier.

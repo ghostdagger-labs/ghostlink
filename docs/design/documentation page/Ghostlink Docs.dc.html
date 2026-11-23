@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Figtree:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+--bg:#0C0D11;--surf:#14161B;--surf2:#1B1E25;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.16);
+--ink:#F3F4F7;--ink2:#A5AAB5;--ink3:#8D949D;
+--acc:#8D7BFF;--accSoft:rgba(141,123,255,.14);--accLine:rgba(141,123,255,.38);--accInk:#0C0D11;
+--ok:#7FC8A9;--okSoft:rgba(127,200,169,.12);--danger:#E8897C;--dangerSoft:rgba(232,137,124,.12);
+--warn:#D8B472;--warnSoft:rgba(216,180,114,.12);
+--chip:rgba(255,255,255,.05);--chipOn:#F3F4F7;--chipOnInk:#0C0D11;
+--code:#08090C;--codeInk:#C9CEDA;
+--shadow:0 1px 0 rgba(255,255,255,.03),0 18px 40px -26px rgba(0,0,0,.9);
+}
+[data-theme="light"]{
+--bg:#F3F3F5;--surf:#FFFFFF;--surf2:#F8F8FA;--line:rgba(14,16,22,.10);--line2:rgba(14,16,22,.18);
+--ink:#13151A;--ink2:#5C626C;--ink3:#666D76;
+--acc:#5B46E0;--accSoft:rgba(91,70,224,.10);--accLine:rgba(91,70,224,.32);--accInk:#FFFFFF;
+--ok:#2F7D5B;--okSoft:rgba(47,125,91,.10);--danger:#B4503C;--dangerSoft:rgba(180,80,60,.08);
+--warn:#8C6A22;--warnSoft:rgba(140,106,34,.1);
+--chip:rgba(14,16,22,.05);--chipOn:#13151A;--chipOnInk:#FFFFFF;
+--code:#15171D;--codeInk:#D5D9E2;
+--shadow:0 1px 2px rgba(14,16,22,.05),0 16px 32px -28px rgba(14,16,22,.4);
+}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:Figtree,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:var(--acc);text-decoration:none}
+a:hover{color:var(--ink)}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input{font-family:inherit}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:var(--line2);border-radius:8px}::-webkit-scrollbar-track{background:transparent}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:var(--bg)">
+
+<header style="position:sticky;top:0;z-index:40;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(14px)">
+  <div style="max-width:1460px;margin:0 auto;padding:10px 22px;min-height:60px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <a href="Ghostlink Landing.dc.html" style="display:flex;align-items:center;gap:9px;flex:none" style-hover="color:var(--ink)">
+      <svg width="28" height="17" viewBox="0 0 34 20" fill="none" style="flex:none">
+        <circle cx="11" cy="10" r="6.4" fill="var(--acc)"></circle>
+        <circle cx="23" cy="10" r="6.4" fill="none" stroke="var(--acc)" stroke-width="2.1"></circle>
+      </svg>
+      <span style="font-family:Sora,sans-serif;font-weight:600;font-size:16.5px;letter-spacing:-.5px;color:var(--ink)">Ghostlink</span>
+    </a>
+    <span style="flex:none;padding:3px 9px;border-radius:999px;background:var(--chip);font:600 10.5px 'JetBrains Mono',monospace;color:var(--ink3)">docs</span>
+
+    <label style="flex:1;min-width:180px;max-width:360px;display:flex;align-items:center;gap:9px;height:36px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:var(--surf);color:var(--ink3)" style-focus="border-color:var(--accLine)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.2-3.2"></path></svg>
+      <input value="{{ query }}" onChange="{{ onSearch }}" placeholder="Search the docs" style="flex:1;min-width:0;border:none;outline:none;background:none;color:var(--ink);font-size:13px"/>
+      <span style="font:500 10px 'JetBrains Mono',monospace;color:var(--ink3);border:1px solid var(--line);border-radius:5px;padding:2px 5px">⌘K</span>
+    </label>
+
+    <div style="margin-left:auto;display:flex;align-items:center;gap:9px">
+      <div style="display:flex;gap:3px;padding:3px;border-radius:10px;background:var(--chip)">
+        <sc-for list="{{ viewModes }}" as="v" hint-placeholder-count="2">
+          <button onClick="{{ v.pick }}" style="height:28px;padding:0 11px;border-radius:7px;font:600 11.5px Figtree;background:{{ v.bg }};color:{{ v.fg }}">{{ v.name }}</button>
+        </sc-for>
+      </div>
+      <span style="font:600 11px 'JetBrains Mono',monospace;color:var(--ink3);padding:4px 9px;border-radius:999px;background:var(--chip)">v0.1.0</span>
+      <button onClick="{{ toggleTheme }}" style="width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:var(--surf);display:grid;place-items:center;color:var(--ink2)" style-hover="color:var(--ink);border-color:var(--line2)">
+        <sc-if value="{{ isDark }}" hint-placeholder-val="{{ true }}">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+        </sc-if>
+        <sc-if value="{{ isLight }}" hint-placeholder-val="{{ false }}">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6.4 6.4 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+        </sc-if>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div style="max-width:1460px;margin:0 auto;padding:24px 22px 80px;display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start">
+
+  <aside style="position:sticky;top:84px;flex:1 1 220px;max-width:268px;min-width:0;display:flex;flex-direction:column;gap:20px">
+    <sc-for list="{{ groups }}" as="g" hint-placeholder-count="4">
+      <div>
+        <div style="font:700 10.5px Figtree;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);padding:0 10px;margin-bottom:7px">{{ g.name }}</div>
+        <div style="display:flex;flex-direction:column;gap:1px">
+          <sc-for list="{{ g.items }}" as="p" hint-placeholder-count="3">
+            <button onClick="{{ p.go }}" style="display:flex;align-items:center;gap:9px;text-align:left;padding:7px 10px;border-radius:9px;background:{{ p.bg }};border-left:2px solid {{ p.bar }}" style-hover="background:var(--surf)">
+              <span style="flex:1;min-width:0;font-size:13.5px;font-weight:{{ p.weight }};color:{{ p.fg }}">{{ p.title }}</span>
+              <span style="flex:none;font:600 9.5px Figtree;letter-spacing:.04em;text-transform:uppercase;color:{{ p.tagFg }};background:{{ p.tagBg }};padding:2px 6px;border-radius:999px">{{ p.tag }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+    <sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:14px;border:1px dashed var(--line2);border-radius:12px;font-size:12.5px;line-height:1.5;color:var(--ink3)">Nothing matches “{{ query }}”. Try “session”, “sign” or “error”.</div>
+    </sc-if>
+  </aside>
+
+  <main style="flex:100 1 460px;min-width:0;display:flex;flex-direction:column;gap:26px;animation:fadeUp .3s ease both">
+    <div style="display:flex;align-items:center;gap:8px;font:500 12px 'JetBrains Mono',monospace;color:var(--ink3);flex-wrap:wrap">
+      <span>docs</span><span>/</span><span>{{ page.group }}</span><span>/</span><span style="color:var(--ink2)">{{ page.slug }}.md</span>
+      <span style="margin-left:auto;display:flex;align-items:center;gap:7px">
+        <span style="font-size:11.5px;font-family:Figtree">{{ page.reading }}</span>
+        <span style="width:1px;height:12px;background:var(--line)"></span>
+        <span style="font-size:11.5px;font-family:Figtree">Updated {{ page.updated }}</span>
+      </span>
+    </div>
+
+    <header style="display:flex;flex-direction:column;gap:12px;padding-bottom:22px;border-bottom:1px solid var(--line)">
+      <h1 style="margin:0;font-family:Sora,sans-serif;font-size:40px;line-height:1.08;letter-spacing:-1.8px;font-weight:600;color:var(--ink);text-wrap:balance">{{ page.title }}</h1>
+      <p style="margin:0;max-width:62ch;font-size:17px;line-height:1.5;color:var(--ink2);text-wrap:pretty">{{ page.lede }}</p>
+    </header>
+
+    <sc-if value="{{ isRendered }}" hint-placeholder-val="{{ true }}">
+      <article style="display:flex;flex-direction:column;gap:18px;max-width:78ch">
+        <sc-for list="{{ blocks }}" as="b" hint-placeholder-count="8">
+          <div>
+            <sc-if value="{{ b.isH2 }}" hint-placeholder-val="{{ true }}">
+              <h2 id="{{ b.id }}" style="margin:16px 0 0;font-family:Sora,sans-serif;font-size:25px;line-height:1.2;letter-spacing:-1px;font-weight:600;color:var(--ink);scroll-margin-top:90px">{{ b.text }}</h2>
+            </sc-if>
+            <sc-if value="{{ b.isH3 }}" hint-placeholder-val="{{ false }}">
+              <h3 id="{{ b.id }}" style="margin:10px 0 0;font-family:Sora,sans-serif;font-size:18px;line-height:1.25;letter-spacing:-.5px;font-weight:600;color:var(--ink);scroll-margin-top:90px">{{ b.text }}</h3>
+            </sc-if>
+            <sc-if value="{{ b.isP }}" hint-placeholder-val="{{ false }}">
+              <p style="margin:0;font-size:15.5px;line-height:1.68;color:var(--ink2);text-wrap:pretty">
+                <sc-for list="{{ b.tokens }}" as="t" hint-placeholder-count="3">
+                  <span style="font-weight:{{ t.weight }};font-family:{{ t.font }};font-size:{{ t.size }};color:{{ t.color }};background:{{ t.bg }};padding:{{ t.pad }};border-radius:5px">{{ t.text }}</span>
+                </sc-for>
+              </p>
+            </sc-if>
+            <sc-if value="{{ b.isList }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <sc-for list="{{ b.items }}" as="it" hint-placeholder-count="3">
+                  <div style="display:flex;gap:11px;align-items:flex-start">
+                    <span style="flex:none;width:5px;height:5px;border-radius:50%;background:var(--acc);margin-top:9px"></span>
+                    <span style="flex:1;min-width:0;font-size:15px;line-height:1.62;color:var(--ink2)">
+                      <sc-for list="{{ it.tokens }}" as="t" hint-placeholder-count="2">
+                        <span style="font-weight:{{ t.weight }};font-family:{{ t.font }};font-size:{{ t.size }};color:{{ t.color }};background:{{ t.bg }};padding:{{ t.pad }};border-radius:5px">{{ t.text }}</span>
+                      </sc-for>
+                    </span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ b.isCode }}" hint-placeholder-val="{{ false }}">
+              <div style="border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surf)">
+                <div style="display:flex;align-items:center;gap:9px;padding:9px 14px;border-bottom:1px solid var(--line);background:var(--surf2)">
+                  <span style="font:600 11px 'JetBrains Mono',monospace;color:var(--ink3)">{{ b.lang }}</span>
+                  <button onClick="{{ b.copy }}" style="margin-left:auto;height:24px;padding:0 10px;border-radius:7px;background:var(--chip);font:600 11px Figtree;color:var(--ink3)" style-hover="color:var(--ink)">{{ b.copyLabel }}</button>
+                </div>
+                <pre style="margin:0;padding:16px;background:var(--code);font:500 12.5px/1.75 'JetBrains Mono',monospace;color:var(--codeInk);overflow-x:auto">{{ b.code }}</pre>
+              </div>
+            </sc-if>
+            <sc-if value="{{ b.isNote }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;gap:12px;padding:14px 16px;border-radius:13px;background:{{ b.noteBg }};border:1px solid {{ b.noteLine }}">
+                <span style="flex:none;font:700 11px Figtree;letter-spacing:.06em;text-transform:uppercase;color:{{ b.noteFg }};padding-top:2px">{{ b.noteKind }}</span>
+                <span style="flex:1;min-width:0;font-size:14px;line-height:1.6;color:var(--ink2)">
+                  <sc-for list="{{ b.tokens }}" as="t" hint-placeholder-count="2">
+                    <span style="font-weight:{{ t.weight }};font-family:{{ t.font }};font-size:{{ t.size }};color:{{ t.color }};background:{{ t.bg }};padding:{{ t.pad }};border-radius:5px">{{ t.text }}</span>
+                  </sc-for>
+                </span>
+              </div>
+            </sc-if>
+            <sc-if value="{{ b.isTable }}" hint-placeholder-val="{{ false }}">
+              <div style="border:1px solid var(--line);border-radius:14px;overflow-x:auto;background:var(--surf)">
+                <div style="min-width:480px">
+                  <div style="display:flex;gap:14px;padding:11px 16px;border-bottom:1px solid var(--line);background:var(--surf2)">
+                    <sc-for list="{{ b.head }}" as="h" hint-placeholder-count="3">
+                      <span style="flex:1;min-width:0;font:700 10.5px Figtree;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3)">{{ h.text }}</span>
+                    </sc-for>
+                  </div>
+                  <sc-for list="{{ b.rows }}" as="r" hint-placeholder-count="4">
+                    <div style="display:flex;gap:14px;padding:11px 16px;border-bottom:1px solid var(--line)">
+                      <sc-for list="{{ r.cells }}" as="c" hint-placeholder-count="3">
+                        <span style="flex:1;min-width:0;font-size:12.5px;line-height:1.5;color:var(--ink2)">
+                          <sc-for list="{{ c.tokens }}" as="t" hint-placeholder-count="1">
+                            <span style="font-weight:{{ t.weight }};font-family:{{ t.font }};font-size:{{ t.size }};color:{{ t.color }};background:{{ t.bg }};padding:{{ t.pad }};border-radius:5px">{{ t.text }}</span>
+                          </sc-for>
+                        </span>
+                      </sc-for>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </article>
+    </sc-if>
+
+    <sc-if value="{{ isRaw }}" hint-placeholder-val="{{ false }}">
+      <div style="border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--surf)">
+        <div style="display:flex;align-items:center;gap:10px;padding:11px 15px;border-bottom:1px solid var(--line);background:var(--surf2)">
+          <span style="font:600 11.5px 'JetBrains Mono',monospace;color:var(--ink3)">{{ page.slug }}.md</span>
+          <span style="margin-left:auto;font:500 11px 'JetBrains Mono',monospace;color:var(--ink3)">{{ page.bytes }}</span>
+        </div>
+        <pre style="margin:0;padding:20px;background:var(--code);font:500 12.5px/1.8 'JetBrains Mono',monospace;color:var(--codeInk);overflow-x:auto;white-space:pre-wrap">{{ page.raw }}</pre>
+      </div>
+    </sc-if>
+
+    <div style="display:flex;gap:12px;flex-wrap:wrap;padding-top:20px;border-top:1px solid var(--line)">
+      <sc-if value="{{ hasPrev }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ goPrev }}" style="flex:1 1 200px;text-align:left;padding:15px 17px;border:1px solid var(--line);border-radius:14px;background:var(--surf)" style-hover="border-color:var(--acc)">
+          <span style="display:block;font:600 11px Figtree;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);margin-bottom:5px">Previous</span>
+          <span style="display:block;font-size:14.5px;font-weight:700;color:var(--ink)">{{ prevTitle }}</span>
+        </button>
+      </sc-if>
+      <sc-if value="{{ hasNext }}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{ goNext }}" style="flex:1 1 200px;text-align:right;padding:15px 17px;border:1px solid var(--line);border-radius:14px;background:var(--surf)" style-hover="border-color:var(--acc)">
+          <span style="display:block;font:600 11px Figtree;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);margin-bottom:5px">Next</span>
+          <span style="display:block;font-size:14.5px;font-weight:700;color:var(--ink)">{{ nextTitle }}</span>
+        </button>
+      </sc-if>
+    </div>
+  </main>
+
+  <aside style="position:sticky;top:84px;flex:1 1 200px;max-width:240px;min-width:0;display:flex;flex-direction:column;gap:18px">
+    <div>
+      <div style="font:700 10.5px Figtree;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);margin-bottom:10px">On this page</div>
+      <div style="display:flex;flex-direction:column;gap:1px">
+        <sc-for list="{{ toc }}" as="t" hint-placeholder-count="5">
+          <a href="#{{ t.id }}" style="padding:5px 10px;border-left:2px solid var(--line);font-size:12.5px;line-height:1.4;color:var(--ink2);padding-left:{{ t.indent }}" style-hover="color:var(--ink);border-color:var(--acc)">{{ t.text }}</a>
+        </sc-for>
+      </div>
+    </div>
+    <div style="border:1px solid var(--line);border-radius:14px;background:var(--surf);padding:15px">
+      <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:6px">Contributing</div>
+      <p style="margin:0 0 11px;font-size:12px;line-height:1.55;color:var(--ink3)">These pages are markdown in the repo. Fix a typo, open a PR.</p>
+      <button style="width:100%;height:32px;border-radius:9px;border:1px solid var(--line2);font:600 12px Figtree;color:var(--ink2)" style-hover="border-color:var(--acc);color:var(--ink)">Edit this page</button>
+    </div>
+    <div style="border:1px solid var(--accLine);border-radius:14px;background:var(--accSoft);padding:15px">
+      <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:6px">Try the flow</div>
+      <p style="margin:0 0 11px;font-size:12px;line-height:1.55;color:var(--ink2)">Nine states, live relay log, no wallet needed.</p>
+      <a href="Wallet Connect.dc.html" style="display:flex;align-items:center;justify-content:center;height:32px;border-radius:9px;background:var(--acc);color:var(--accInk);font:700 12px Figtree" style-hover="filter:brightness(1.08);color:var(--accInk)">Open the demo</a>
+    </div>
+  </aside>
+</div>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;defaultTheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;'dark'|'light'&quot;,&quot;section&quot;:&quot;Appearance&quot;}}">
+const TAG = '<' + 'script setup lang="ts">';
+const ENDTAG = '<' + '/script>';
+const F = '```';
+
+const PAGES = [
+  {
+    slug: 'introduction', group: 'Getting started', title: 'Introduction', tag: '',
+    lede: 'What Ghostlink does, what it deliberately does not do, and how it maps onto the WalletConnect session model.',
+    updated: 'Sep 12, 2026',
+    md: [
+      '## Why this exists',
+      'Every Kaspa app that touches a wallet ends up writing the same two thousand lines: extension detection, a QR flow, permission copy, reconnect logic, and a taxonomy of failures nobody enjoys naming. **Ghostlink is that work, done once, in the open.**',
+      'The SDK speaks the WalletConnect v2 session model over a CAIP-2 `kaspa` namespace. Wallets that already ship WalletConnect need an adapter, not a rewrite.',
+      '## What you get',
+      '- A `connect()` call that opens the modal, pairs, and resolves with a settled session',
+      '- Typed methods, events and errors — bad chain ids fail at compile time',
+      '- Every failure state as a real screen with real copy, not a console warning',
+      '- Sessions that persist across reloads and restore on boot',
+      '## What it is not',
+      'Ghostlink does not build transactions for you, hold funds, or know anything about your app domain. It moves an intent to a wallet, gets a signature back, and stays out of the way.',
+      '> note Ghostlink is alpha and MIT licensed. The wire format may still change before 1.0.',
+      '## Next',
+      'Install the SDK, then walk the [quickstart](#). If you are integrating a wallet rather than an app, skip to adapters.',
+    ].join('\n'),
+  },
+  {
+    slug: 'installation', group: 'Getting started', title: 'Installation', tag: '',
+    lede: 'One package for the core, plus optional framework bindings for Vue, Nuxt and React.',
+    updated: 'Sep 12, 2026',
+    md: [
+      '## Install',
+      F + 'bash\nnpm i @ghostlink/sdk\n\n# framework bindings, pick one\nnpm i @ghostlink/vue\nnpm i @ghostlink/nuxt\nnpm i @ghostlink/react\n' + F,
+      'The core is 11kB gzipped with no runtime dependencies. Bindings add roughly 2kB each.',
+      '## Nuxt',
+      'Register the module and Ghostlink wires the composables, the modal and an auto-reconnect plugin. No `client-only` wrapper needed.',
+      F + 'ts\n// nuxt.config.ts\nexport default defineNuxtConfig({\n  modules: ["@ghostlink/nuxt"],\n  ghostlink: {\n    projectId: "your-app",\n    chains: ["kaspa:mainnet"],\n    relay: "wss://relay.ghostlink.dev",\n    autoReconnect: true,\n  },\n});\n' + F,
+      '## Requirements',
+      '| Requirement | Version |',
+      '| Node | 18 or newer |',
+      '| TypeScript | 5.0 or newer |',
+      '| Browser | Any with `WebSocket` and `crypto.subtle` |',
+      '> warn Server-side rendering is supported, but `connect()` must be called from the client. The Nuxt module handles this for you.',
+    ].join('\n'),
+  },
+  {
+    slug: 'quickstart', group: 'Getting started', title: 'Quickstart', tag: '',
+    lede: 'Connect a wallet, read the account, and send your first transaction in about five minutes.',
+    updated: 'Sep 14, 2026',
+    md: [
+      '## Connect',
+      'Instantiate once, then call `connect()`. Pairing, the wallet chooser and approval all happen inside that call.',
+      F + 'ts\nimport { Ghostlink } from "@ghostlink/sdk";\n\nconst gl = new Ghostlink({ projectId: "your-app" });\n\nconst session = await gl.connect({\n  chains: ["kaspa:mainnet"],\n});\n\nconsole.log(session.accounts[0]);\n// kaspa:mainnet:qr7v8m2klp39fs0zxc4wq8ntu6ye1bd5f9x2\n' + F,
+      '## Sign a message',
+      'Use this for sign-in. It costs nothing and moves no funds.',
+      F + 'ts\nconst sig = await gl.signMessage(session, "gm");\n' + F,
+      '## Send a transaction',
+      'You supply outputs and an optional payload. The wallet selects UTXOs, sets the fee, and broadcasts.',
+      F + 'ts\nconst txid = await gl.sendTransaction(session, {\n  outputs: [{ address: ESCROW, amount: 25 }],\n  payload: encodeOrder({ side: "YES", kas: 25 }),\n});\n' + F,
+      '## In a component',
+      'The bindings expose the same thing as reactive state.',
+      F + 'vue\n' + TAG + '\nconst { session, account, balance } = useGhostlink();\nconst { sendTransaction } = useGhostlinkSigner();\n\nasync function buy(kas: number) {\n  if (!session.value) return openGhostlinkModal();\n  await sendTransaction({\n    outputs: [{ address: ESCROW, amount: kas }],\n  });\n}\n' + ENDTAG + '\n' + F,
+      '> note Every request needs its own in-wallet approval. A settled session is permission to ask, never permission to spend.',
+    ].join('\n'),
+  },
+  {
+    slug: 'sessions', group: 'Core concepts', title: 'Sessions', tag: '',
+    lede: 'Pairing, proposal, settlement, expiry and re-auth — the five states worth understanding before you ship.',
+    updated: 'Sep 15, 2026',
+    md: [
+      '## The shape of a session',
+      'A session is a long-lived agreement between your app and one wallet, scoped to a namespace. It survives reloads, carries an expiry, and can be extended or deleted by either side.',
+      F + 'ts\ninterface Session {\n  topic: string;\n  accounts: `kaspa:${string}:${string}`[];\n  namespaces: Record<"kaspa", Namespace>;\n  expiry: number;   // unix seconds\n  peer: { name: string; icon?: string };\n}\n' + F,
+      '## Pairing',
+      'Pairing is the one-time handshake that precedes a session. Ghostlink mints a topic and a symmetric key, then hands you a URI to render.',
+      '- Extensions use the injected provider and skip the URI entirely',
+      '- Mobile wallets scan the URI as a QR code or follow it as a deep link',
+      '- The URI is single-use and expires after five minutes',
+      '## Proposal',
+      'You declare what you need. The wallet renders exactly that as its permission screen, and anything outside the proposal is not grantable.',
+      F + 'json\n{\n  "kaspa": {\n    "chains":  ["kaspa:mainnet"],\n    "methods": ["kaspa_getAccounts",\n                "kaspa_signMessage",\n                "kaspa_signTransaction",\n                "kaspa_sendTransaction"],\n    "events":  ["accountsChanged",\n                "chainChanged",\n                "utxoUpdated"]\n  }\n}\n' + F,
+      '## Expiry and re-auth',
+      'Sessions default to seven days. Call `gl.extend(session)` to push the expiry, or let it lapse and re-pair. Ghostlink restores a live session on boot when `autoReconnect` is on.',
+      '> warn Do not cache accounts across sessions. Re-read `session.accounts` after every settle — the user may have shared a different account.',
+    ].join('\n'),
+  },
+  {
+    slug: 'methods', group: 'Core concepts', title: 'Methods', tag: '4',
+    lede: 'The four methods a wallet must implement, and how they map onto their WalletConnect equivalents.',
+    updated: 'Sep 15, 2026',
+    md: [
+      '## The surface',
+      'Four methods, chosen so an existing signer maps onto them without new cryptography.',
+      '| WalletConnect | Ghostlink | Returns |',
+      '| `eth_accounts` | `kaspa_getAccounts` | Shared addresses only |',
+      '| `personal_sign` | `kaspa_signMessage` | Hex Schnorr signature |',
+      '| `eth_signTransaction` | `kaspa_signTransaction` | Signed tx, not broadcast |',
+      '| `eth_sendTransaction` | `kaspa_sendTransaction` | Transaction id |',
+      '## kaspa_getAccounts',
+      'Returns the addresses the user shared at approval — **not** every account in the wallet.',
+      '## kaspa_signMessage',
+      'A Schnorr signature over the UTF-8 message, hex-encoded. Use it for sign-in and proof of ownership.',
+      '## kaspa_signTransaction',
+      'The app supplies outputs and an optional payload. The wallet selects UTXOs and sets the fee, then returns the signed transaction without broadcasting it.',
+      F + 'ts\nconst signed = await gl.signTransaction(session, {\n  outputs: [{ address: ESCROW, amount: 25 }],\n  payload: bytes,\n});\n' + F,
+      '## Events',
+      '- `accountsChanged` — the shared account set changed',
+      '- `chainChanged` — the wallet switched networks',
+      '- `utxoUpdated` — balance-affecting change; use this instead of polling',
+    ].join('\n'),
+  },
+  {
+    slug: 'errors', group: 'Core concepts', title: 'Errors', tag: '',
+    lede: 'Every failure is a typed code with copy already written for users.',
+    updated: 'Sep 15, 2026',
+    md: [
+      '## Taxonomy',
+      '| Code | Name | When |',
+      '| `5000` | USER_REJECTED | Declined in the wallet; nothing stored |',
+      '| `5100` | UNSUPPORTED_CHAINS | No account on a requested chain |',
+      '| `5101` | UNSUPPORTED_METHODS | Wallet cannot serve a proposed method |',
+      '| `6000` | SESSION_CLOSED | Either side deleted the session |',
+      '| `7001` | PROPOSAL_EXPIRED | Pairing URI lapsed after five minutes |',
+      '## Handling them',
+      'Errors are a discriminated union, so exhaustive handling is checked for you.',
+      F + 'ts\nimport { isGhostlinkError } from "@ghostlink/sdk";\n\ntry {\n  await gl.connect({ chains: ["kaspa:mainnet"] });\n} catch (e) {\n  if (!isGhostlinkError(e)) throw e;\n\n  switch (e.code) {\n    case 5000: return; // user said no; do nothing loud\n    case 7001: return retryPairing();\n    default:   return toast(e.userMessage);\n  }\n}\n' + F,
+      '> note Every error carries a `userMessage` written for humans. Prefer it over `e.message`, which is for your logs.',
+    ].join('\n'),
+  },
+  {
+    slug: 'theming', group: 'Customisation', title: 'Theming', tag: '',
+    lede: 'Six variables retheme every Ghostlink surface. Or take the hooks and render your own.',
+    updated: 'Sep 13, 2026',
+    md: [
+      '## Token layer',
+      'Ghostlink ships unstyled structure plus a token layer. Override these on any ancestor and every surface follows.',
+      F + 'css\n.app {\n  --gl-accent:    #8D7BFF;\n  --gl-radius:    12px;\n  --gl-surface:   #14161B;\n  --gl-text:      #F3F4F7;\n  --gl-font-ui:   "Figtree", sans-serif;\n  --gl-font-mono: "JetBrains Mono", monospace;\n}\n' + F,
+      'The neutral greys derive from `--gl-surface`, so a single surface change moves the whole modal. Green and red are reserved for state and are not themeable.',
+      '## Headless',
+      'If the prebuilt modal is wrong for your product, drive it yourself.',
+      F + 'ts\nconst { uri, wallets, status } = gl.usePairing();\n// render your own chooser, QR and pending states\n' + F,
+      '> note If you override `--gl-accent`, check contrast against your surface. Ghostlink ships at 4.5:1 or better and will not police your values.',
+    ].join('\n'),
+  },
+  {
+    slug: 'adapters', group: 'Customisation', title: 'Wallet adapters', tag: '',
+    lede: 'For wallet teams: map an existing signer onto four methods in about a hundred lines.',
+    updated: 'Sep 15, 2026',
+    md: [
+      '## The contract',
+      'An adapter is one object. Reference implementations for Kasware, Kastle and KSPR live in the repo.',
+      F + 'ts\nimport type { WalletAdapter } from "@ghostlink/sdk";\n\nexport const myWallet: WalletAdapter = {\n  id: "mywallet",\n  name: "My Wallet",\n  kind: "extension",\n\n  detect: () => !!window.mywallet,\n\n  async getAccounts() {\n    return window.mywallet.accounts();\n  },\n\n  async signMessage(address, message) {\n    return window.mywallet.sign(address, message);\n  },\n};\n' + F,
+      '## Checklist',
+      '- `detect()` must be synchronous and side-effect free',
+      '- Reject with code `5000` when the user declines — do not throw a generic error',
+      '- Emit `utxoUpdated` after any balance-affecting change',
+      '- Never return accounts the user did not explicitly share',
+      '## Submitting',
+      'Open a PR with the adapter and a short note on which methods you support. Adapters ship on the next minor release.',
+    ].join('\n'),
+  },
+];
+
+function inline(text) {
+  const out = [];
+  const re = /(\*\*[^*]+\*\*|`[^`]+`|\[[^\]]+\]\([^)]*\))/g;
+  let last = 0, m;
+  const plain = (t) => { if (t) out.push({text: t, weight: '400', font: 'inherit', size: 'inherit', color: 'inherit', bg: 'transparent', pad: '0'}); };
+  while ((m = re.exec(text))) {
+    plain(text.slice(last, m.index));
+    const tok = m[0];
+    if (tok.slice(0, 2) === '**') out.push({text: tok.slice(2, -2), weight: '700', font: 'inherit', size: 'inherit', color: 'var(--ink)', bg: 'transparent', pad: '0'});
+    else if (tok.charAt(0) === '`') out.push({text: tok.slice(1, -1), weight: '500', font: "'JetBrains Mono',monospace", size: '.88em', color: 'var(--ink)', bg: 'var(--chip)', pad: '2px 5px'});
+    else out.push({text: tok.slice(1, tok.indexOf(']')), weight: '600', font: 'inherit', size: 'inherit', color: 'var(--acc)', bg: 'transparent', pad: '0'});
+    last = m.index + tok.length;
+  }
+  plain(text.slice(last));
+  return out.length ? out : [{text: text, weight: '400', font: 'inherit', size: 'inherit', color: 'inherit', bg: 'transparent', pad: '0'}];
+}
+
+function slugify(t) { return t.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
+
+function parse(md) {
+  const lines = md.split('\n'), blocks = [];
+  let i = 0;
+  while (i < lines.length) {
+    const ln = lines[i];
+    if (ln.slice(0, 3) === F) {
+      const lang = ln.slice(3).trim() || 'text', buf = [];
+      i++;
+      while (i < lines.length && lines[i].slice(0, 3) !== F) { buf.push(lines[i]); i++; }
+      i++;
+      blocks.push({kind: 'code', lang: lang, code: buf.join('\n')});
+      continue;
+    }
+    if (ln.slice(0, 4) === '### ') { blocks.push({kind: 'h3', text: ln.slice(4)}); i++; continue; }
+    if (ln.slice(0, 3) === '## ') { blocks.push({kind: 'h2', text: ln.slice(3)}); i++; continue; }
+    if (ln.slice(0, 2) === '> ') {
+      const rest = ln.slice(2), sp = rest.indexOf(' ');
+      const kind = rest.slice(0, sp), body = rest.slice(sp + 1);
+      blocks.push({kind: 'note', noteKind: kind === 'warn' ? 'Careful' : 'Note', tone: kind, text: body});
+      i++; continue;
+    }
+    if (ln.slice(0, 2) === '- ') {
+      const items = [];
+      while (i < lines.length && lines[i].slice(0, 2) === '- ') { items.push(lines[i].slice(2)); i++; }
+      blocks.push({kind: 'list', items: items});
+      continue;
+    }
+    if (ln.charAt(0) === '|') {
+      const rows = [];
+      while (i < lines.length && lines[i].charAt(0) === '|') {
+        rows.push(lines[i].split('|').slice(1, -1).map(c => c.trim()));
+        i++;
+      }
+      blocks.push({kind: 'table', head: rows[0], rows: rows.slice(1)});
+      continue;
+    }
+    if (ln.trim() === '') { i++; continue; }
+    blocks.push({kind: 'p', text: ln});
+    i++;
+  }
+  return blocks;
+}
+
+class Component extends DCLogic {
+  state = {theme: this.props.defaultTheme || 'dark', slug: 'introduction', query: '', view: 'Rendered', copied: -1};
+
+  componentDidMount() {
+    const el = document.documentElement;
+    if (el.getAttribute('data-theme') !== this.state.theme) el.setAttribute('data-theme', this.state.theme);
+  }
+  componentWillUnmount() { clearTimeout(this._t); }
+  componentDidUpdate(prev) {
+    const p = prev || {};
+    if (this.props.defaultTheme && this.props.defaultTheme !== p.defaultTheme && this.props.defaultTheme !== this.state.theme) this.setTheme(this.props.defaultTheme);
+  }
+  setTheme(next) {
+    document.documentElement.setAttribute('data-theme', next);
+    this.setState({theme: next});
+  }
+  go(slug) { this.setState({slug: slug}); window.scrollTo(0, 0); }
+
+  renderVals() {
+    const s = this.state, dark = s.theme === 'dark';
+    const page = PAGES.find(p => p.slug === s.slug) || PAGES[0];
+    const idx = PAGES.indexOf(page);
+    const q = s.query.trim().toLowerCase();
+    const match = (p) => !q || (p.title + ' ' + p.lede + ' ' + p.md).toLowerCase().indexOf(q) > -1;
+    const visible = PAGES.filter(match);
+    const groupNames = [];
+    visible.forEach(p => { if (groupNames.indexOf(p.group) < 0) groupNames.push(p.group); });
+    const raw = parse(page.md);
+    const words = page.md.split(/\s+/).length;
+
+    const blocks = raw.map((b, n) => ({
+      isH2: b.kind === 'h2', isH3: b.kind === 'h3', isP: b.kind === 'p',
+      isList: b.kind === 'list', isCode: b.kind === 'code', isNote: b.kind === 'note', isTable: b.kind === 'table',
+      text: b.text || '', id: b.text ? slugify(b.text) : '',
+      tokens: (b.kind === 'p' || b.kind === 'note') ? inline(b.text) : [],
+      items: b.kind === 'list' ? b.items.map(t => ({tokens: inline(t)})) : [],
+      lang: b.lang, code: b.code,
+      copyLabel: s.copied === n ? 'copied' : 'copy',
+      copy: () => { clearTimeout(this._t); this.setState({copied: n}); this._t = setTimeout(() => this.setState({copied: -1}), 1500); },
+      noteKind: b.noteKind,
+      noteBg: b.tone === 'warn' ? 'var(--warnSoft)' : 'var(--accSoft)',
+      noteLine: b.tone === 'warn' ? 'rgba(216,180,114,.3)' : 'var(--accLine)',
+      noteFg: b.tone === 'warn' ? 'var(--warn)' : 'var(--acc)',
+      head: b.kind === 'table' ? b.head.map(h => ({text: h.replace(/[`*]/g, '')})) : [],
+      rows: b.kind === 'table' ? b.rows.map(r => ({cells: r.map(c => ({tokens: inline(c)}))})) : [],
+    }));
+
+    return {
+      isDark: dark, isLight: !dark, query: s.query,
+      toggleTheme: () => this.setTheme(dark ? 'light' : 'dark'),
+      onSearch: (e) => this.setState({query: e.target.value}),
+      viewModes: ['Rendered', 'Markdown'].map(n => ({
+        name: n,
+        bg: s.view === n ? 'var(--chipOn)' : 'transparent',
+        fg: s.view === n ? 'var(--chipOnInk)' : 'var(--ink3)',
+        pick: () => this.setState({view: n}),
+      })),
+      isRendered: s.view === 'Rendered', isRaw: s.view === 'Markdown',
+      noResults: visible.length === 0,
+
+      groups: groupNames.map(g => ({
+        name: g,
+        items: visible.filter(p => p.group === g).map(p => ({
+          title: p.title, tag: p.tag,
+          bg: p.slug === s.slug ? 'var(--surf)' : 'transparent',
+          bar: p.slug === s.slug ? 'var(--acc)' : 'transparent',
+          fg: p.slug === s.slug ? 'var(--ink)' : 'var(--ink2)',
+          weight: p.slug === s.slug ? '700' : '500',
+          tagBg: p.tag ? 'var(--accSoft)' : 'transparent',
+          tagFg: p.tag ? 'var(--acc)' : 'transparent',
+          go: () => this.go(p.slug),
+        })),
+      })),
+
+      page: {
+        title: page.title, lede: page.lede, slug: page.slug, group: page.group.toLowerCase().replace(/ /g, '-'),
+        updated: page.updated, raw: page.md,
+        reading: Math.max(1, Math.round(words / 220)) + ' min read',
+        bytes: (page.md.length / 1024).toFixed(1) + ' kB',
+      },
+      blocks: blocks,
+      toc: raw.filter(b => b.kind === 'h2' || b.kind === 'h3').map(b => ({
+        text: b.text, id: slugify(b.text), indent: b.kind === 'h3' ? '22px' : '10px',
+      })),
+      hasPrev: idx > 0, hasNext: idx < PAGES.length - 1,
+      prevTitle: idx > 0 ? PAGES[idx - 1].title : '',
+      nextTitle: idx < PAGES.length - 1 ? PAGES[idx + 1].title : '',
+      goPrev: () => { if (idx > 0) this.go(PAGES[idx - 1].slug); },
+      goNext: () => { if (idx < PAGES.length - 1) this.go(PAGES[idx + 1].slug); },
+    };
+  }
+}
+
+</script>
+</body>
+</html>

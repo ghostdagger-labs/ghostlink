@@ -1,3 +1,7 @@
+---
+description: "Implement the real adapter contract, declare capabilities honestly, and record wallet interoperability evidence."
+updated: '2026-11-23'
+---
 # Wallet adapter guide
 
 Implement the exported `WalletAdapter` contract and pass instances to `createGhostlink({ adapters })`. Discovery must be synchronous and SSR safe. Fetch wallet state through documented provider APIs; do not inspect extension storage or request seed phrases. Do not request account permissions until the user selects the wallet.

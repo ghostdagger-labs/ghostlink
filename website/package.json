@@ -7,7 +7,8 @@
     "build": "pnpm --filter \"ghostlink-website^...\" build && nuxt build",
     "start": "node .output/server/index.mjs",
     "db:migrate": "node --env-file-if-exists=.env --env-file-if-exists=.env.local --import tsx scripts/migrate.ts",
-    "typecheck": "nuxt prepare && nuxt typecheck && vue-tsc --noEmit -p tsconfig.snippets.json"
+    "typecheck": "nuxt prepare && nuxt typecheck && vue-tsc --noEmit -p tsconfig.snippets.json",
+    "check:docs": "node --import tsx --test tools/docs-compiler.test.ts && node --import tsx tools/check-docs.ts"
   },
   "dependencies": {
     "@fontsource/figtree": "^5.3.0",
@@ -25,11 +26,24 @@
     "vue": "^3.5.45"
   },
   "devDependencies": {
+    "@nuxt/kit": "^4.6.4",
+    "@types/hast": "^3.0.5",
+    "@types/mdast": "^4.0.4",
     "esbuild": "^0.28.2",
+    "github-slugger": "^2.0.0",
+    "rehype-sanitize": "^6.0.0",
+    "rehype-stringify": "^10.0.1",
+    "remark-frontmatter": "^5.0.0",
+    "remark-gfm": "^4.0.1",
+    "remark-parse": "^11.0.0",
+    "remark-rehype": "^11.1.2",
     "shiki": "^4.6.0",
     "tsx": "^4.23.15",
     "typescript": "^5.9.3",
+    "unified": "^11.0.5",
+    "unist-util-visit": "^5.2.0",
     "vite": "^8.3.8",
-    "vue-tsc": "^3.3.14"
+    "vue-tsc": "^3.3.14",
+    "yaml": "^2.9.1"
   }
 }

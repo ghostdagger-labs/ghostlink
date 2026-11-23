@@ -1,3 +1,7 @@
+---
+description: "The proposed canonical Kaspa login-message format, cryptographic checks, and interoperability boundaries."
+updated: '2026-11-23'
+---
 # Ghostlink Kaspa authentication profile v1
 
 Status: **proposed application profile**, September 16, 2026. This is not a registered CAIP namespace or an interoperable CACAO profile. It adopts the account/chain separation and audience binding of [CAIP-122](https://standards.chainagnostic.org/CAIPs/caip-122). Generic wallet message signing does not implement that standard's wallet-side domain checks.

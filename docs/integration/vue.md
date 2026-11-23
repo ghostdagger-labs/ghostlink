@@ -1,3 +1,7 @@
+---
+description: "Build a complete Vue login application with a Node backend, protected requests, and session restoration."
+updated: '2026-11-23'
+---
 # Integrate Ghostlink with Vue
 
 Build a small Vue + TypeScript app with wallet login, a protected Node endpoint, automatic session restoration, and logout. This is a complete browser-rendered Vite app: every file below can be copied as written. It uses the public packages, including their CSS, and a persistent SQLite backend.

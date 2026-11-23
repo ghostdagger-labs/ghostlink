@@ -6,7 +6,8 @@ import { highlightExamples } from './tools/highlight-examples';
 export default defineNuxtConfig({
   compatibilityDate: '2026-09-16',
   devtools: { enabled: false },
-  css: ['~/assets/fonts.css', '~/assets/landing.css'],
+  modules: ['./tools/docs-module'],
+  css: ['~/assets/fonts.css', '~/assets/landing.css', '~/assets/docs.css'],
   app: { head: { title: 'Ghostlink — Kaspa wallet login for TypeScript, Vue & React', htmlAttrs: { lang: 'en' }, meta: [{ name: 'description', content: 'Add Kaspa wallet login to your app with Ghostlink’s public npm beta. Native Vue and React components, a TypeScript controller, and Node verification with SQLite or Postgres sessions.' }, { name: 'theme-color', content: '#0C0D11' }], link: [{ rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }] } },
   nitro: {
     // Auto-detect Vercel; local and Docker builds default to node-server.

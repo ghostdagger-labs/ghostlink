@@ -1,3 +1,7 @@
+---
+description: "Deploy the complete Next.js example with shared Neon sessions, trusted origins, and production WASM packaging."
+updated: '2026-11-23'
+---
 # Vercel + Neon example
 
 A complete Next.js App Router frontend and same-origin Node authentication backend using managed Neon Postgres. Includes KasWare/Testnet 11 and Kastle/Testnet 10 login, automatic session restoration, explicit sign-out, a protected read-only API, and production WASM packaging checks. Login requires no funds; this example does not submit transactions.
