@@ -2,13 +2,13 @@
 
 Build a small Vue + TypeScript app with wallet login, a protected Node endpoint, automatic session restoration, and logout. This is a complete browser-rendered Vite app: every file below can be copied as written. It uses the public packages, including their CSS, and a persistent SQLite backend.
 
-For managed serverless storage, see the [Postgres/Neon adapter guide](postgres.md). The backend adapter is framework-independent; the complete [Vercel + Neon example](../../examples/vercel-neon/README.md) uses Next.js. These source-workspace additions are newer than the published beta used below.
+For managed serverless storage, see the [Postgres/Neon adapter guide](postgres.md). The backend adapter is framework-independent; the complete [Vercel + Neon example](../../examples/vercel-neon/README.md) uses Next.js. The Postgres adapter is included in the beta used below.
 
 Already have an app? Use the [backend](#serverindexts), [client integration](#client-integration), and [lifecycle notes](#lifecycle-and-ssr) with your existing build setup. The backend and browser must agree on the public origin and network.
 
 ## 1. Create the app
 
-Use **Node 24** and **pnpm 11.7.0**. These files target the public npm beta **0.1.0-beta.1**, published on 2026-11-20. Install the matching versions below; no registry credentials are needed.
+Use **Node 24** and **pnpm 11.7.0**. These files target npm beta **0.1.0-beta.2**. Install the matching versions below; no registry credentials are needed.
 
 ```sh
 mkdir my-ghostlink-vue
@@ -40,9 +40,9 @@ Save the following files, then run `pnpm install`. Public `@ghostdagger` package
     "start": "node server/index.ts"
   },
   "dependencies": {
-    "@ghostdagger/ghostlink-core": "0.1.0-beta.1",
-    "@ghostdagger/ghostlink-vue": "0.1.0-beta.1",
-    "@ghostdagger/ghostlink-server": "0.1.0-beta.1",
+    "@ghostdagger/ghostlink-core": "0.1.0-beta.2",
+    "@ghostdagger/ghostlink-vue": "0.1.0-beta.2",
+    "@ghostdagger/ghostlink-server": "0.1.0-beta.2",
     "sirv": "^3.0.1",
     "vue": "^3.5.0"
   },

@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Package version in the selected ref (for example 0.1.0-beta.1); publishing requires sdk-vVERSION'
+        description: 'Package version in the selected ref (for example 0.1.0-beta.2); publishing requires sdk-vVERSION'
         required: true
         type: string
       publish:

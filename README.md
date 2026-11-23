@@ -4,13 +4,13 @@ Kaspa wallet login for TypeScript applications, with native Vue and React UI and
 
 Mobile and hardware options are hidden from the default UI while their UX and security are evaluated. See the [deferred integration findings](docs/roadmap/wallet-integrations.md) for Kaspire, Ledger and KSPR. Kaspium manual signing remains an [explicit SDK opt-in](docs/integration/kaspium.md).
 
-The first public **beta release**, `0.1.0-beta.1`, is available on npm under `@ghostdagger`. Install matching versions using `@beta` or the exact version. npm also assigns `latest` to this initial release; it remains a beta. Source-backed adapters and automated fixtures are included; real-wallet version certification and testnet transaction evidence are tracked in [the compatibility record](docs/testing/compatibility-v1.json). See [release setup and publishing](docs/releases/publishing.md) for GitHub Actions, npm ownership and remaining release prerequisites.
+This source targets **beta release `0.1.0-beta.2`** under `@ghostdagger`. Install matching versions using `@beta` or the exact version. npm's `latest` tag remains on the initial `0.1.0-beta.1`; use `@beta` or `@0.1.0-beta.2` for the Postgres update. Source-backed adapters and automated fixtures are included; real-wallet version certification and testnet transaction evidence are tracked in [the compatibility record](docs/testing/compatibility-v1.json). See [release setup and publishing](docs/releases/publishing.md) for GitHub Actions, npm ownership and remaining release prerequisites.
 
 ## Integration guides
 
 Start with the complete [Vue integration guide](docs/integration/vue.md) or [React integration guide](docs/integration/react.md). Each includes copyable app files, a Node backend, local package installation, login, protected requests, session restoration, logout, and deployment notes. Read the [provider lifecycle and SSR contract](docs/integration/lifecycle.md) when adapting an existing app.
 
-For serverless deployments, use the [Postgres/Neon storage guide](docs/integration/postgres.md) and [complete Vercel + Neon example](examples/vercel-neon/README.md). The source checkout includes a Postgres adapter with the same revocation and single-use challenge guarantees as SQLite, without requiring a persistent function filesystem. This adapter is newer than the published `0.1.0-beta.1` release.
+For serverless deployments, use the [Postgres/Neon storage guide](docs/integration/postgres.md) and [complete Vercel + Neon example](examples/vercel-neon/README.md). Starting with `0.1.0-beta.2`, the server package includes a Postgres adapter with the same revocation and single-use challenge guarantees as SQLite, without requiring a persistent function filesystem.
 
 ## Website
 
@@ -32,7 +32,7 @@ To serve the production build locally with the same Node process, use `pnpm --fi
 
 ## Minimal Vue setup
 
-Install `@ghostdagger/ghostlink-core@0.1.0-beta.1` and `@ghostdagger/ghostlink-vue@0.1.0-beta.1`, alongside Vue 3.5+. Set up the server below first.
+Install `@ghostdagger/ghostlink-core@0.1.0-beta.2` and `@ghostdagger/ghostlink-vue@0.1.0-beta.2`, alongside Vue 3.5+. Set up the server below first.
 
 ```ts
 import { createApp } from 'vue';

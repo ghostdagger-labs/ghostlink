@@ -2,7 +2,7 @@
 
 A complete Next.js App Router frontend and same-origin Node authentication backend using managed Neon Postgres. Includes KasWare/Testnet 11 and Kastle/Testnet 10 login, automatic session restoration, explicit sign-out, a protected read-only API, and production WASM packaging checks. Login requires no funds; this example does not submit transactions.
 
-No database server needs to be operated by the developer. Provision a Neon resource, keep its credentials server-only, and deploy the frontend and functions together. This example uses the source workspace because published Ghostlink `0.1.0-beta.1` does not include the Postgres adapter.
+No database server needs to be operated by the developer. Provision a Neon resource, keep its credentials server-only, and deploy the frontend and functions together. This repository example uses workspace packages; standalone applications can use matching Ghostlink `0.1.0-beta.2` packages, which include the Postgres adapter.
 
 ## Run locally with Neon
 
@@ -36,7 +36,7 @@ The migration command loads `.env.local`; it prefers `MIGRATION_DATABASE_URL` if
 
 Use a separate Neon database/branch or schema and credentials for previews. Configure the exact preview origin independently (a stable preview domain simplifies this); an origin configured for production intentionally rejects requests from another domain. Do not share production auth state with untrusted preview code. Set a canonical domain and redirect aliases to it before login.
 
-If copying this example outside the monorepo after an SDK release, replace `workspace:*` with matching published Ghostlink versions, install dependencies, change the Vercel install/build commands to `pnpm install --frozen-lockfile` / `pnpm build`, and set `outputFileTracingRoot` to the new project root in `next.config.mjs`. Keep the external server package and vendor tracing configuration. Do not try to use the older beta package with these subpath imports.
+If copying this example outside the monorepo, replace `workspace:*` with `0.1.0-beta.2` for each Ghostlink dependency, install dependencies, change the Vercel install/build commands to `pnpm install --frozen-lockfile` / `pnpm build`, and set `outputFileTracingRoot` to the new project root in `next.config.mjs`. Keep the external server package and vendor tracing configuration. The older `0.1.0-beta.1` package does not support these subpath imports.
 
 ## Files and ownership
 
