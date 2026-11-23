@@ -1,27 +1,31 @@
 <script setup lang="ts">
 import { ArrowRight, Check, CodeXml, Palette, TriangleAlert, RotateCw } from '@lucide/vue';
-import tsCode from '../../snippets/app.ts?raw';
-import vueCode from '../../snippets/Connect.vue?raw';
-import reactCode from '../../snippets/Connect.tsx?raw';
+import { snippets } from 'virtual:ghostlink-code';
+import { npmUrl, releaseVersion, repositoryUrl } from '../data/release';
 const { theme, ready } = useLandingTheme();
-const lang = ref<'TypeScript' | 'Vue' | 'React'>('TypeScript');
-const snippets = { TypeScript: { file: 'app.ts', code: tsCode }, Vue: { file: 'Connect.vue', code: vueCode }, React: { file: 'Connect.tsx', code: reactCode } };
-const code = computed(() => snippets[lang.value].code);
+const lang = ref<'TypeScript' | 'Vue' | 'React' | 'Node'>('TypeScript');
+const snippetNote = computed(() => ({
+  TypeScript: 'A headless sign-in handler for your own UI. Configure the same-origin authentication backend first.',
+  Vue: 'Render inside GhostlinkProvider or an app using GhostlinkPlugin. Import the core styles and configure your backend.',
+  React: 'Render inside GhostlinkProvider. Import the core styles and configure your backend.',
+  Node: 'A Node 24 backend with persistent SQLite. Match the frontend origin and network; see the guide for deployment.',
+})[lang.value]);
+const code = computed(() => snippets[lang.value].tokens);
 const codeFile = computed(() => snippets[lang.value].file);
 const codeTabs = computed(() => (Object.keys(snippets) as (keyof typeof snippets)[]).map(name => ({ name, bg: lang.value === name ? 'var(--chipOn)' : 'transparent', fg: lang.value === name ? 'var(--chipOnInk)' : 'var(--ink3)', pick: () => { lang.value = name; } })));
-const heroStats = [{ v: '2', k: 'browser wallets' }, { v: '2', k: 'UI integrations' }, { v: 'TypeScript', k: 'typed APIs' }];
+const heroStats = [{ v: '4', k: 'npm packages' }, { v: 'Vue + React', k: 'native components' }, { v: 'MIT', k: 'original code' }];
 const marquee = Array.from({ length: 8 }, () => [{ name: 'KasWare' }, { name: 'Kastle' }]).flat();
 const payoffs = [
- { text: 'One typed controller for supported wallet login flows.' },
- { text: 'Browser wallet detection for KasWare and Kastle.' },
- { text: 'Errors you can handle, with feedback already written for users.' },
- { text: 'Vue and React components backed by the same public APIs.' },
+ { text: 'Connect and authenticate through one TypeScript controller.' },
+ { text: 'Give KasWare and Kastle users the same familiar login flow.' },
+ { text: 'Handle rejection, expiry, and network mismatches with typed errors.' },
+ { text: 'Keep your own backend, session storage, and application permissions.' },
 ];
 const compare = [
- { before: 'Connect to different browser wallet APIs', after: 'One typed wallet controller' },
+ { before: 'Connect to different browser wallet APIs', after: 'createGhostlink() and built-in adapters' },
  { before: 'Handle wallet discovery and availability', after: 'Browser wallet detection and install guidance' },
- { before: 'Create and verify login challenges', after: 'Node verification backend' },
- { before: 'Check and restore application sessions', after: 'Server-verified session restoration' },
+ { before: 'Create and verify login challenges', after: 'createGhostlinkServer() verifies signatures' },
+ { before: 'Check and restore application sessions', after: 'restoreSession() checks your backend' },
  { before: 'Build each framework’s login interface', after: 'Native Vue and React components' },
 ];
 const wallets = [
@@ -44,19 +48,17 @@ const preview = wallets.map(w => ({ ...w, badge: 'Extension', fg: 'var(--ink2)',
     <div style="display:flex;flex-direction:column;gap:22px;animation:fadeUp .5s ease both">
       <span style="display:inline-flex;align-items:center;gap:8px;align-self:flex-start;padding:5px 12px;border-radius:999px;background:var(--accSoft);border:1px solid var(--accLine)">
         <span style="width:6px;height:6px;border-radius:50%;background:var(--acc);animation:drift 2s infinite"></span>
-        <span style="font:600 11.5px 'JetBrains Mono',monospace;color:var(--acc)">Pre-release · package coming soon</span>
+        <span style="font:600 11.5px 'JetBrains Mono',monospace;color:var(--acc)">Public beta · {{ releaseVersion }} on npm</span>
       </span>
       <h1 style="margin:0;max-width:20ch;font-family:Sora,sans-serif;font-size:60px;line-height:1.02;letter-spacing:-3px;font-weight:600;color:var(--ink);text-wrap:balance">Kaspa wallet login for your dApp.</h1>
-      <p style="margin:0;max-width:50ch;font-size:19px;line-height:1.5;color:var(--ink2);text-wrap:pretty">Wallet login for TypeScript dApps. Vue and React components, wallet-approved login messages, and server-verified sessions — with your keys in your wallet.</p>
+      <p style="margin:0;max-width:50ch;font-size:19px;line-height:1.5;color:var(--ink2);text-wrap:pretty">Give Kaspa users a familiar way in. Add wallet login with TypeScript, Vue, or React, and verify sessions on your own Node backend. Users keep their keys. You keep building.</p>
       <div style="display:flex;gap:11px;flex-wrap:wrap;align-items:center">
-        <NuxtLink to="/demo" style="height:50px;padding:0 22px;border-radius:13px;background:var(--acc);color:var(--accInk);font-size:15px;font-weight:700;display:flex;align-items:center;gap:9px" data-hover="lp-hover-6">
-          Try it out
+        <NuxtLink to="/docs" style="height:50px;padding:0 22px;border-radius:13px;background:var(--acc);color:var(--accInk);font-size:15px;font-weight:700;display:flex;align-items:center;gap:9px" data-hover="lp-hover-6">
+          Get started
           <ArrowRight :size="16" aria-hidden="true" />
         </NuxtLink>
-        <NuxtLink to="/demo" style="height:50px;padding:0 20px;border-radius:13px;border:1px solid var(--line2);background:var(--surf);color:var(--ink);font-size:15px;font-weight:700;display:flex;align-items:center" data-hover="lp-hover-7">Get Started</NuxtLink>
-        <button disabled style="height:50px;padding:0 18px;border-radius:13px;border:1px solid var(--line2);background:var(--surf);display:flex;align-items:center;gap:12px" data-hover="lp-hover-8">
-          <span style="font:600 13.5px 'JetBrains Mono',monospace;color:var(--ink2)">Package coming soon</span>
-        </button>
+        <NuxtLink to="/demo" style="height:50px;padding:0 20px;border-radius:13px;border:1px solid var(--line2);background:var(--surf);color:var(--ink);font-size:15px;font-weight:700;display:flex;align-items:center" data-hover="lp-hover-7">Try the demo</NuxtLink>
+        <a href="#packages" class="text-link">Explore the packages <ArrowRight :size="14" aria-hidden="true" /></a>
       </div>
       <div style="display:flex;gap:22px;flex-wrap:wrap;padding-top:6px">
         <template v-for="(h, index) in heroStats" :key="index">
@@ -70,17 +72,17 @@ const preview = wallets.map(w => ({ ...w, badge: 'Extension', fg: 'var(--ink2)',
 
     <div style="animation:fadeUp .6s ease .1s both;min-width:0">
       <div style="border:1px solid var(--line);border-radius:18px;background:var(--surf);box-shadow:var(--shadow);overflow:hidden">
-        <div style="display:flex;align-items:center;gap:2px;padding:7px 8px;border-bottom:1px solid var(--line);background:var(--surf2);overflow-x:auto">
+        <div role="group" aria-label="Code examples" style="display:flex;align-items:center;gap:2px;padding:7px 8px;border-bottom:1px solid var(--line);background:var(--surf2);overflow-x:auto">
           <template v-for="(c, index) in codeTabs" :key="index">
             <button :disabled="!ready" :aria-pressed="lang === c.name" @click="c.pick" :style="`flex:none;height:28px;padding:0 12px;border-radius:8px;font:600 12px 'JetBrains Mono',monospace;background:${c.bg};color:${c.fg}`">{{ c.name }}</button>
           </template>
           <span style="margin-left:auto;flex:none;padding-left:10px;font:500 11px 'JetBrains Mono',monospace;color:var(--ink3)">{{ codeFile }}</span>
         </div>
-        <pre tabindex="0" aria-label="Integration code" style="margin:0;padding:20px;background:var(--code);font:500 12.5px/1.8 'JetBrains Mono',monospace;color:var(--codeInk);overflow-x:auto;min-height:246px">{{ code }}</pre>
+        <pre tabindex="0" aria-label="Integration code" style="margin:0;padding:20px;background:var(--code);font:500 12.5px/1.8 'JetBrains Mono',monospace;color:var(--codeInk);overflow-x:auto;min-height:246px"><HighlightedCode :tokens="code" /></pre>
       </div>
-      <div style="margin-top:12px;display:flex;align-items:center;gap:11px;padding:13px 15px;border:1px solid var(--line);border-radius:14px;background:var(--surf)">
+      <div class="snippet-note" style="margin-top:12px;display:flex;align-items:center;gap:11px;padding:13px 15px;border:1px solid var(--line);border-radius:14px;background:var(--surf)">
         <span style="width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none"></span>
-        <span style="flex:1;min-width:0;font-size:12.5px;color:var(--ink2);line-height:1.4">Configure @ghostdagger/ghostlink-server and your UI provider first. These examples use the existing public APIs.</span>
+        <span style="flex:1;min-width:0;font-size:12.5px;color:var(--ink2);line-height:1.4">{{ snippetNote }} <NuxtLink to="/docs">See the setup guides →</NuxtLink></span>
       </div>
     </div>
   </div>
@@ -88,41 +90,39 @@ const preview = wallets.map(w => ({ ...w, badge: 'Extension', fg: 'var(--ink2)',
 
 <section style="border-bottom:1px solid var(--line);background:var(--surf);overflow:hidden">
   <div style="max-width:1200px;margin:0 auto;padding:18px 24px;display:flex;align-items:center;gap:20px">
-    <span style="flex:none;font:600 10.5px Figtree;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3)">Adapters shipped</span>
+    <span style="flex:none;font:600 10.5px Figtree;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3)">Browser wallet adapters</span>
     <div style="flex:1;min-width:0;overflow:hidden">
       <div style="display:flex;gap:34px;width:max-content;animation:slide 38s linear infinite">
         <template v-for="(m, index) in marquee" :key="index">
-          <span :aria-hidden="index >= 3 ? true : undefined" style="font-family:Sora,sans-serif;font-weight:500;font-size:16px;color:var(--ink3);white-space:nowrap">{{ m.name }}</span>
+          <span :aria-hidden="index >= 2 ? true : undefined" style="font-family:Sora,sans-serif;font-weight:500;font-size:16px;color:var(--ink3);white-space:nowrap">{{ m.name }}</span>
         </template>
       </div>
     </div>
   </div>
 </section>
 
+<PackageCatalog />
+
 <section id="how" style="border-bottom:1px solid var(--line)">
   <div style="max-width:1200px;margin:0 auto;padding:72px 24px">
     <div style="max-width:52ch;margin-bottom:38px">
       <span style="font:600 10.5px Figtree;letter-spacing:.09em;text-transform:uppercase;color:var(--acc)">How it works</span>
-      <h2 style="margin:12px 0 0;font-family:Sora,sans-serif;font-size:38px;line-height:1.1;letter-spacing:-1.6px;font-weight:600;color:var(--ink);text-wrap:balance">Three steps to a verified login.</h2>
+      <h2 style="margin:12px 0 0;font-family:Sora,sans-serif;font-size:38px;line-height:1.1;letter-spacing:-1.6px;font-weight:600;color:var(--ink);text-wrap:balance">From wallet to welcome back.</h2>
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px">
       <div style="border:1px solid var(--line);border-radius:18px;background:var(--surf);padding:24px;display:flex;flex-direction:column;gap:16px">
         <div style="height:120px;border-radius:13px;background:var(--surf2);display:grid;place-items:center">
           <svg aria-hidden="true" focusable="false" width="88" height="88" viewBox="0 0 88 88" fill="none">
             <rect x="18" y="18" width="52" height="52" rx="10" stroke="var(--line2)" stroke-width="2"></rect>
-            <g fill="var(--acc)">
-              <rect x="27" y="27" width="10" height="10" rx="2"></rect>
-              <rect x="51" y="27" width="10" height="10" rx="2"></rect>
-              <rect x="27" y="51" width="10" height="10" rx="2"></rect>
-              <rect x="45" y="45" width="6" height="6" rx="1.5"></rect>
-              <rect x="57" y="51" width="6" height="6" rx="1.5"></rect>
-              <rect x="51" y="59" width="10" height="4" rx="1.5"></rect>
-            </g>
+            <path d="M18 32h52" stroke="var(--line2)" stroke-width="2" />
+            <circle cx="26" cy="25" r="2" fill="var(--acc)" />
+            <rect x="29" y="41" width="30" height="19" rx="4" stroke="var(--acc)" stroke-width="2" />
+            <path d="M50 47h9v7h-9a3.5 3.5 0 0 1 0-7Z" fill="var(--acc)" />
           </svg>
         </div>
         <span style="font:600 11px 'JetBrains Mono',monospace;color:var(--ink3)">01 · choose</span>
         <div style="font-size:17px;font-weight:700;color:var(--ink)">Choose your wallet</div>
-        <p style="margin:0;font-size:13.5px;line-height:1.6;color:var(--ink2);text-wrap:pretty">Choose KasWare or Kastle in your browser. Your private keys stay in your wallet.</p>
+        <p style="margin:0;font-size:13.5px;line-height:1.6;color:var(--ink2);text-wrap:pretty">Let users connect KasWare or Kastle from the same chooser. Ghostlink detects the browser extension and guides the connection.</p>
       </div>
       <div style="border:1px solid var(--line);border-radius:18px;background:var(--surf);padding:24px;display:flex;flex-direction:column;gap:16px">
         <div style="height:120px;border-radius:13px;background:var(--surf2);display:grid;place-items:center;padding:0 18px">
@@ -147,7 +147,7 @@ const preview = wallets.map(w => ({ ...w, badge: 'Extension', fg: 'var(--ink2)',
         </div>
         <span style="font:600 11px 'JetBrains Mono',monospace;color:var(--ink3)">02 · sign</span>
         <div style="font-size:17px;font-weight:700;color:var(--ink)">Review before you sign</div>
-        <p style="margin:0;font-size:13.5px;line-height:1.6;color:var(--ink2);text-wrap:pretty">Review the application, account and network in the login message. Approve it in your wallet to finish signing in.</p>
+        <p style="margin:0;font-size:13.5px;line-height:1.6;color:var(--ink2);text-wrap:pretty">Users review the app, account, and network, then approve a login message in their wallet. Signing in requires no funds or transfer.</p>
       </div>
       <div style="border:1px solid var(--line);border-radius:18px;background:var(--surf);padding:24px;display:flex;flex-direction:column;gap:16px">
         <div style="height:120px;border-radius:13px;background:var(--surf2);display:grid;place-items:center">
@@ -159,7 +159,7 @@ const preview = wallets.map(w => ({ ...w, badge: 'Extension', fg: 'var(--ink2)',
         </div>
         <span style="font:600 11px 'JetBrains Mono',monospace;color:var(--ink3)">03 · verify</span>
         <div style="font-size:17px;font-weight:700;color:var(--ink)">A server-verified session</div>
-        <p style="margin:0;font-size:13.5px;line-height:1.6;color:var(--ink2);text-wrap:pretty">Your backend verifies the signature and creates an application session. Sessions restore across reloads, subject to server expiry and revocation.</p>
+        <p style="margin:0;font-size:13.5px;line-height:1.6;color:var(--ink2);text-wrap:pretty">Your backend verifies the signature and issues a session. Returning users can pick up where they left off while that session is still valid.</p>
       </div>
     </div>
   </div>
@@ -168,9 +168,9 @@ const preview = wallets.map(w => ({ ...w, badge: 'Extension', fg: 'var(--ink2)',
 <section style="border-bottom:1px solid var(--line);background:var(--surf)">
   <div style="max-width:1200px;margin:0 auto;padding:72px 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:40px;align-items:start">
     <div>
-      <span style="font:600 10.5px Figtree;letter-spacing:.09em;text-transform:uppercase;color:var(--acc)">Why bother</span>
+      <span style="font:600 10.5px Figtree;letter-spacing:.09em;text-transform:uppercase;color:var(--acc)">More time for your app</span>
       <h2 style="margin:12px 0 16px;max-width:26ch;font-family:Sora,sans-serif;font-size:38px;line-height:1.1;letter-spacing:-1.6px;font-weight:600;color:var(--ink);text-wrap:balance">Wallet login, with less to wire up.</h2>
-      <p style="margin:0 0 22px;max-width:48ch;font-size:15.5px;line-height:1.6;color:var(--ink2);text-wrap:pretty">Different wallets expose different APIs. Ghostlink brings supported wallets into one typed login flow, with Vue and React components and a Node verification backend.</p>
+      <p style="margin:0 0 22px;max-width:48ch;font-size:15.5px;line-height:1.6;color:var(--ink2);text-wrap:pretty">Your app needs a verified identity, a clear login screen, and a way back in after a reload. Ghostlink connects those pieces, from the wallet prompt to your backend session.</p>
       <div style="display:flex;flex-direction:column;gap:11px">
         <template v-for="(p, index) in payoffs" :key="index">
           <div style="display:flex;gap:11px;align-items:flex-start">
@@ -202,7 +202,7 @@ const preview = wallets.map(w => ({ ...w, badge: 'Extension', fg: 'var(--ink2)',
     <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:32px">
       <div style="max-width:46ch">
         <span style="font:600 10.5px Figtree;letter-spacing:.09em;text-transform:uppercase;color:var(--acc)">Wallet support</span>
-        <h2 style="margin:12px 0 0;font-family:Sora,sans-serif;font-size:38px;line-height:1.1;letter-spacing:-1.6px;font-weight:600;color:var(--ink);text-wrap:balance">Adapters, not rewrites.</h2>
+        <h2 style="margin:12px 0 0;font-family:Sora,sans-serif;font-size:38px;line-height:1.1;letter-spacing:-1.6px;font-weight:600;color:var(--ink);text-wrap:balance">Two wallets. One integration.</h2>
       </div>
       <p style="margin:0;max-width:40ch;font-size:14px;line-height:1.6;color:var(--ink2);text-wrap:pretty">Connect with the KasWare or Kastle browser extension. Both use wallet-approved login messages and server-verified sessions.</p>
     </div>
@@ -218,6 +218,7 @@ const preview = wallets.map(w => ({ ...w, badge: 'Extension', fg: 'var(--ink2)',
         </div>
       </template>
     </div>
+    <p class="support-note">Login has been tested with KasWare and Kastle browser extensions. Operation and network support vary by wallet; real testnet transaction validation is still pending. <a :href="`${repositoryUrl}/blob/main/docs/testing/compatibility-v1.json`">See the compatibility record →</a></p>
   </div>
 </section>
 
@@ -225,7 +226,7 @@ const preview = wallets.map(w => ({ ...w, badge: 'Extension', fg: 'var(--ink2)',
   <div style="max-width:1200px;margin:0 auto;padding:72px 24px">
     <div style="max-width:50ch;margin-bottom:34px">
       <span style="font:600 10.5px Figtree;letter-spacing:.09em;text-transform:uppercase;color:var(--acc)">In the box</span>
-      <h2 style="margin:12px 0 0;font-family:Sora,sans-serif;font-size:38px;line-height:1.1;letter-spacing:-1.6px;font-weight:600;color:var(--ink);text-wrap:balance">Boring where it counts.</h2>
+      <h2 style="margin:12px 0 0;font-family:Sora,sans-serif;font-size:38px;line-height:1.1;letter-spacing:-1.6px;font-weight:600;color:var(--ink);text-wrap:balance">Built for the details of login.</h2>
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px">
       <div style="border:1px solid var(--line);border-radius:16px;background:var(--bg);padding:20px">
@@ -233,14 +234,14 @@ const preview = wallets.map(w => ({ ...w, badge: 'Extension', fg: 'var(--ink2)',
           <CodeXml :size="17" aria-hidden="true" />
         </div>
         <div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px">Typed end to end</div>
-        <p style="margin:0;font-size:13.5px;line-height:1.55;color:var(--ink2);text-wrap:pretty">Typed methods, networks and errors help you integrate confidently. Runtime capability checks handle the operations each wallet actually supports.</p>
+        <p style="margin:0;font-size:13.5px;line-height:1.55;color:var(--ink2);text-wrap:pretty">Use createGhostlink() for wallet operations and GhostlinkError for typed failures. Runtime capability checks reflect what the connected wallet supports.</p>
       </div>
       <div style="border:1px solid var(--line);border-radius:16px;background:var(--bg);padding:20px">
         <div style="width:34px;height:34px;border-radius:11px;background:var(--accSoft);display:grid;place-items:center;margin-bottom:13px;color:var(--acc)">
           <Palette :size="17" aria-hidden="true" />
         </div>
         <div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px">Headless, then themed</div>
-        <p style="margin:0;font-size:13.5px;line-height:1.55;color:var(--ink2);text-wrap:pretty">Use the controller to build your own UI, or use the Vue and React components. Scoped CSS variables let you adapt their fonts, colors and surfaces.</p>
+        <p style="margin:0;font-size:13.5px;line-height:1.55;color:var(--ink2);text-wrap:pretty">Start with GhostlinkConnectButton and GhostlinkModal, or build your own UI with useGhostlink(). Scoped CSS variables let the components fit your brand.</p>
       </div>
       <div style="border:1px solid var(--line);border-radius:16px;background:var(--bg);padding:20px">
         <div style="width:34px;height:34px;border-radius:11px;background:var(--accSoft);display:grid;place-items:center;margin-bottom:13px;color:var(--acc)">
@@ -254,7 +255,7 @@ const preview = wallets.map(w => ({ ...w, badge: 'Extension', fg: 'var(--ink2)',
           <RotateCw :size="17" aria-hidden="true" />
         </div>
         <div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px">Sessions restore on reload</div>
-        <p style="margin:0;font-size:13.5px;line-height:1.55;color:var(--ink2);text-wrap:pretty">The client checks your backend for a valid session when it starts. Authentication can persist without a live wallet connection, until expiry or sign-out.</p>
+        <p style="margin:0;font-size:13.5px;line-height:1.55;color:var(--ink2);text-wrap:pretty">Framework providers restore sessions on mount. In your own UI, use restoreSession() and check initialization before showing an identity. Server expiry and revocation still apply.</p>
       </div>
     </div>
   </div>
@@ -265,7 +266,7 @@ const preview = wallets.map(w => ({ ...w, badge: 'Extension', fg: 'var(--ink2)',
     <div>
       <span style="font:600 10.5px Figtree;letter-spacing:.09em;text-transform:uppercase;color:var(--acc)">Live demo</span>
       <h2 style="margin:12px 0 14px;max-width:24ch;font-family:Sora,sans-serif;font-size:36px;line-height:1.1;letter-spacing:-1.5px;font-weight:600;color:var(--ink);text-wrap:balance">Try the real login flow.</h2>
-      <p style="margin:0 0 22px;max-width:46ch;font-size:15px;line-height:1.6;color:var(--ink2);text-wrap:pretty">Choose a browser wallet, review a login message, and try a protected backend request in the Vue example.</p>
+      <p style="margin:0 0 22px;max-width:46ch;font-size:15px;line-height:1.6;color:var(--ink2);text-wrap:pretty">Walk through wallet selection, message review, and session verification in the Vue example. Then try a protected request against the demo backend.</p>
       <div style="display:flex;gap:11px;flex-wrap:wrap">
         <NuxtLink to="/demo" style="height:46px;padding:0 20px;border-radius:12px;background:var(--acc);color:var(--accInk);font-size:14.5px;font-weight:700;display:flex;align-items:center" data-hover="lp-hover-9">Open the demo</NuxtLink>
         <NuxtLink to="/docs" style="height:46px;padding:0 18px;border-radius:12px;border:1px solid var(--line2);color:var(--ink2);font-size:14.5px;font-weight:700;display:flex;align-items:center" data-hover="lp-hover-10">Read the docs</NuxtLink>
@@ -299,14 +300,12 @@ const preview = wallets.map(w => ({ ...w, badge: 'Extension', fg: 'var(--ink2)',
 <section style="border-bottom:1px solid var(--line);background:var(--surf)">
   <div style="max-width:1200px;margin:0 auto;padding:64px 24px;display:flex;align-items:center;justify-content:space-between;gap:28px;flex-wrap:wrap">
     <div style="min-width:260px">
-      <h2 style="margin:0 0 8px;max-width:22ch;font-family:Sora,sans-serif;font-size:32px;line-height:1.12;letter-spacing:-1.3px;font-weight:600;color:var(--ink);text-wrap:balance">Building on Kaspa? Start here.</h2>
-      <p style="margin:0;max-width:44ch;font-size:14.5px;line-height:1.55;color:var(--ink2)">Pre-release, built for wallet login, and ready to try in the working example.</p>
+      <h2 style="margin:0 0 8px;max-width:22ch;font-family:Sora,sans-serif;font-size:32px;line-height:1.12;letter-spacing:-1.3px;font-weight:600;color:var(--ink);text-wrap:balance">Make wallet login your next commit.</h2>
+      <p style="margin:0;max-width:44ch;font-size:14.5px;line-height:1.55;color:var(--ink2)">The packages are on npm. The guides cover the full flow. Pick your framework and start building.</p>
     </div>
     <div style="display:flex;gap:11px;flex-wrap:wrap">
-      <button disabled style="height:48px;padding:0 20px;border-radius:13px;background:var(--acc);color:var(--accInk);font:700 14.5px Figtree;display:flex;align-items:center;gap:11px" data-hover="lp-hover-11">
-        <span style="font-family:'JetBrains Mono',monospace;font-size:13.5px">Package coming soon</span>
-      </button>
-      <NuxtLink to="/docs" style="height:48px;padding:0 20px;border-radius:13px;border:1px solid var(--line2);color:var(--ink);font-size:14.5px;font-weight:700;display:flex;align-items:center" data-hover="lp-hover-12">Read the docs</NuxtLink>
+      <NuxtLink to="/docs" style="height:48px;padding:0 20px;border-radius:13px;background:var(--acc);color:var(--accInk);font:700 14.5px Figtree;display:flex;align-items:center;gap:11px" data-hover="lp-hover-11">Start building <ArrowRight :size="16" aria-hidden="true" /></NuxtLink>
+      <a :href="npmUrl('core')" style="height:48px;padding:0 20px;border-radius:13px;border:1px solid var(--line2);color:var(--ink);font-size:14.5px;font-weight:700;display:flex;align-items:center" data-hover="lp-hover-12">View core on npm</a>
     </div>
   </div>
 </section>

@@ -6,11 +6,14 @@ const client = createGhostlink({
   auth: { baseUrl: '/auth/ghostlink' },
 });
 
-// In a framework app, its provider owns initialization.
-// Headless consumers acquire and later release browser activity:
-const release = client.attach();
-
-// Opens wallet selection when a UI host is mounted.
-client.open();
-// Release this headless owner when finished.
-// release();
+// Call from your own sign-in button; configure the backend first.
+export async function signIn() {
+  const release = client.attach();
+  try {
+    await client.restoreSession();
+    await client.connect('kasware');
+    return await client.authenticate(); // Backend-verified session.
+  } finally {
+    release(); // Stop this attachment; keep the backend session.
+  }
+}

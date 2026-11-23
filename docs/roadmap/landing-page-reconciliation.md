@@ -2,7 +2,21 @@
 
 The preserved `docs/design/landing page/Ghostlink Landing.dc.html` governs layout, styling, and interaction. It is not evidence that the proposed protocols, packages, integrations, or product claims exist. The initial audit was on 2026-09-16; wallet visibility and priorities were updated on 2026-11-19 under the [deferred integration decision](wallet-integrations.md).
 
-## Claims and replacements
+## Public beta copy refresh — 2026-11-23
+
+The npm registry and downloaded archives confirm `0.1.0-beta.2` for all four `@ghostdagger/ghostlink-*` packages. The `beta` tag resolves to that version; `latest` still resolves to `0.1.0-beta.1`. Website commands therefore pin matching `0.1.0-beta.2` versions rather than relying on an unqualified install or the workspace manifests, which still say beta.1.
+
+- Package pages: [core](https://www.npmjs.com/package/@ghostdagger/ghostlink-core), [Vue](https://www.npmjs.com/package/@ghostdagger/ghostlink-vue), [React](https://www.npmjs.com/package/@ghostdagger/ghostlink-react), [server](https://www.npmjs.com/package/@ghostdagger/ghostlink-server).
+- Published declarations verify `createGhostlink`, `attach`, `connect`, `authenticate`, `restoreSession`, `onAuthenticated`, `disconnect`, framework providers/components/hooks, `createGhostlinkServer`, `createSqliteStorage`, `createPostgresStorage`, and `migratePostgresStorage`. Postgres/Neon and the separate server entry points are included in beta.2.
+- The site now has a package catalog, real install commands, four code tabs, and a `/docs` guide hub. The primary CTA opens setup documentation; the demo remains a separate path.
+- MIT applies to Ghostlink's original code; upstream assets retain their own terms. The public release remains explicitly labeled beta.
+- Live login evidence supports KasWare and Kastle browser extensions. No claims of broad wallet certification, independent security audit, or completed real testnet transaction validation were added. Compatibility and security links expose the recorded limits.
+- The first flow illustration now depicts a browser wallet instead of suggesting QR pairing. New package/docs sections use the existing colors, type, spacing, and card styles. These are intentional additions to the original prototype layout.
+- Validation: production website build and website/snippet typechecks pass. All four displayed snippets also typecheck against declarations extracted from the public beta.2 archives. The public Vue, React, and Postgres guides return HTTP 200 and describe beta.2. Browser verification against the production build passes 24 tests (one opt-in Docker restart test skipped), including dark/light accessibility and overflow at 360, 390, 768, and 1280 pixels, package/guide navigation, installation choices, and fixture-backed demo authentication. Desktop/mobile screenshots were reviewed and the four landing baselines refreshed. These checks are not new real-wallet certification.
+
+The table and roadmap below preserve the earlier audit. Publication, licensing, and documentation-placeholder findings are superseded by the evidence above; unverified wallet and protocol claims remain excluded.
+
+## Initial claims and replacements
 
 | Prototype claim | Current evidence / limitation | Published replacement |
 | --- | --- | --- |

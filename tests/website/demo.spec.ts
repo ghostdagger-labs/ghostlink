@@ -63,7 +63,7 @@ test('client navigation disposes the demo provider subscriptions', async ({ page
     fixture.kasware.on = (...args: any[]) => { fixture.__activeSubscriptions++; return on(...args); };
     fixture.kasware.removeListener = (...args: any[]) => { fixture.__activeSubscriptions--; return off(...args); };
   });
-  await page.getByRole('link', { name: 'Get Started', exact: true }).click();
+  await page.getByRole('link', { name: 'Try the demo', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Ready when you are' })).toBeVisible();
   await page.getByRole('button', { name: 'Connect wallet', exact: true }).first().click();
   await page.getByRole('button', { name: /KasWare Browser/ }).click();

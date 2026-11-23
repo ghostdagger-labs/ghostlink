@@ -2,11 +2,12 @@ import { build } from 'esbuild';
 import { cp, mkdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
+import { highlightExamples } from './tools/highlight-examples';
 export default defineNuxtConfig({
   compatibilityDate: '2026-09-16',
   devtools: { enabled: false },
   css: ['~/assets/fonts.css', '~/assets/landing.css'],
-  app: { head: { title: 'Ghostlink — Kaspa wallet login', htmlAttrs: { lang: 'en' }, meta: [{ name: 'description', content: 'Kaspa wallet login for TypeScript dApps. Vue and React components, wallet-approved messages, and server-verified sessions.' }, { name: 'theme-color', content: '#0C0D11' }], link: [{ rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }] } },
+  app: { head: { title: 'Ghostlink — Kaspa wallet login for TypeScript, Vue & React', htmlAttrs: { lang: 'en' }, meta: [{ name: 'description', content: 'Add Kaspa wallet login to your app with Ghostlink’s public npm beta. Native Vue and React components, a TypeScript controller, and Node verification with SQLite or Postgres sessions.' }, { name: 'theme-color', content: '#0C0D11' }], link: [{ rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }] } },
   nitro: {
     // Auto-detect Vercel; local and Docker builds default to node-server.
     // Preserve the verifier's relative vendor require and WASM alongside its package.
@@ -32,5 +33,5 @@ export default defineNuxtConfig({
       });
     },
   },
-  vite: { server: { fs: { allow: ['..'] } } },
+  vite: { plugins: [highlightExamples()], server: { fs: { allow: ['..'] } } },
 });

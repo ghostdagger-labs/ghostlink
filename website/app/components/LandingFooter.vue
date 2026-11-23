@@ -8,11 +8,13 @@
       </svg>
       <span style="font-family:Sora,sans-serif;font-weight:600;font-size:14px;color:var(--ink3)">Ghostlink</span>
     </span>
-    <span style="font-size:12.5px;color:var(--ink3)">Pre-release · Kaspa wallet login</span>
+    <span style="font-size:12.5px;color:var(--ink3)">Kaspa wallet login · Public beta · MIT licensed code</span>
     <span style="margin-left:auto;display:flex;gap:16px;flex-wrap:wrap">
+      <a href="/#packages" style="font-size:12.5px;color:var(--ink3)">npm packages</a>
       <NuxtLink to="/docs" style="font-size:12.5px;color:var(--ink3)" data-hover="lp-hover-13">Docs</NuxtLink>
       <NuxtLink to="/demo" style="font-size:12.5px;color:var(--ink3)" data-hover="lp-hover-14">Demo</NuxtLink>
       <a href="https://github.com/ghostdagger-labs/ghostlink" style="font-size:12.5px;color:var(--ink3)" data-hover="lp-hover-15">Source code</a>
+      <a href="https://github.com/ghostdagger-labs/ghostlink/blob/main/LICENSE" style="font-size:12.5px;color:var(--ink3)">License</a>
     </span>
   </div>
 </footer>

@@ -17,6 +17,7 @@ const isLight = computed(() => !isDark.value);
     <nav style="display:flex;gap:16px;flex-wrap:wrap">
       <a href="/#how" style="font-size:13.5px;font-weight:600;color:var(--ink2)" data-hover="lp-hover-0">How it works</a>
       <a href="/#wallets" style="font-size:13.5px;font-weight:600;color:var(--ink2)" data-hover="lp-hover-1">Wallets</a>
+      <a href="/#packages" style="font-size:13.5px;font-weight:600;color:var(--ink2)">Packages</a>
       <NuxtLink to="/docs" style="font-size:13.5px;font-weight:600;color:var(--ink2)" data-hover="lp-hover-2">Docs</NuxtLink>
       <NuxtLink to="/demo" style="font-size:13.5px;font-weight:600;color:var(--ink2)" data-hover="lp-hover-3">Demo</NuxtLink>
     </nav>

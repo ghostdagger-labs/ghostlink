@@ -1,6 +1,6 @@
 # Ghostlink website
 
-Nuxt 4 / Vue / TypeScript landing page, docs placeholder, and the existing Vue example at `/demo`. The default experience presents KasWare and Kastle browser wallets only; mobile/hardware options and prospective wallet cards are hidden. The [deferred integration findings](../docs/roadmap/wallet-integrations.md) record the UX policy and future candidates. The Node server uses the unchanged `@ghostdagger/ghostlink-server` API and SQLite. The original design files are preserved; the [claim audit and roadmap](../docs/roadmap/landing-page-reconciliation.md) explain copy corrections.
+Nuxt 4 / Vue / TypeScript landing page, package and integration guide hub, and the existing Vue example at `/demo`. The default experience presents KasWare and Kastle browser wallets only; mobile/hardware options and prospective wallet cards are hidden. The [deferred integration findings](../docs/roadmap/wallet-integrations.md) record the UX policy and future candidates. The Node server uses the unchanged `@ghostdagger/ghostlink-server` API and SQLite. The original design files are preserved; the [claim audit and roadmap](../docs/roadmap/landing-page-reconciliation.md) explain copy corrections.
 
 ## Local development
 
@@ -22,7 +22,7 @@ pnpm test:browser
 pnpm check:package
 ```
 
-The displayed snippets are loaded as raw source and independently typechecked. Vue/React snippets assume a configured provider and verification backend. Landing-page visits do not create wallet controllers or discover wallets. Controllers belong to `/demo` and are destroyed when the component unmounts.
+The displayed snippets are read from source and independently typechecked. A Vite plugin (`tools/highlight-examples.ts`) uses Shiki at build time to generate syntax tokens for TypeScript, Vue, TSX, and the npm commands. Vue renders the tokens as escaped text; no highlighting engine or grammars are shipped to browsers. The palette uses the site's theme variables. Vue/React snippets assume a configured provider and verification backend. Landing-page visits do not create wallet controllers or discover wallets. Controllers belong to `/demo` and are destroyed when the component unmounts.
 
 ## Vercel builds
 
@@ -53,7 +53,7 @@ For a public deployment, set `GHOSTLINK_ORIGIN=https://your-exact-domain.example
 
 For a Node deployment without Docker, set `GHOSTLINK_ORIGIN` and `GHOSTLINK_DATABASE`, then run `node website/.output/server/index.mjs`; `HOST` and `PORT` control binding. Keep the entire `.output` directory together. Nuxt's compile hook emits a separate verification package with its vendor WASM so the relative loader remains intact; no verifier is served under public assets.
 
-The site has no analytics, publication integration, or mail subscription. Package installation remains unavailable pending registry publication. No deployment is performed by the build.
+The site links all four public npm packages and pins install commands to `0.1.0-beta.2`, verified against the registry and published archives on 2026-11-23. `app/data/release.ts` owns release metadata, package links, and install commands; update it only after checking the published release. `/docs` links the complete integration guides and documents the main client/server methods. The TypeScript, Vue, React, and Node snippets use published APIs. No deployment is performed by the build.
 
 ## Visual and container verification
 
