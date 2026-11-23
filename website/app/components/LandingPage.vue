@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ArrowRight, Check, CodeXml, Palette, TriangleAlert, RotateCw } from '@lucide/vue';
 import { snippets } from 'virtual:ghostlink-code';
+import kaswareLogo from '@ghostdagger/ghostlink-core/assets/kasware.png?url&no-inline';
+import kastleLogo from '@ghostdagger/ghostlink-core/assets/kastle.png?url&no-inline';
 import { npmUrl, releaseVersion, repositoryUrl } from '../data/release';
 const { theme, ready } = useLandingTheme();
 const lang = ref<'TypeScript' | 'Vue' | 'React' | 'Node'>('TypeScript');
@@ -14,7 +16,6 @@ const code = computed(() => snippets[lang.value].tokens);
 const codeFile = computed(() => snippets[lang.value].file);
 const codeTabs = computed(() => (Object.keys(snippets) as (keyof typeof snippets)[]).map(name => ({ name, bg: lang.value === name ? 'var(--chipOn)' : 'transparent', fg: lang.value === name ? 'var(--chipOnInk)' : 'var(--ink3)', pick: () => { lang.value = name; } })));
 const heroStats = [{ v: '4', k: 'npm packages' }, { v: 'Vue + React', k: 'native components' }, { v: 'MIT', k: 'original code' }];
-const marquee = Array.from({ length: 8 }, () => [{ name: 'KasWare' }, { name: 'Kastle' }]).flat();
 const payoffs = [
  { text: 'Connect and authenticate through one TypeScript controller.' },
  { text: 'Give KasWare and Kastle users the same familiar login flow.' },
@@ -29,9 +30,10 @@ const compare = [
  { before: 'Build each framework’s login interface', after: 'Native Vue and React components' },
 ];
 const wallets = [
- { name: 'KasWare', kind: 'Browser extension · login', mark: 'KW', bg: '#5E52C4', status: 'Supported' },
- { name: 'Kastle', kind: 'Browser extension · login', mark: 'KS', bg: '#46506B', status: 'Supported' },
+ { name: 'KasWare', kind: 'Browser extension · login', logo: kaswareLogo, status: 'Supported' },
+ { name: 'Kastle', kind: 'Browser extension · login', logo: kastleLogo, status: 'Supported' },
 ].map(w => ({ ...w, fg: 'var(--okText)', chip: 'var(--okSoft)' }));
+const marquee = Array.from({ length: 8 }, () => wallets).flat();
 const preview = wallets.map(w => ({ ...w, badge: 'Extension', fg: 'var(--ink2)', chip: 'var(--chip)' }));
 </script>
 <template>
@@ -94,7 +96,7 @@ const preview = wallets.map(w => ({ ...w, badge: 'Extension', fg: 'var(--ink2)',
     <div style="flex:1;min-width:0;overflow:hidden">
       <div style="display:flex;gap:34px;width:max-content;animation:slide 38s linear infinite">
         <template v-for="(m, index) in marquee" :key="index">
-          <span :aria-hidden="index >= 2 ? true : undefined" style="font-family:Sora,sans-serif;font-weight:500;font-size:16px;color:var(--ink3);white-space:nowrap">{{ m.name }}</span>
+          <span :aria-hidden="index >= 2 ? true : undefined" style="display:flex;align-items:center;gap:9px;font-family:Sora,sans-serif;font-weight:500;font-size:16px;color:var(--ink3);white-space:nowrap"><img :src="m.logo" alt="" width="24" height="24" class="wallet-brand-logo" />{{ m.name }}</span>
         </template>
       </div>
     </div>
@@ -209,7 +211,7 @@ const preview = wallets.map(w => ({ ...w, badge: 'Extension', fg: 'var(--ink2)',
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px">
       <template v-for="(w, index) in wallets" :key="index">
         <div style="border:1px solid var(--line);border-radius:16px;background:var(--surf);padding:18px;display:flex;align-items:center;gap:13px">
-          <span :style="`width:38px;height:38px;flex:none;border-radius:12px;background:${w.bg};display:grid;place-items:center;font:800 13px Sora,sans-serif;color:#fff`">{{ w.mark }}</span>
+          <img :src="w.logo" alt="" width="38" height="38" class="wallet-brand-logo" />
           <span style="flex:1;min-width:0">
             <span style="display:block;font-size:14px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ w.name }}</span>
             <span style="display:block;font-size:11.5px;color:var(--ink3)">{{ w.kind }}</span>
@@ -287,7 +289,7 @@ const preview = wallets.map(w => ({ ...w, badge: 'Extension', fg: 'var(--ink2)',
       <div style="display:flex;flex-direction:column;gap:7px">
         <template v-for="(p, index) in preview" :key="index">
           <div style="display:flex;align-items:center;gap:11px;padding:10px 11px;border:1px solid var(--line);border-radius:12px;background:var(--surf2)">
-            <span :style="`width:30px;height:30px;flex:none;border-radius:10px;background:${p.bg};display:grid;place-items:center;font:800 11px Sora,sans-serif;color:#fff`">{{ p.mark }}</span>
+            <img :src="p.logo" alt="" width="30" height="30" class="wallet-brand-logo" />
             <span style="flex:1;min-width:0;font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.name }}</span>
             <span :style="`flex:none;font:600 10px Figtree;color:${p.fg};background:${p.chip};padding:3px 8px;border-radius:999px`">{{ p.badge }}</span>
           </div>
